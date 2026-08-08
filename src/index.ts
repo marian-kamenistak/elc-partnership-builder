@@ -16,6 +16,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { McpAgent } from "agents/mcp";
 import { z } from "zod";
 import { ATTRIBUTION, SITE } from "./content";
+import { handleApi } from "./api";
 import { handleChat, type ChatEnv } from "./chat";
 import { aiDiscount, availableItems, discountFor, eur, journeyItemsFor, PRESET_IDS, presetById, resolveBasket } from "./core/catalog";
 import { buildJourney } from "./core/journey";
@@ -248,6 +249,18 @@ export default {
 	fetch(request: Request, env: Env, ctx: ExecutionContext) {
 		const url = new URL(request.url);
 		const path = url.pathname.replace(/\/$/, "");
+
+		// REST layer (mcp-launch P9): read-only, GET-only, before the chat/MCP branches.
+		if (path.startsWith("/mcp/partnership/api")) {
+			if (request.method !== "GET") {
+				return new Response(JSON.stringify({ ok: false, error: "read_only_api_use_get" }), {
+					status: 405,
+					headers: { "content-type": "application/json; charset=utf-8" },
+				});
+			}
+			const apiRes = handleApi(path, url);
+			if (apiRes) return apiRes;
+		}
 
 		if (path === "/mcp/partnership/chat") {
 			if (request.method !== "POST") {

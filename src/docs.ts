@@ -82,6 +82,9 @@ ${rows}
 <p><strong>ChatGPT (developer mode)</strong> — Settings → Connectors → Add → MCP server URL <code>${ENDPOINT}</code></p>
 <p>No AI tool that supports MCP? The same builder runs as a chat on <a href="https://www.engineeringleaders.io/partner/chat/?ref=mcp">engineeringleaders.io/partner/chat</a>, and the classic click-through configurator lives at <a href="https://www.engineeringleaders.io/partner/membership/?ref=mcp">/partner/membership/</a>.</p>
 
+<h2>Plain REST, no MCP needed</h2>
+<p>The read-only tools double as GET endpoints for scripts and spreadsheets: <code>${ENDPOINT}/api/options</code>, <code>/api/match?goal=hiring&amp;budget=solid</code>, <code>/api/customize</code>, <code>/api/journey</code>. Spec: <a href="${ENDPOINT}/api/openapi.json">openapi.json</a>. Sending an offer stays on the MCP tool and <a href="https://www.engineeringleaders.io/partner/chat/?ref=mcp">the chat</a> — the doors that carry the discount.</p>
+
 <h2>Sibling server</h2>
 <p>ELC's general toolkit (leadership-ratio benchmark, partnership business case, community-launch readiness) runs at <a href="https://www.engineeringleaders.io/mcp">engineeringleaders.io/mcp</a> — same pattern, complementary tools.</p>
 
