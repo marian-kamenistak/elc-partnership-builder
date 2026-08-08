@@ -1,0 +1,70 @@
+/**
+ * elc-partnership-builder — the Partnership AI Builder Worker.
+ *
+ * One tool core, two doors:
+ *   GET  /mcp/partnership       → HTML docs page (any Accept except text/event-stream)
+ *   POST /mcp/partnership       → MCP streamable HTTP (authless, McpAgent)
+ *   POST /mcp/partnership/chat  → chat backend for the /partner/chat/ widget (Phase 4)
+ *
+ * Route nesting: elc-toolkit owns engineeringleaders.io/mcp* — Cloudflare picks the most
+ * specific pattern, so /mcp/partnership* lands here. Verify precedence after every first
+ * deploy (see the AI-builder plan, Phase 1).
+ *
+ * Deploy: set -a && source ~/.env && set +a && npx wrangler deploy
+ * (route creation needs the broad CLOUDFLARE_API_TOKEN; wrangler's own OAuth is zone:read)
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "elc-partnership-builder",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-03-10",
+	"compatibility_flags": ["nodejs_compat"],
+	"routes": [
+		{ "pattern": "www.engineeringleaders.io/mcp/partnership*", "zone_name": "engineeringleaders.io" },
+		{ "pattern": "engineeringleaders.io/mcp/partnership*", "zone_name": "engineeringleaders.io" },
+	],
+	"migrations": [
+		{
+			"new_sqlite_classes": ["ElcPartnershipBuilder"],
+			"tag": "v1",
+		},
+	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"class_name": "ElcPartnershipBuilder",
+				"name": "MCP_OBJECT",
+			},
+		],
+	},
+	// Cloudflare Workers rate limiting (open beta binding). Keyed by caller IP in code.
+	// OFFER: request_offer only — the informational tools are the discovery surface and stay
+	// open. CHAT: per-message cap on the widget backend; Turnstile+session gate the doorway,
+	// this caps the throughput once inside.
+	"unsafe": {
+		"bindings": [
+			{
+				"name": "OFFER_RATE_LIMITER",
+				"type": "ratelimit",
+				"namespace_id": "2001",
+				"simple": { "limit": 5, "period": 60 },
+			},
+			{
+				"name": "CHAT_RATE_LIMITER",
+				"type": "ratelimit",
+				"namespace_id": "2002",
+				"simple": { "limit": 10, "period": 60 },
+			},
+		],
+	},
+	"vars": {
+		// Model per plan §Phase 4: quality wins on a surface fronting EUR 12-20K decisions; a
+		// Haiku downgrade is a config change here, not code. CHAT_ENABLED=false is the kill
+		// switch (friendly book-a-call message instead of a dead widget).
+		"CHAT_MODEL": "claude-sonnet-5",
+		"CHAT_ENABLED": "true",
+	},
+	"observability": {
+		"enabled": true,
+	},
+}
