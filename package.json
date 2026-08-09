@@ -1,6 +1,7 @@
 {
   "name": "elc-partnership-builder",
   "version": "1.0.0",
+  "description": "MCP server: build and price a partnership with Engineering Leaders Community (3,100+ engineering leaders, Central Europe) from your AI assistant. Real catalog prices, a 12-month plan, 16% AI-channel discount.",
   "private": true,
   "scripts": {
     "deploy": "wrangler deploy",

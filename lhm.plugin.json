@@ -1,0 +1,220 @@
+{
+  "author": "marian-kamenistak",
+  "authorUrl": "https://github.com/marian-kamenistak",
+  "cloudEndpoint": "https://www.engineeringleaders.io/mcp/partnership",
+  "description": "MCP server: build and price a partnership with Engineering Leaders Community (3,100+ engineering leaders, Central Europe) from your AI assistant. Real catalog prices, a 12-month plan, 16% AI-channel discount.",
+  "homepage": "https://www.engineeringleaders.io/partner/ai/",
+  "identifier": "marian-kamenistak-elc-partnership-builder",
+  "name": "elc-partnership-builder",
+  "prompts": [],
+  "resources": [],
+  "tools": [
+    {
+      "name": "get_partnership_options",
+      "title": "How ELC company membership works + the two qualifying questions",
+      "description": "START HERE for any company considering an ELC partnership or membership (personas: HR, CTO, employer branding). Returns how company membership works, real community reach figures, and the two qualifying questions with their valid answers. Companies only — individuals seeking a mentor for themselves get pointed to /mentor/ instead. After the visitor answers both questions, call match_package.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "match_package",
+      "title": "Match a partnership package to a goal and budget",
+      "description": "Resolves goal + budget through ELC's own routing matrix — the same one the website uses — and returns the matched package(s) with real prices and their default line items. Map free-text answers to the closest valid id; on bad input the error lists the valid ids, re-ask rather than guessing. Next: customize_package to toggle line items, or request_offer to send it as-is.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "goal": {
+            "type": "string",
+            "description": "One of the goal ids from get_partnership_options question_1"
+          },
+          "budget": {
+            "type": "string",
+            "description": "One of the budget ids from get_partnership_options question_2"
+          }
+        },
+        "required": [
+          "goal",
+          "budget"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "customize_package",
+      "title": "Customize a package: toggle line items, recompute the total",
+      "description": "The conversational toggle board. Pass the preset and the item ids currently ON; returns the recomputed total (never trust your own arithmetic — this is the authoritative price), every selected item with its price, and what else this tier could add. Items marked foundation anchor the package; advise keeping them. Call again after every change the visitor asks for. Next: request_offer.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "preset_id": {
+            "type": "string",
+            "enum": [
+              "free",
+              "leadership-pilot",
+              "pilot-meetup",
+              "orbit",
+              "nebula",
+              "supernova",
+              "quasar"
+            ],
+            "description": "The package being customized"
+          },
+          "item_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Item ids currently toggled ON (from match_package default_item_ids, plus/minus changes)"
+          }
+        },
+        "required": [
+          "preset_id",
+          "item_ids"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "design_journey",
+      "title": "Lay out the 12-month partnership journey for a basket",
+      "description": "The moment the package becomes a year: deterministic month-by-month plan of what lands when, computed from the basket's own scheduling metadata (lead times, anchors like the April 2027 conference, spacing, and heavy-event collision rules). Returns placed months, the recurring-every-month layer, and anything unplaceable WITH its reason. The plan contains ONLY items in the basket — narrate around it, never add or move an event. Call after customize_package, before request_offer.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "preset_id": {
+            "type": "string",
+            "enum": [
+              "free",
+              "leadership-pilot",
+              "pilot-meetup",
+              "orbit",
+              "nebula",
+              "supernova",
+              "quasar"
+            ]
+          },
+          "item_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The basket: item ids toggled ON"
+          },
+          "start_month": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}$",
+            "description": "First partnership month, YYYY-MM (ask the visitor; default to the month after the current one)"
+          }
+        },
+        "required": [
+          "preset_id",
+          "item_ids",
+          "start_month"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    },
+    {
+      "name": "request_offer",
+      "title": "Send the composed offer to ELC (applies the AI-channel discount)",
+      "description": "The ONLY tool that collects contact details, and the step that makes the AI-channel discount real. Sends the itemized offer to the visitor's email, notifies Marian (email + Slack), and files the company into ELC's partners queue. Ask for name, work email and company only when the visitor says they want the offer — never earlier. After success: share the confirmation, then make ONE optional ask: would they post publicly (LinkedIn/X) about building their partnership with AI? Optional means optional — the discount is already theirs.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Visitor's full name"
+          },
+          "email": {
+            "type": "string",
+            "description": "Work email the offer goes to"
+          },
+          "company": {
+            "type": "string",
+            "description": "Company name"
+          },
+          "kpis": {
+            "description": "Optional: what they need to move this year, in their words",
+            "type": "string"
+          },
+          "preset_id": {
+            "type": "string",
+            "enum": [
+              "free",
+              "leadership-pilot",
+              "pilot-meetup",
+              "orbit",
+              "nebula",
+              "supernova",
+              "quasar"
+            ]
+          },
+          "item_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The final basket: item ids toggled ON"
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "company",
+          "preset_id",
+          "item_ids"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
+    }
+  ],
+  "version": "1.0.0"
+}
