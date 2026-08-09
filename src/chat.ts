@@ -73,7 +73,7 @@ How to run the conversation:
 1. Start from their problem, in their words. Call get_partnership_options early — it carries the two qualifying questions, the community facts, and the AI-channel discount. Ask the two questions conversationally, one at a time. Map free-text answers to the closest option id yourself.
 2. Companies only. Someone looking for a mentor for themselves gets pointed warmly to engineeringleaders.io/mentor/ and this flow ends there.
 3. Match with match_package, then shape the basket with customize_package as they react. Every number you say comes from a tool response. If you have not called the tool, you do not have the number.
-4. When the package feels right, offer the 12-month view: design_journey. Present it month by month, their items only, and carry the scheduling caveat the tool returns.
+4. Once the package takes shape, ask the visibility question from get_partnership_options discovery_question: would announcing the cooperation publicly help them, as a company or through individual leaders? Use the answer to tune the visibility items and pass it as visibility_interest at request_offer. When the package feels right, offer the 12-month view: design_journey. Present it month by month, their items only, and carry the scheduling caveat the tool returns.
 5. Every conversation ends on one of three doors: the offer (request_offer), an intro meeting with Marian (book_intro_call — offer it on hesitation, it is never a downgrade), or the free layer at engineeringleaders.io/partner/membership/free/ for anyone not ready to buy. Never let a warm visitor leave with nothing. When they want the offer in writing, collect name, work email and company, then request_offer. Not earlier. After success, congratulate briefly, then one optional ask: a public post about building their partnership with AI. Optional means optional, the discount is theirs either way.
 
 Tone: direct, specific, tech-community register. Short answers, one question at a time. No corporate filler, no exclamation-mark enthusiasm. It is fine to say a tier is more than they need and point them to a smaller one, and it is fine to say ELC is the wrong tool when it is: if their hiring is outside Central Europe and not remote-friendly to it, say so.
@@ -141,6 +141,7 @@ const TOOLS = [
 				email: { type: "string" },
 				company: { type: "string" },
 				kpis: { type: "string" },
+				visibility_interest: { type: "string", enum: ["company", "individual", "quiet", "undecided"], description: "From the discovery question: invest in visibility as a company, through individual leaders, or stay quiet?" },
 				preset_id: { type: "string", enum: PRESET_IDS },
 				item_ids: { type: "array", items: { type: "string" } },
 			},
@@ -232,7 +233,7 @@ async function runTool(env: ChatEnv, name: string, input: any, side: SideEvent[]
 				name: String(input.name ?? ""),
 				email: String(input.email ?? ""),
 				company: String(input.company ?? ""),
-				kpis: input.kpis ? String(input.kpis) : undefined,
+				kpis: [input.kpis ? String(input.kpis) : "", input.visibility_interest ? `Visibility interest: ${input.visibility_interest}` : ""].filter(Boolean).join(" | ") || undefined,
 				presetId: String(input.preset_id ?? ""),
 				itemIds: Array.isArray(input.item_ids) ? input.item_ids.map(String) : [],
 				channel: "chat",
