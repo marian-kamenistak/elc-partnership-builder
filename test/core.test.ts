@@ -33,13 +33,25 @@ describe("price parity", () => {
 });
 
 describe("discount", () => {
-	it("is configured at 16% for chat and mcp, pilot-meetup excluded", () => {
+	it("is configured at 16% for chat and mcp, pilot-meetup excluded, capped and dated", () => {
 		expect(aiDiscount()).toEqual({
 			pct: 16,
 			channels: ["chat", "mcp"],
 			applies_to: "basket_total",
 			excluded_presets: ["pilot-meetup"],
+			cap_deals: 4,
+			expires: "2026-09-30",
 		});
+	});
+	it("expiry is enforced server-side: dead after 30 September 2026", () => {
+		expect(discountFor(12000, "mcp", "nebula", new Date("2026-09-30T12:00:00Z"))).toEqual({ pct: 16, discounted: 10080 });
+		expect(discountFor(12000, "mcp", "nebula", new Date("2026-10-01T00:00:00Z"))).toBeNull();
+	});
+	it("guardrails state the first-4 cap, the end date and the 16-minute claim", () => {
+		const text = guardrailLines().join(" ");
+		expect(text).toContain("first 4 partnerships");
+		expect(text).toContain("2026-09-30");
+		expect(text).toContain("16 minutes");
 	});
 	it("computes round(total*0.84) on AI channels", () => {
 		expect(discountFor(12000, "mcp")).toEqual({ pct: 16, discounted: 10080 });

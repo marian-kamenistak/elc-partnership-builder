@@ -21,7 +21,7 @@ export function docsHtml(tools: ToolDoc[], discountPct: number | null): string {
 		.join("\n");
 
 	const discountLine = discountPct
-		? `<p><strong>Why build it here:</strong> partnerships assembled through this AI channel get <strong>${discountPct}% off</strong> the composed package total, applied automatically when the inquiry is sent.</p>`
+		? `<p><strong>Why build it here:</strong> partnerships assembled through this AI channel get <strong>${discountPct}% off</strong> the composed package total, applied automatically when the inquiry is sent. Under 16 minutes from first question to the itemized offer. <strong>Limited: first 4 partnerships through this channel, ends 30 September 2026.</strong></p>`
 		: "";
 
 	return `<!doctype html>

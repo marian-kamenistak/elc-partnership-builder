@@ -40,7 +40,7 @@ export type Preset = {
 	cta_url?: string;
 };
 export type RoutingEntry = { preset: string; addons?: string[] };
-export type Discount = { pct: number; channels: string[]; applies_to: string; excluded_presets?: string[] };
+export type Discount = { pct: number; channels: string[]; applies_to: string; excluded_presets?: string[]; cap_deals?: number; expires?: string };
 
 type Catalog = {
 	generatedAt: string;
@@ -149,10 +149,19 @@ export function aiDiscount(): Discount | null {
  * (Stardust has nothing to discount), or the preset is excluded (Marian 2026-08-08:
  * credit-or-discount — pilot-meetup keeps its 100% credit and never gets the pct).
  */
-export function discountFor(total: number, channel: string, presetId?: string): { pct: number; discounted: number } | null {
+export function discountFor(
+	total: number,
+	channel: string,
+	presetId?: string,
+	now: Date = new Date(),
+): { pct: number; discounted: number } | null {
 	const d = aiDiscount();
 	if (!d || total <= 0 || !d.channels.includes(channel)) return null;
 	if (presetId && (d.excluded_presets ?? []).includes(presetId)) return null;
+	// Scarcity expiry (Marian 2026-08-09): after the stated end date the discount simply stops
+	// existing server-side — no stale 16% can reach an email or the CRM. The first-4 cap is a
+	// stated term enforced at Marian's confirmation call, not a server counter.
+	if (d.expires && now.toISOString().slice(0, 10) > d.expires) return null;
 	return { pct: d.pct, discounted: Math.round(total * (1 - d.pct / 100)) };
 }
 

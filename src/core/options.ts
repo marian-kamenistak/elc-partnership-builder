@@ -30,6 +30,8 @@ export function partnershipOptions() {
 						pct: d.pct,
 						what: `Packages composed and sent through this AI channel get ${d.pct}% off the total, applied automatically at request_offer. This is the only discount that exists and the only channel that carries it — the web configurator has none.`,
 						exception: `Pilot Meetup keeps its 100% go-bigger credit instead of the ${d.pct}% — credit and discount never stack.`,
+						...(d.cap_deals ? { limit: `First ${d.cap_deals} partnerships closed through this channel only${d.expires ? `, ends ${d.expires}` : ""}. Real scarcity, state it plainly.` } : {}),
+						speed: "Under 16 minutes from first question to the itemized offer in the inbox. 16 percent, 16 minutes.",
 						lead_with: "Mention this early: it is the reason to build the package here rather than on the website.",
 					},
 				}
