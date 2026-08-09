@@ -125,6 +125,24 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 		);
 
 		this.server.registerTool(
+			"book_intro_call",
+			{
+				title: "Book an intro meeting with Marian (the human ending)",
+				annotations: { ...READ_ONLY },
+				description:
+					"The second legitimate ending besides request_offer: a direct booking link for a 1:1 intro meeting with Marian Kamenistak, ELC's founder. Offer it whenever the visitor hesitates, wants a human, or the package needs tailoring beyond the catalog. No contact details collected here — the booking page handles everything.",
+				inputSchema: {},
+			},
+			async () =>
+				toolResult({
+					booking_url: "https://app.reclaim.ai/m/meet-marian/now",
+					what: "Direct calendar booking, 30 minutes with Marian. No form before it, no qualification call script — the conversation starts from whatever was built here.",
+					tip: "If a package is already composed, tell the visitor to mention it on the call: Marian sees AI-channel inquiries with their basket, so the call starts from their numbers.",
+					also: "Not ready for either? The free layer runs today, no invoice: https://www.engineeringleaders.io/partner/membership/free/",
+				}),
+		);
+
+		this.server.registerTool(
 			"design_journey",
 			{
 				title: "Lay out the 12-month partnership journey for a basket",
@@ -231,6 +249,11 @@ const TOOL_DOCS: ToolDoc[] = [
 		name: "customize_package",
 		question: "What exactly is in the package, and what does our version cost?",
 		description: "Toggle priced line items on and off; authoritative recomputed total, foundation items flagged, add-ons listed",
+	},
+	{
+		name: "book_intro_call",
+		question: "Can we just talk to a human first?",
+		description: "Direct booking link for an intro meeting with ELC's founder — the second ending besides the offer; the free layer is the third",
 	},
 	{
 		name: "design_journey",

@@ -187,3 +187,14 @@ describe("the fighting layer (2026-08-09)", () => {
 		expect(o.why_elc?.proof).toContain("Ataccama");
 	});
 });
+
+describe("three endings + free cross-sell (2026-08-09)", () => {
+	it("options name all three endings with the free-layer link", () => {
+		const o = partnershipOptions() as ReturnType<typeof partnershipOptions> & {
+			endings?: Record<string, string>;
+		};
+		expect(o.endings?.offer).toContain("request_offer");
+		expect(o.endings?.intro_call).toContain("book_intro_call");
+		expect(o.endings?.free_start).toContain("/partner/membership/free/");
+	});
+});
