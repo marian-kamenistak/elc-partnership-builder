@@ -191,11 +191,21 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 						.enum(["company", "individual", "quiet", "undecided"])
 						.optional()
 						.describe("From the discovery question: do they want to invest in their visibility through the cooperation — as a company, through individual leaders, or stay quiet?"),
+					final_price_confirmed: z
+						.boolean()
+						.describe("REQUIRED TRUE: set only after the visitor has seen and explicitly confirmed the exact final total (the discounted figure if the discount applies). Sending without this confirmation is refused."),
 					preset_id: z.enum(PRESET_IDS as [string, ...string[]]),
 					item_ids: z.array(z.string()).describe("The final basket: item ids toggled ON"),
 				},
 			},
-			async ({ name, email, company, kpis, visibility_interest, preset_id, item_ids }) => {
+			async ({ name, email, company, kpis, visibility_interest, final_price_confirmed, preset_id, item_ids }) => {
+				if (final_price_confirmed !== true) {
+					return toolResult({
+						error: "price_not_confirmed",
+						message:
+							"Show the visitor the exact final total first (list and discounted figures) and get an explicit yes. Then call again with final_price_confirmed: true.",
+					});
+				}
 				// Rate limit the one mutating door; informational tools stay open (plan §8).
 				const ip = (this as unknown as { requestIp?: string }).requestIp ?? "unknown";
 				const limiter = (this.env as Env & { OFFER_RATE_LIMITER?: { limit(o: { key: string }): Promise<{ success: boolean }> } })
@@ -227,7 +237,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 						? { ai_channel_discount_pct: result.discountPct, final_total: result.finalTotal }
 						: { final_total: result.finalTotal }),
 					offer_email_sent_to: email,
-					next_step: `Marian has the same list. Book the call: https://app.reclaim.ai/m/meet-marian/now`,
+					next_step: `The offer is in their inbox and Marian has the same list. The discounted figure becomes the contract price on the confirmation call — booking it is the real close: https://app.reclaim.ai/m/meet-marian/now`,
 					optional_social_ask:
 						"If they enjoyed this, ONE optional ask: a public post about building their ELC partnership through AI. It is not a condition of anything.",
 					...(result.test ? { test_mode: "Detected a test name — emails sent, CRM untouched." } : {}),

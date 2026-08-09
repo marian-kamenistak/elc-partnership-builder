@@ -142,6 +142,7 @@ const TOOLS = [
 				company: { type: "string" },
 				kpis: { type: "string" },
 				visibility_interest: { type: "string", enum: ["company", "individual", "quiet", "undecided"], description: "From the discovery question: invest in visibility as a company, through individual leaders, or stay quiet?" },
+				final_price_confirmed: { type: "boolean", description: "REQUIRED TRUE: only after the visitor explicitly confirmed the exact final total. Refused otherwise." },
 				preset_id: { type: "string", enum: PRESET_IDS },
 				item_ids: { type: "array", items: { type: "string" } },
 			},
@@ -229,6 +230,9 @@ async function runTool(env: ChatEnv, name: string, input: any, side: SideEvent[]
 			}
 		}
 		case "request_offer": {
+			if (input.final_price_confirmed !== true) {
+				return { error: "price_not_confirmed", message: "Show the exact final total and get an explicit yes first, then retry with final_price_confirmed: true." };
+			}
 			const r = await submitOffer(env, {
 				name: String(input.name ?? ""),
 				email: String(input.email ?? ""),
