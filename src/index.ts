@@ -187,11 +187,15 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 					email: z.string().describe("Work email the offer goes to"),
 					company: z.string().describe("Company name"),
 					kpis: z.string().optional().describe("Optional: what they need to move this year, in their words"),
+					visibility_interest: z
+						.enum(["company", "individual", "quiet", "undecided"])
+						.optional()
+						.describe("From the discovery question: do they want to invest in their visibility through the cooperation — as a company, through individual leaders, or stay quiet?"),
 					preset_id: z.enum(PRESET_IDS as [string, ...string[]]),
 					item_ids: z.array(z.string()).describe("The final basket: item ids toggled ON"),
 				},
 			},
-			async ({ name, email, company, kpis, preset_id, item_ids }) => {
+			async ({ name, email, company, kpis, visibility_interest, preset_id, item_ids }) => {
 				// Rate limit the one mutating door; informational tools stay open (plan §8).
 				const ip = (this as unknown as { requestIp?: string }).requestIp ?? "unknown";
 				const limiter = (this.env as Env & { OFFER_RATE_LIMITER?: { limit(o: { key: string }): Promise<{ success: boolean }> } })
@@ -209,7 +213,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 					name,
 					email,
 					company,
-					kpis,
+					kpis: [kpis, visibility_interest ? `Visibility interest: ${visibility_interest}` : ""].filter(Boolean).join(" | ") || undefined,
 					presetId: preset_id,
 					itemIds: item_ids,
 					channel: "mcp",

@@ -82,6 +82,15 @@ export function partnershipOptions() {
 		},
 		next_tool:
 			"Ask the two questions conversationally (free-text answers are fine — map them to the closest option id), then call match_package with goal + budget.",
+		// Visibility-interest discovery (Marian 2026-08-09): find out whether the client wants
+		// to invest in their own brand through the cooperation — it changes which items to
+		// recommend and tells Marian who wants co-marketing before the call.
+		discovery_question: {
+			ask: "Would announcing our cooperation publicly help you? Some partners invest in their visibility as a company, some put their leaders forward as individuals, some prefer to stay quiet.",
+			when: "Ask once the package is taking shape, before request_offer. Never a condition of anything.",
+			use: "company visibility → recommend linkedin-posts, partnership-video, company-spotlight, newsletter-logo. individual leaders → speaker slots, podcast-guest, ambassador-program. quiet → respect it, drop the visibility items from recommendations.",
+			record: "Pass the answer in request_offer's visibility_interest field so Marian sees it before the call.",
+		},
 		// Three legitimate endings (Marian 2026-08-09). Every conversation should land on one —
 		// never let a warm visitor leave with nothing.
 		endings: {
