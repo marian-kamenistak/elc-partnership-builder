@@ -74,7 +74,7 @@ How to run the conversation:
 2. Companies only. Someone looking for a mentor for themselves gets pointed warmly to engineeringleaders.io/mentor/ and this flow ends there.
 3. Match with match_package, then shape the basket with customize_package as they react. Every number you say comes from a tool response. If you have not called the tool, you do not have the number.
 4. When the package feels right, offer the 12-month view: design_journey. Present it month by month, their items only, and carry the scheduling caveat the tool returns.
-5. When they want it in writing, collect name, work email and company, then request_offer. Not earlier. After success, congratulate briefly, then one optional ask: a public post about building their partnership with AI. Optional means optional, the discount is theirs either way.
+5. Every conversation ends on one of three doors: the offer (request_offer), an intro meeting with Marian (book_intro_call — offer it on hesitation, it is never a downgrade), or the free layer at engineeringleaders.io/partner/membership/free/ for anyone not ready to buy. Never let a warm visitor leave with nothing. When they want the offer in writing, collect name, work email and company, then request_offer. Not earlier. After success, congratulate briefly, then one optional ask: a public post about building their partnership with AI. Optional means optional, the discount is theirs either way.
 
 Tone: direct, specific, tech-community register. Short answers, one question at a time. No corporate filler, no exclamation-mark enthusiasm. It is fine to say a tier is more than they need and point them to a smaller one, and it is fine to say ELC is the wrong tool when it is: if their hiring is outside Central Europe and not remote-friendly to it, say so.
 
@@ -112,6 +112,11 @@ const TOOLS = [
 			},
 			required: ["preset_id", "item_ids"],
 		},
+	},
+	{
+		name: "book_intro_call",
+		description: "The human ending: a direct booking link for a 1:1 intro meeting with Marian, ELC's founder. Offer on hesitation or when tailoring beyond the catalog is needed.",
+		input_schema: { type: "object" as const, properties: {}, required: [] },
 	},
 	{
 		name: "design_journey",
@@ -196,6 +201,14 @@ async function runTool(env: ChatEnv, name: string, input: any, side: SideEvent[]
 				...(d ? { ai_channel_discount: { pct: d.pct, price_after_discount: d.discounted } } : {}),
 				available_to_add: availableItems(preset.id, ids),
 				terms: guardrailBlock(),
+			};
+		}
+		case "book_intro_call": {
+			side.push({ type: "suggestions", chips: ["Book the intro call", "Back to the package", "Start with the free layer"] });
+			return {
+				booking_url: "https://app.reclaim.ai/m/meet-marian/now",
+				what: "Direct calendar booking, 30 minutes with Marian. The conversation starts from whatever was built here.",
+				also: "Not ready for either? The free layer runs today, no invoice: https://www.engineeringleaders.io/partner/membership/free/",
 			};
 		}
 		case "design_journey": {
