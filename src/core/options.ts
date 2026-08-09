@@ -51,6 +51,23 @@ export function partnershipOptions() {
 		},
 		how_membership_works:
 			"ELC is funded by partners, not member fees — membership stays free for engineering leaders, which is why the room stays senior and shows up. A company partnership is assembled from priced line items: pick a tier as the starting bundle, toggle items on and off, the total recalculates. Free (Stardust) is a real option and runs today.",
+		// The fighting layer (Marian 2026-08-09): the ammunition for "why ELC over the
+		// alternatives". Every figure is a confirmed data-points display — use these, never
+		// improvise proof points. Deploy them against the objection they answer, not as a list.
+		why_elc: {
+			vs_recruiters:
+				"A recruiter charges €15,000 to €25,000 per senior hire. Partners hire 2.7 engineering leaders a month from this community. One hire sourced through the room pays for most tiers outright.",
+			vs_own_events:
+				"40+ meetups since 2019, the same 3,100+ people, every month. One event of your own buys one audience once; a year here compounds into the same room seeing you twelve times.",
+			vs_conference_booths:
+				"No booths, no badge scanners, no paid talks. A hosted meetup puts your engineer on stage in front of 80 to 150 senior leaders in your own office — a peer in the room, not a vendor at a stand.",
+			proof:
+				"Everpure: 3 Director+ leaders hired over 2 years. Ataccama: 4 senior hires including a VP Platform. Apify: partner for 3 years running.",
+			scarcity_is_real:
+				"Max 10 partners per year, 8 Nebula slots, one exclusivity per category. These are enforced caps, not marketing.",
+			usage:
+				"Match the point to the objection: 'we use recruiters' → vs_recruiters; 'we run our own meetups' → vs_own_events; 'we sponsor conferences' → vs_conference_booths. Close with proof when they ask who else did this.",
+		},
 		question_1: {
 			ask: "What hurts right now?",
 			options: Object.entries(meta.interest_groups).map(([id, label]) => ({ id, label })),

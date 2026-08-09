@@ -175,3 +175,15 @@ describe("magnet at the entry point (eval e9 regression)", () => {
 		expect(o.ai_channel_discount?.exception).toContain("never stack");
 	});
 });
+
+describe("the fighting layer (2026-08-09)", () => {
+	it("options carry objection ammunition with real proof points", () => {
+		const o = partnershipOptions() as ReturnType<typeof partnershipOptions> & {
+			why_elc?: Record<string, string>;
+		};
+		expect(o.why_elc?.vs_recruiters).toContain("2.7");
+		expect(o.why_elc?.vs_own_events).toContain("40+");
+		expect(o.why_elc?.proof).toContain("Everpure");
+		expect(o.why_elc?.proof).toContain("Ataccama");
+	});
+});
