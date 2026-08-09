@@ -80,6 +80,8 @@ ${rows}
 <p><strong>Cursor</strong> — add to <code>.cursor/mcp.json</code>:</p>
 <pre>{ "mcpServers": { "elc-partnership": { "url": "${ENDPOINT}" } } }</pre>
 <p><strong>ChatGPT (developer mode)</strong> — Settings → Connectors → Add → MCP server URL <code>${ENDPOINT}</code></p>
+<p><strong>Microsoft 365 Copilot (via Copilot Studio)</strong> — open your agent → Tools → Add a tool → New tool → Model Context Protocol → Server URL <code>${ENDPOINT}</code>, authentication None → Add to agent. Streamable HTTP, which is the one transport Copilot Studio supports.</p>
+<p><strong>Perplexity (Pro/Enterprise)</strong> — profile → All settings → Connectors → Custom connector → Remote → MCP Server URL <code>${ENDPOINT}</code>, transport Streamable HTTP, authentication None.</p>
 <p>No AI tool that supports MCP? The same builder runs as a chat on <a href="https://www.engineeringleaders.io/partner/chat/?ref=mcp">engineeringleaders.io/partner/chat</a>, and the classic click-through configurator lives at <a href="https://www.engineeringleaders.io/partner/membership/?ref=mcp">/partner/membership/</a>.</p>
 
 <h2>Plain REST, no MCP needed</h2>
