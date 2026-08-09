@@ -67,4 +67,10 @@
 	"observability": {
 		"enabled": true,
 	},
+	// Uptime monitoring (ai-mcp-launch P7.5: registries health-check remote servers; a failing
+	// check tanks rank). The scheduled handler probes both MCP docs pages + the MCP initialize
+	// POST every 15 min and posts to the partners Slack channel ONLY on failure.
+	"triggers": {
+		"crons": ["*/15 * * * *"],
+	},
 }
