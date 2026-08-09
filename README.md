@@ -1,10 +1,16 @@
 # elc-partnership-builder
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-teal.svg)](LICENSE)
+[![MCP Registry](https://img.shields.io/badge/MCP_Registry-io.engineeringleaders%2Felc--partnership--builder-blue)](https://registry.modelcontextprotocol.io/v0/servers?search=elc-partnership-builder)
+[![Smithery](https://img.shields.io/badge/Smithery-engineeringleaders%2Felc--partnership--builder-8A2BE2)](https://smithery.ai/servers/engineeringleaders/elc-partnership-builder)
+
 "What does it cost to partner with an engineering community in Central Europe, and what do we get month by month?"
 
 This MCP server answers it with real numbers. It builds a tailored company partnership with [Engineering Leaders Community](https://www.engineeringleaders.io/partner/?ref=github) — 3,100+ CTOs, VPs of Engineering, engineering managers and tech leads across Prague, Brno, Bratislava and Kraków — directly from your AI assistant: qualify the goal, match a package, customize priced line items, lay out the 12-month journey, send the itemized offer.
 
 **Inquiries sent through the AI channel get 16% off the composed total**, applied automatically at submission. That is the whole point of connecting: the discount lives on this channel and the web configurator does not carry it.
+
+![The live docs page at engineeringleaders.io/mcp/partnership: the 16% AI-channel discount callout, the endpoint, and the five tools mapped to the buyer questions they answer](docs/docs-page.jpg)
 
 ## Connect
 
