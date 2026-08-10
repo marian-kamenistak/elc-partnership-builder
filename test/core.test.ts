@@ -39,7 +39,7 @@ describe("discount", () => {
 			channels: ["chat", "mcp"],
 			applies_to: "basket_total",
 			excluded_presets: ["pilot-meetup"],
-			cap_deals: 4,
+			cap_deals: 1,
 			expires: "2026-09-30",
 		});
 	});
@@ -49,7 +49,7 @@ describe("discount", () => {
 	});
 	it("guardrails state the first-4 cap, the end date and the 16-minute claim", () => {
 		const text = guardrailLines().join(" ");
-		expect(text).toContain("first 4 partnerships");
+		expect(text).toContain("FIRST partnership closed");
 		expect(text).toContain("2026-09-30");
 		expect(text).toContain("16 minutes");
 	});

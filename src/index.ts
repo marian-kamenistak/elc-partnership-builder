@@ -18,6 +18,7 @@ import { z } from "zod";
 import { ATTRIBUTION, SITE } from "./content";
 import { handleApi } from "./api";
 import { handleChat, type ChatEnv } from "./chat";
+import { handleReclaimHook, type ReclaimEnv } from "./reclaim";
 import { aiDiscount, availableItems, discountFor, eur, journeyItemsFor, PRESET_IDS, presetById, resolveBasket } from "./core/catalog";
 import { buildJourney } from "./core/journey";
 import { guardrailBlock } from "./core/guardrails";
@@ -297,6 +298,17 @@ export default {
 			}
 			const apiRes = handleApi(path, url);
 			if (apiRes) return apiRes;
+		}
+
+		// Reclaim booking webhook (2026-08-10): POST-only, signed, log-only until the secret is set.
+		if (path === "/mcp/partnership/reclaim-hook") {
+			if (request.method !== "POST") {
+				return new Response(JSON.stringify({ ok: false, error: "use_post" }), {
+					status: 405,
+					headers: { "content-type": "application/json; charset=utf-8" },
+				});
+			}
+			return handleReclaimHook(request, env as unknown as ReclaimEnv);
 		}
 
 		if (path === "/mcp/partnership/chat") {

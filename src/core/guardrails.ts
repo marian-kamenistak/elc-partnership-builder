@@ -18,7 +18,7 @@ export function guardrailLines(): string[] {
 		`ELC takes max ${meta.global_caps.partners_per_year} partners per year.`,
 		...(d
 			? [
-					`The ONLY discount that exists is the ${d.pct}% AI-channel discount, applied automatically when the inquiry is sent through this AI channel. Never invent, speculate about, or negotiate any other discount, and never present the ${d.pct}% as negotiable upward.${(d.excluded_presets ?? []).includes("pilot-meetup") ? " Exception: Pilot Meetup keeps its 100% go-bigger credit instead — the two never stack." : ""}${d.cap_deals ? ` LIMITED: the ${d.pct}% goes to the first ${d.cap_deals} partnerships closed through this channel${d.expires ? `, and ends ${d.expires}` : ""}. State this when presenting the discount.` : d.expires ? ` The discount ends ${d.expires}.` : ""}`,
+					`The ONLY discount that exists is the ${d.pct}% AI-channel discount, applied automatically when the inquiry is sent through this AI channel. Never invent, speculate about, or negotiate any other discount, and never present the ${d.pct}% as negotiable upward.${(d.excluded_presets ?? []).includes("pilot-meetup") ? " Exception: Pilot Meetup keeps its 100% go-bigger credit instead — the two never stack." : ""}${d.cap_deals ? ` LIMITED: the ${d.pct}% goes to ${d.cap_deals === 1 ? "the FIRST partnership closed" : `the first ${d.cap_deals} partnerships closed`} through this channel${d.expires ? `, and ends ${d.expires}` : ""}. One winner takes it. State this when presenting the discount.` : d.expires ? ` The discount ends ${d.expires}.` : ""}`,
 					`Speed: the flow from first question to the itemized offer in the inbox runs under 16 minutes. A fair claim to make; a signed agreement still needs Marian's call.`,
 				]
 			: []),
