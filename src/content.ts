@@ -1,6 +1,6 @@
 /**
  * Community facts + attribution. Every figure is a confirmed `display` value from
- * awareness/ai_data-points/data-points.json (elc_community + partnerships streams),
+ * awareness/ai_data-points/data-points.json (retired, see dp.mjs) (elc_community + partnerships streams),
  * verified 2026-08-08. No invented numbers — if a number is missing, add it THERE first.
  * Same contract as elc-toolkit's content.ts.
  */
