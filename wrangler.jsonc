@@ -37,6 +37,14 @@
 			},
 		],
 	},
+	// Consecutive-failure counter for the uptime cron below, so a single flaky 15-min tick
+	// doesn't page Slack — each fresh cron invocation is a fresh isolate with no other state.
+	"kv_namespaces": [
+		{
+			"binding": "UPTIME_STATE",
+			"id": "d07fc3148192400f890345abe1f05cca",
+		},
+	],
 	// Cloudflare Workers rate limiting (open beta binding). Keyed by caller IP in code.
 	// OFFER: request_offer only — the informational tools are the discovery surface and stay
 	// open. CHAT: per-message cap on the widget backend; Turnstile+session gate the doorway,

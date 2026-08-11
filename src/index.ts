@@ -342,17 +342,39 @@ export default {
 	 * 406-class regressions and route theft before they do. Silent when green; posts to the
 	 * partners Slack channel on any failure. Probes go through the public URLs, so the whole
 	 * front door (route, DNS, edge) is on the hook, not just this isolate.
+	 *
+	 * Found the hard way (2026-08-11): each check only read `res.status` and never drained the
+	 * body. Un-drained fetch() bodies are a known Workers footgun — inside a Cron Trigger's fresh
+	 * isolate the runtime can tear down the still-open stream before the status read lands,
+	 * throwing and false-failing the check. That was ~86% of ticks (Observability:
+	 * `responseStreamDisconnected`), constant before and after the last real deploy — not an
+	 * actual outage. Fixed by cancelling the body right after reading status, plus a 5s timeout +
+	 * one retry per check to absorb genuine transient blips, plus requiring 2 consecutive failed
+	 * ticks (persisted in UPTIME_STATE KV, since every tick is a fresh isolate with no other
+	 * memory) before paging Slack — a real 30-min outage still pages, a single flaky tick doesn't.
 	 */
 	async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext) {
+		const probe = async (url: string, init?: RequestInit) => {
+			const controller = new AbortController();
+			const timeout = setTimeout(() => controller.abort(), 5000);
+			try {
+				const r = await fetch(url, { ...init, signal: controller.signal });
+				await r.body?.cancel().catch(() => {});
+				return r.status === 200;
+			} finally {
+				clearTimeout(timeout);
+			}
+		};
+
 		const checks: { name: string; run: () => Promise<boolean> }[] = [
 			{
 				name: "partnership docs GET (wildcard Accept)",
-				run: async () => (await fetch(`${SITE}/mcp/partnership`, { headers: { accept: "*/*" } })).status === 200,
+				run: () => probe(`${SITE}/mcp/partnership`, { headers: { accept: "*/*" } }),
 			},
 			{
 				name: "partnership MCP initialize POST",
-				run: async () => {
-					const r = await fetch(`${SITE}/mcp/partnership`, {
+				run: () =>
+					probe(`${SITE}/mcp/partnership`, {
 						method: "POST",
 						headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
 						body: JSON.stringify({
@@ -361,27 +383,37 @@ export default {
 							method: "initialize",
 							params: { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "uptime-probe", version: "1.0" } },
 						}),
-					});
-					return r.status === 200;
-				},
+					}),
 			},
 			{
 				name: "elc-toolkit docs GET (sibling /mcp)",
-				run: async () => (await fetch(`${SITE}/mcp`, { headers: { accept: "*/*" } })).status === 200,
+				run: () => probe(`${SITE}/mcp`, { headers: { accept: "*/*" } }),
 			},
 		];
 
 		const failures: string[] = [];
 		for (const c of checks) {
 			try {
-				if (!(await c.run())) failures.push(c.name);
+				// One retry before calling it a failure — absorbs a single transient blip without
+				// needing the cross-tick counter below.
+				if (!(await c.run()) && !(await c.run())) failures.push(c.name);
 			} catch (e) {
 				failures.push(`${c.name} (${String(e).slice(0, 80)})`);
 			}
 		}
-		if (!failures.length) return;
+
+		const STREAK_KEY = "uptime:consecutive-fail-count";
+		if (!failures.length) {
+			await env.UPTIME_STATE.delete(STREAK_KEY);
+			return;
+		}
 
 		console.error("[UPTIME_FAIL]", failures);
+		const prevStreak = Number((await env.UPTIME_STATE.get(STREAK_KEY)) ?? "0");
+		const streak = prevStreak + 1;
+		await env.UPTIME_STATE.put(STREAK_KEY, String(streak), { expirationTtl: 3600 });
+		if (streak < 2) return; // one bad tick alone doesn't page — wait for the next tick to confirm
+
 		const cf = env as unknown as { SLACK_BOT_TOKEN_ELC?: string; SLACK_PARTNERS_CHANNEL?: string };
 		if (cf.SLACK_BOT_TOKEN_ELC && cf.SLACK_PARTNERS_CHANNEL) {
 			await fetch("https://slack.com/api/chat.postMessage", {
@@ -389,7 +421,7 @@ export default {
 				headers: { Authorization: `Bearer ${cf.SLACK_BOT_TOKEN_ELC}`, "content-type": "application/json; charset=utf-8" },
 				body: JSON.stringify({
 					channel: cf.SLACK_PARTNERS_CHANNEL,
-					text: `:rotating_light: MCP uptime probe failing: ${failures.join(" · ")} — registries health-check these URLs, fix before listings derank.`,
+					text: `:rotating_light: MCP uptime probe failing (${streak} consecutive ticks): ${failures.join(" · ")} — registries health-check these URLs, fix before listings derank.`,
 					unfurl_links: false,
 				}),
 			}).catch((e) => console.error("uptime slack post failed", String(e)));
