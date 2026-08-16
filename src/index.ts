@@ -283,78 +283,96 @@ const TOOL_DOCS: ToolDoc[] = [
 	},
 ];
 
-export default {
-	fetch(request: Request, env: Env, ctx: ExecutionContext) {
-		const url = new URL(request.url);
-		const path = url.pathname.replace(/\/$/, "");
+function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
+	const url = new URL(request.url);
+	const path = url.pathname.replace(/\/$/, "");
 
-		// REST layer (mcp-launch P9): read-only, GET-only, before the chat/MCP branches.
-		if (path.startsWith("/mcp/partnership/api")) {
-			if (request.method !== "GET") {
-				return new Response(JSON.stringify({ ok: false, error: "read_only_api_use_get" }), {
-					status: 405,
-					headers: { "content-type": "application/json; charset=utf-8" },
-				});
-			}
-			const apiRes = handleApi(path, url);
-			if (apiRes) return apiRes;
+	// REST layer (mcp-launch P9): read-only, GET-only, before the chat/MCP branches.
+	if (path.startsWith("/mcp/partnership/api")) {
+		if (request.method !== "GET") {
+			return new Response(JSON.stringify({ ok: false, error: "read_only_api_use_get" }), {
+				status: 405,
+				headers: { "content-type": "application/json; charset=utf-8" },
+			});
 		}
+		const apiRes = handleApi(path, url);
+		if (apiRes) return apiRes;
+	}
 
-		// Reclaim booking webhook (2026-08-10): POST-only, signed, log-only until the secret is set.
-		if (path === "/mcp/partnership/reclaim-hook") {
-			if (request.method !== "POST") {
-				return new Response(JSON.stringify({ ok: false, error: "use_post" }), {
-					status: 405,
-					headers: { "content-type": "application/json; charset=utf-8" },
-				});
-			}
-			return handleReclaimHook(request, env as unknown as ReclaimEnv);
+	// Reclaim booking webhook (2026-08-10): POST-only, signed, log-only until the secret is set.
+	if (path === "/mcp/partnership/reclaim-hook") {
+		if (request.method !== "POST") {
+			return new Response(JSON.stringify({ ok: false, error: "use_post" }), {
+				status: 405,
+				headers: { "content-type": "application/json; charset=utf-8" },
+			});
 		}
+		return handleReclaimHook(request, env as unknown as ReclaimEnv);
+	}
 
-		if (path === "/mcp/partnership/chat") {
-			if (request.method !== "POST") {
-				return new Response(JSON.stringify({ ok: false, error: "use_post" }), {
-					status: 405,
-					headers: { "content-type": "application/json; charset=utf-8" },
-				});
-			}
-			return handleChat(request, env as unknown as ChatEnv);
+	if (path === "/mcp/partnership/chat") {
+		if (request.method !== "POST") {
+			return new Response(JSON.stringify({ ok: false, error: "use_post" }), {
+				status: 405,
+				headers: { "content-type": "application/json; charset=utf-8" },
+			});
 		}
+		return handleChat(request, env as unknown as ChatEnv);
+	}
 
-		if (path === "/mcp/partnership") {
-			const accept = request.headers.get("accept") ?? "";
-			// Serve HTML to every GET that is not explicitly an SSE ask — the one thing only a real
-			// MCP client requests. Accept: */* (curl, crawlers, registry health-checks) gets HTML.
-			if (request.method === "GET" && !accept.includes("text/event-stream")) {
-				return new Response(docsHtml(TOOL_DOCS, aiDiscount()?.pct ?? null), {
-					headers: { "content-type": "text/html; charset=utf-8" },
-				});
-			}
-			return ElcPartnershipBuilder.serve("/mcp/partnership").fetch(request, env, ctx);
+	if (path === "/mcp/partnership") {
+		const accept = request.headers.get("accept") ?? "";
+		// Serve HTML to every GET that is not explicitly an SSE ask — the one thing only a real
+		// MCP client requests. Accept: */* (curl, crawlers, registry health-checks) gets HTML.
+		if (request.method === "GET" && !accept.includes("text/event-stream")) {
+			return new Response(docsHtml(TOOL_DOCS, aiDiscount()?.pct ?? null), {
+				headers: { "content-type": "text/html; charset=utf-8" },
+			});
 		}
+		return ElcPartnershipBuilder.serve("/mcp/partnership").fetch(request, env, ctx);
+	}
 
-		return new Response(`Not found. MCP endpoint: ${SITE}/mcp/partnership`, { status: 404 });
-	},
+	return new Response(`Not found. MCP endpoint: ${SITE}/mcp/partnership`, { status: 404 });
+}
+
+const workerHandlers = {
+	fetch: handleFetch,
 
 	/**
 	 * Uptime monitor (ai-mcp-launch P7.5), every 15 min via the cron trigger. Registries
 	 * health-check remote servers and a failing check tanks listing rank — this catches the
-	 * 406-class regressions and route theft before they do. Silent when green; posts to the
-	 * partners Slack channel on any failure. Probes go through the public URLs, so the whole
-	 * front door (route, DNS, edge) is on the hook, not just this isolate.
+	 * 406-class regressions before they do. Silent when green; posts to the partners Slack
+	 * channel on any failure.
 	 *
-	 * Found the hard way (2026-08-11): each check only read `res.status` and never drained the
-	 * body. Un-drained fetch() bodies are a known Workers footgun — inside a Cron Trigger's fresh
-	 * isolate the runtime can tear down the still-open stream before the status read lands,
-	 * throwing and false-failing the check. That was ~86% of ticks (Observability:
-	 * `responseStreamDisconnected`), constant before and after the last real deploy — not an
-	 * actual outage. Fixed by cancelling the body right after reading status, plus a 5s timeout +
-	 * one retry per check to absorb genuine transient blips, plus requiring 2 consecutive failed
-	 * ticks (persisted in UPTIME_STATE KV, since every tick is a fresh isolate with no other
-	 * memory) before paging Slack — a real 30-min outage still pages, a single flaky tick doesn't.
+	 * The partnership checks call `handleFetch` in-process rather than `fetch()`-ing the public
+	 * URL. Found the hard way (2026-08-11): a Cron Trigger calling `fetch()` on this Worker's own
+	 * route resolves through Cloudflare's same-zone routing, which sent every self-fetch to the
+	 * sibling elc-toolkit Worker's broader `/mcp*` route instead of back to this script — 404 on
+	 * GET, 403 on POST, every single tick, for hours (confirmed via temporary diagnostic logging
+	 * to UPTIME_STATE KV). Real external clients (curl, registries) never hit this: Cloudflare's
+	 * public edge resolves the same URL to the correct, more specific route every time. Cloudflare
+	 * only supports Worker-to-Worker fetch on the same zone via service bindings or the
+	 * `global_fetch_strictly_public` compat flag (docs: developers.cloudflare.com/workers/runtime-apis/fetch/)
+	 * — so a same-zone self-fetch from inside a Worker isn't reliable full-stack "front door"
+	 * coverage regardless. Calling the handler directly still catches real app-level regressions
+	 * (the 406-class bug this probe exists for) without the same-zone footgun. The sibling
+	 * elc-toolkit check stays a real network fetch — that's genuinely a different Worker/route,
+	 * and it has never false-failed.
+	 *
+	 * (Earlier same-day fix, still in effect: cancel the response body right after reading status
+	 * — an un-drained fetch() body is a known Workers footgun that throws inside a fresh Cron
+	 * Trigger isolate. Plus a 5s timeout + one retry per check for genuine transient blips, plus
+	 * requiring 2 consecutive failed ticks — persisted in UPTIME_STATE KV, since every tick is a
+	 * fresh isolate with no other memory — before paging Slack.)
 	 */
-	async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext) {
-		const probe = async (url: string, init?: RequestInit) => {
+	async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+		const probeInternal = async (url: string, init?: RequestInit) => {
+			const r = await handleFetch(new Request(url, init), env, ctx);
+			await r.body?.cancel().catch(() => {});
+			return r.status === 200;
+		};
+
+		const probeExternal = async (url: string, init?: RequestInit) => {
 			const controller = new AbortController();
 			const timeout = setTimeout(() => controller.abort(), 5000);
 			try {
@@ -369,12 +387,12 @@ export default {
 		const checks: { name: string; run: () => Promise<boolean> }[] = [
 			{
 				name: "partnership docs GET (wildcard Accept)",
-				run: () => probe(`${SITE}/mcp/partnership`, { headers: { accept: "*/*" } }),
+				run: () => probeInternal(`${SITE}/mcp/partnership`, { headers: { accept: "*/*" } }),
 			},
 			{
 				name: "partnership MCP initialize POST",
 				run: () =>
-					probe(`${SITE}/mcp/partnership`, {
+					probeInternal(`${SITE}/mcp/partnership`, {
 						method: "POST",
 						headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
 						body: JSON.stringify({
@@ -387,7 +405,7 @@ export default {
 			},
 			{
 				name: "elc-toolkit docs GET (sibling /mcp)",
-				run: () => probe(`${SITE}/mcp`, { headers: { accept: "*/*" } }),
+				run: () => probeExternal(`${SITE}/mcp`, { headers: { accept: "*/*" } }),
 			},
 		];
 
@@ -428,3 +446,5 @@ export default {
 		}
 	},
 };
+
+export default workerHandlers;
