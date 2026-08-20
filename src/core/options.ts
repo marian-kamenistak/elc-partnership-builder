@@ -20,10 +20,10 @@ import { aiDiscount, defaultBasket, meta, presetById, resolveBasket, routing } f
  * (€25K) joined the band. A quoted range the configurator then contradicts is worse than no
  * range, so the numbers now come from the same matrix match_package uses.
  *
- * `extra` carries the one thing prices alone cannot say (Team's per-seat entry point).
+ * `extra` carries the one thing prices alone cannot say (Starter's per-seat entry point).
  */
 const BAND_EXTRA: Record<string, string> = {
-	start: ", or Team from €900 a seat",
+	start: ", or Starter from €900 a seat",
 };
 
 const compactEur = (n: number): string => {

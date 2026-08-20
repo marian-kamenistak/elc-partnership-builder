@@ -11,7 +11,7 @@ import { presetById } from "../src/core/catalog";
 
 describe("seat pricing", () => {
 	it("only Team is seat-priced; fixed bundles ignore seats entirely", () => {
-		expect(isSeatPriced("team")).toBe(true);
+		expect(isSeatPriced("starter")).toBe(true);
 		for (const p of ["hiring", "education", "product", "story", "free"]) {
 			expect(isSeatPriced(p), p).toBe(false);
 		}
@@ -21,11 +21,11 @@ describe("seat pricing", () => {
 
 	it("the 3-seat entry equals the published bundle price exactly", () => {
 		// The identity that stops seat pricing and bundle pricing drifting apart.
-		const spec = seatSpecFor("team")!;
-		const r = priceSeats("team", spec.minimum_seats);
+		const spec = seatSpecFor("starter")!;
+		const r = priceSeats("starter", spec.minimum_seats);
 		expect("error" in r).toBe(false);
 		if ("error" in r) return;
-		expect(r.total).toBe(presetById("team")!.price);
+		expect(r.total).toBe(presetById("starter")!.price);
 	});
 
 	it("walks the published volume bands", () => {
@@ -41,7 +41,7 @@ describe("seat pricing", () => {
 			[40, 650, 26000],
 		];
 		for (const [seats, perSeat, total] of cases) {
-			const r = priceSeats("team", seats);
+			const r = priceSeats("starter", seats);
 			if ("error" in r) throw new Error(`${seats}: ${r.error}`);
 			expect(r.per_seat, `${seats} seats`).toBe(perSeat);
 			expect(r.total, `${seats} seats`).toBe(total);
@@ -50,20 +50,20 @@ describe("seat pricing", () => {
 
 	it("refuses to price below the minimum instead of quoting fewer seats", () => {
 		for (const n of [1, 2]) {
-			const r = priceSeats("team", n);
+			const r = priceSeats("starter", n);
 			expect("error" in r && r.error, `${n} seats`).toBe("below_minimum");
 		}
 	});
 
 	it("rejects nonsense headcounts rather than composing something", () => {
 		for (const n of [0, -3, 2.5]) {
-			const r = priceSeats("team", n);
+			const r = priceSeats("starter", n);
 			expect("error" in r, `${n}`).toBe(true);
 		}
 	});
 
 	it("always returns the full band table, so headcount can be chosen with the price visible", () => {
-		const r = priceSeats("team", 4);
+		const r = priceSeats("starter", 4);
 		if ("error" in r) throw new Error(r.error);
 		expect(r.bands).toEqual([
 			{ seats: "3 to 5", per_seat: 900 },
@@ -74,22 +74,22 @@ describe("seat pricing", () => {
 	});
 
 	it("names the next volume break, and stops naming one at the top band", () => {
-		const mid = priceSeats("team", 5);
+		const mid = priceSeats("starter", 5);
 		if ("error" in mid) throw new Error(mid.error);
 		expect(mid.next_break?.at_seats).toBe(6);
 		expect(mid.next_break?.per_seat).toBe(820);
-		const top = priceSeats("team", 40);
+		const top = priceSeats("starter", 40);
 		if ("error" in top) throw new Error(top.error);
 		expect(top.next_break).toBeUndefined();
 	});
 
 	it("bands are contiguous and strictly cheaper as volume rises", () => {
-		const spec = seatSpecFor("team")!;
+		const spec = seatSpecFor("starter")!;
 		for (let i = 1; i < spec.bands.length; i++) {
 			expect(spec.bands[i].from, "no gap between bands").toBe((spec.bands[i - 1].to as number) + 1);
 			expect(spec.bands[i].price, "volume must not get more expensive").toBeLessThan(spec.bands[i - 1].price);
 		}
 		// Every seat count from the minimum up resolves to exactly one band.
-		for (let n = spec.minimum_seats; n <= 60; n++) expect(bandFor("team", n), `${n} seats`).toBeDefined();
+		for (let n = spec.minimum_seats; n <= 60; n++) expect(bandFor("starter", n), `${n} seats`).toBeDefined();
 	});
 });

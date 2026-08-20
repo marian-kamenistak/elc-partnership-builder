@@ -19,7 +19,7 @@ import { guardrailBlock } from "./guardrails";
 const PARTNERS_QUEUE_SLUG = "elc_partners_queue";
 const PARTNERS_QUEUE_URL = "https://app.attio.com/elc/list/b4c5827b-95f8-4307-9921-5d28f6d8bedc";
 const BOOK_CALL = "https://app.reclaim.ai/m/meet-marian/now";
-const TIER_FIT: Record<string, string> = { team: "Team", vital: "Vital", hiring: "Talent reach", visibility: "Visibility", education: "Education", product: "Product", story: "Story" };
+const TIER_FIT: Record<string, string> = { starter: "Starter", hiring: "Talent reach", education: "Education", vital: "Vital", visibility: "Visibility", story: "Story", product: "Product" };
 
 export type SubmitEnv = {
 	ATTIO_TOKEN?: string;

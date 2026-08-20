@@ -112,7 +112,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 					seats: z
 						.number()
 						.optional()
-						.describe("Team only: how many people they are enrolling. Team is priced per seat with volume bands, so ALWAYS ask for a headcount before quoting it — the bundle price is only the 3-seat entry."),
+						.describe("Starter only: how many people they are enrolling. Starter is priced per seat with volume bands, so ALWAYS ask for a headcount before quoting it — the bundle price is only the 3-seat entry."),
 				},
 			},
 			async ({ preset_id, item_ids, seats }) => {
@@ -134,7 +134,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 				// answer, and the silence let testers believe they had bought things they had not.
 				const resolvedIds = new Set([...standard, ...addons].map((i) => i.id));
 				const dropped = item_ids.filter((id) => !resolvedIds.has(id));
-				// Team is sold per seat, so the fixed bundle total is only right at the 3-seat minimum.
+				// Starter is sold per seat, so the fixed bundle total is only right at the 3-seat minimum.
 				// Quoting it to a buyer with eight leaders under-delivers by five people, and neither side
 				// finds out until kickoff (2026-08-20 persona finding). When a headcount is given, seats are
 				// the price; when it is not, say so rather than letting the bundle figure stand as a quote.
