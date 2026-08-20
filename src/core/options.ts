@@ -14,7 +14,7 @@ import { aiDiscount, meta, routing } from "./catalog";
 const BAND_MONEY: Record<string, string> = {
 	free: "€0",
 	start: "€2.5K to €5K",
-	solid: "€12K to €20K",
+	solid: "€10K to €25K",
 	exclusivity: "€32K",
 };
 
@@ -50,7 +50,7 @@ export function partnershipOptions() {
 			founded: ELC_FACTS.founded,
 		},
 		how_membership_works:
-			"ELC is funded by partners, not member fees — membership stays free for engineering leaders, which is why the room stays senior and shows up. A company partnership is assembled from priced line items: pick a tier as the starting bundle, toggle items on and off, the total recalculates. Free (Stardust) is a real option and runs today.",
+			"ELC is funded by company members, not member fees — membership stays free for engineering leaders, which is why the room stays senior and shows up. A company membership is assembled from priced line items: pick a package as the starting bundle, toggle items on and off, the total recalculates. The Free package is a real option and runs today.",
 		// The fighting layer (Marian 2026-08-09): the ammunition for "why ELC over the
 		// alternatives". Every figure is a confirmed data-points display — use these, never
 		// improvise proof points. Deploy them against the objection they answer, not as a list.
@@ -64,7 +64,7 @@ export function partnershipOptions() {
 			proof:
 				"Everpure: 3 Director+ leaders hired over 2 years. Ataccama: 4 senior hires including a VP Platform. Apify: partner for 3 years running.",
 			scarcity_is_real:
-				"Max 10 partners per year, 8 Nebula slots, one exclusivity per category. These are enforced caps, not marketing.",
+				"Max 10 company members per year, 8 Hiring slots, one exclusivity per category. These are enforced caps, not marketing.",
 			usage:
 				"Match the point to the objection: 'we use recruiters' → vs_recruiters; 'we run our own meetups' → vs_own_events; 'we sponsor conferences' → vs_conference_booths. Close with proof when they ask who else did this.",
 		},
@@ -96,11 +96,11 @@ export function partnershipOptions() {
 		endings: {
 			offer: "Ready to move → request_offer: the itemized offer with the discount, in their inbox in minutes.",
 			intro_call: "Wants a human first, or the package needs tailoring → book_intro_call: a direct booking link for an intro meeting with Marian. Offer it whenever hesitation appears; it is never a downgrade.",
-			free_start: `Budget is zero, timing is wrong, or trust is not there yet → the free layer (Stardust) runs today, no invoice, no contract: ${SITE}/partner/membership/free/ — six real items their managers can use this month. Cross-sell it explicitly to anyone not ready to buy; a company inside the free layer is next year's partner.`,
+			free_start: `Budget is zero, timing is wrong, or trust is not there yet → the Free package runs today, no invoice, no contract: ${SITE}/partner/membership/free/ — six real items their managers can use this month. Cross-sell it explicitly to anyone not ready to buy; a company inside the free layer is next year's partner.`,
 		},
 		caps: {
 			partners_per_year: meta.global_caps.partners_per_year,
-			nebula_slots_per_year: meta.global_caps.nebula_slots_per_year,
+			hiring_slots_per_year: meta.global_caps.nebula_slots_per_year,
 		},
 	};
 }

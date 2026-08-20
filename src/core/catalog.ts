@@ -59,7 +59,7 @@ type Catalog = {
 const catalog = raw as unknown as Catalog;
 
 /** Same allowlist as elc-web membership.astro PRESET_IDS. Vendor Seat absent on purpose. */
-export const PRESET_IDS = ["free", "leadership-pilot", "pilot-meetup", "orbit", "nebula", "supernova", "quasar"];
+export const PRESET_IDS = ["free", "leadership-pilot", "pilot-meetup", "vital", "hiring", "visibility", "education", "product", "story"];
 const EXCLUDED_TIER_KEYS = ["vendor"];
 
 const stripExcludedTiers = (item: Item): Item => ({
@@ -85,8 +85,8 @@ export const generatedAt = catalog.generatedAt;
 
 export const presetById = (id: string): Preset | undefined => presets.find((p) => p.id === id);
 
-/** Quasar Exclusive composes on quasar's tier key (membership.astro tierKeyOf precedent). */
-export const tierKeyOf = (presetId: string): string => (presetId === "quasar-exclusive" ? "quasar" : presetId);
+/** Product Exclusive composes on product's tier key (membership.astro tierKeyOf precedent). */
+export const tierKeyOf = (presetId: string): string => (presetId === "product-exclusive" ? "product" : presetId);
 
 /** What this item is called when this tier is buying (name_by_tier fallback chain). */
 export const nameFor = (item: Item, tier: string): string => item.name_by_tier?.[tier] ?? item.name;
@@ -146,7 +146,7 @@ export function aiDiscount(): Discount | null {
 /**
  * Apply the AI-channel discount for a submission channel. Server-side only — model and client
  * totals are never trusted. Returns null when the channel does not qualify, the total is 0
- * (Stardust has nothing to discount), or the preset is excluded (Marian 2026-08-08:
+ * (Free has nothing to discount), or the preset is excluded (Marian 2026-08-08:
  * credit-or-discount — pilot-meetup keeps its 100% credit and never gets the pct).
  */
 export function discountFor(
