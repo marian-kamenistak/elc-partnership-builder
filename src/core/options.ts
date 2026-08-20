@@ -6,17 +6,47 @@
  * Triage scope (Marian 2026-08-08): COMPANIES ONLY. Personas: HR, CTO, employer branding.
  * Individual mentoring is a link-out to /mentor/, never a guided path here.
  *
- * Band EUR labels mirror elc-web PartnerPicker DEFAULT_BANDS — the public wording on /partner/.
+ * Band EUR labels are derived from the routing matrix here (see bandMoney below); elc-web's
+ * PartnerPicker DEFAULT_BANDS carries the same figures as the public wording on /partner/ and
+ * must be updated alongside any routing change.
  */
 import { ELC_FACTS, SITE, andJoin } from "../content";
-import { aiDiscount, meta, routing } from "./catalog";
+import { aiDiscount, defaultBasket, meta, presetById, resolveBasket, routing } from "./catalog";
 
-const BAND_MONEY: Record<string, string> = {
-	free: "€0",
-	start: "€2.5K to €5K, or Team from €900 a seat",
-	solid: "€10K to €25K",
-	exclusivity: "€32K",
+/**
+ * Band money labels are DERIVED from what each band's routing cells actually resolve to, not
+ * typed by hand. The hand-typed version drifted twice: `start` kept a €5K ceiling from legacy
+ * orbit after it was retired, and `solid` still read "€12K to €20K" after Vital (€10K) and Story
+ * (€25K) joined the band. A quoted range the configurator then contradicts is worse than no
+ * range, so the numbers now come from the same matrix match_package uses.
+ *
+ * `extra` carries the one thing prices alone cannot say (Team's per-seat entry point).
+ */
+const BAND_EXTRA: Record<string, string> = {
+	start: ", or Team from €900 a seat",
 };
+
+const compactEur = (n: number): string => {
+	if (n === 0) return "€0";
+	const k = n / 1000;
+	// €2.5K, but €12K rather than €12.0K
+	return `€${Number.isInteger(k) ? k : k.toFixed(1)}K`;
+};
+
+function bandMoney(budget: string): string {
+	// Price the fully resolved default basket, not preset.price — the exclusivity cell composes
+	// category-exclusivity on top of Product, so the preset price alone would advertise €20K for
+	// a €32K band. This is the same computation matchPackage performs.
+	const totals = Object.values(routing.match[budget] ?? {})
+		.flat()
+		.filter((e) => presetById(e.preset))
+		.map((e) => resolveBasket(e.preset, [...defaultBasket(e.preset), ...(e.addons ?? [])]).total);
+	if (!totals.length) return "";
+	const lo = Math.min(...totals);
+	const hi = Math.max(...totals);
+	const base = lo === hi ? compactEur(lo) : `${compactEur(lo)} to ${compactEur(hi)}`;
+	return `${base}${BAND_EXTRA[budget] ?? ""}`;
+}
 
 export function partnershipOptions() {
 	const d = aiDiscount();
@@ -77,7 +107,7 @@ export function partnershipOptions() {
 			options: routing.budgets.map((id) => ({
 				id,
 				label: id.charAt(0).toUpperCase() + id.slice(1),
-				range: BAND_MONEY[id] ?? "",
+				range: bandMoney(id),
 			})),
 		},
 		next_tool:

@@ -19,6 +19,14 @@ export type Match = {
 	ai_channel_price?: { pct: number; price: number; display: string };
 	included_addons: string[];
 	default_item_ids: string[];
+	/**
+	 * The same basket as default_item_ids, but showable. Returning ids alone (2026-08-20 audit)
+	 * meant a model had 19 opaque strings at the one moment it needs to describe the package, so
+	 * it either called customize_package purely to resolve names or, worse, guessed from the ids.
+	 * Name + price only: the long `value` prose stays in customize_package, which is where
+	 * itemised detail belongs.
+	 */
+	default_items: { id: string; name: string; price: number; foundation: boolean }[];
 	summary: string;
 };
 
@@ -33,12 +41,23 @@ export function matchPackage(goal: string, budget: string): { ok: true; matches:
 	if (!entries.length) {
 		return { ok: false, error: `No route for ${budget}/${goal} — this combination has no package. Re-ask the two questions.` };
 	}
-	const matches = entries.map((e) => {
-		const p = presetById(e.preset);
-		if (!p) throw new Error(`routing references unknown preset "${e.preset}"`);
+	// A routing cell pointing at a preset that is no longer published (renamed, legacied) used to
+	// throw here, which surfaced to the visitor as a hard tool failure rather than a fallback —
+	// start/talent did exactly that for two weeks after the 7-package cutover (2026-08-20). Stale
+	// entries now drop and the remaining ones still answer; only an entirely stale cell errors,
+	// and it errors in the same guiding style as the two input checks above.
+	const live = entries.filter((e) => presetById(e.preset));
+	if (!live.length) {
+		return {
+			ok: false,
+			error: `No live package is routed for ${budget}/${goal} right now. Offer the free layer (https://www.engineeringleaders.io/partner/membership/free/) or book_intro_call, and do not invent a package.`,
+		};
+	}
+	const matches = live.map((e) => {
+		const p = presetById(e.preset)!;
 		const defaults = defaultBasket(p.id);
 		const withAddons = [...defaults, ...(e.addons ?? [])];
-		const { total } = resolveBasket(p.id, withAddons);
+		const { standard, addons, total } = resolveBasket(p.id, withAddons);
 		// "mcp" stands in for "any AI channel" here — chat and mcp always carry the discount
 		// together (sync.mjs validates channels ⊆ [chat, mcp]). Exclusions (pilot-meetup keeps
 		// its credit instead) resolve inside discountFor.
@@ -59,6 +78,12 @@ export function matchPackage(goal: string, budget: string): { ok: true; matches:
 				: {}),
 			included_addons: e.addons ?? [],
 			default_item_ids: withAddons,
+			default_items: [...standard, ...addons].map((i) => ({
+				id: i.id,
+				name: i.name,
+				price: i.price,
+				foundation: i.foundation,
+			})),
 			summary:
 				p.id === "free"
 					? "The free layer, running today: no invoice, no contract."

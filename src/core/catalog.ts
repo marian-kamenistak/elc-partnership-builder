@@ -34,6 +34,8 @@ export type Preset = {
 	id: string;
 	name: string;
 	price: number;
+	/** Which of the four goal groups this package answers. Defaults the business-case branch. */
+	interest?: string;
 	row?: string;
 	question_band?: string;
 	cta_label?: string;

@@ -20,6 +20,8 @@ import { handleApi } from "./api";
 import { handleChat, type ChatEnv } from "./chat";
 import { handleReclaimHook, type ReclaimEnv } from "./reclaim";
 import { aiDiscount, availableItems, discountFor, eur, journeyItemsFor, PRESET_IDS, presetById, resolveBasket } from "./core/catalog";
+import { approvalMemo, buildBusinessCase } from "./core/businesscase";
+import { fitToBudget } from "./core/fit";
 import { buildJourney } from "./core/journey";
 import { guardrailBlock } from "./core/guardrails";
 import { matchPackage } from "./core/match";
@@ -36,10 +38,21 @@ const READ_ONLY = {
 
 const ATTR_PATH = "/partner/";
 
+/**
+ * Every successful tool response carries the fixed-terms block and the attribution footer.
+ *
+ * Error responses do NOT (2026-08-20 persona testing): eleven simulated buyers each hit several
+ * validation errors, and stapling twelve lines of VAT law, exclusivity caps and a discount
+ * countdown onto `{"error": "unknown preset"}` read as nagging by the third repeat and as
+ * desperate by the tenth. One tester named it the single most off-putting thing in the flow —
+ * being pitched a deadline while still failing to describe their own problem. Terms belong on
+ * priced answers, which is the only place they mean anything.
+ */
 function toolResult(payload: Record<string, unknown>, note?: string) {
-	const body = [note, JSON.stringify(payload, null, 2), guardrailBlock()].filter(Boolean).join("\n\n");
+	const isError = "error" in payload;
+	const body = [note, JSON.stringify(payload, null, 2), isError ? null : guardrailBlock()].filter(Boolean).join("\n\n");
 	return {
-		content: [{ type: "text" as const, text: body + ATTRIBUTION(ATTR_PATH) }],
+		content: [{ type: "text" as const, text: body + (isError ? "" : ATTRIBUTION(ATTR_PATH)) }],
 		structuredContent: payload,
 	};
 }
@@ -100,9 +113,32 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 			async ({ preset_id, item_ids }) => {
 				const preset = presetById(preset_id);
 				if (!preset) return toolResult({ error: `unknown preset "${preset_id}" — valid: ${PRESET_IDS.join(", ")}` });
+				// An empty basket used to price a €12,000 package as "Free" (2026-08-20 persona testing:
+				// every one of eleven testers hit this, and several briefly believed it). A paid preset
+				// rendering as €0 is the worst failure mode a configurator has, so it is now a guiding
+				// error instead of a confident wrong answer.
+				if (!item_ids.length) {
+					return toolResult({
+						error: "empty_basket",
+						message: `Nothing is selected, so there is nothing to price — this is NOT a free package. ${preset.name} lists at ${eur(preset.price)}. Pass default_item_ids from match_package to price the standard bundle, then toggle from there.`,
+					});
+				}
 				const { standard, addons, total } = resolveBasket(preset_id, item_ids);
+				// Unknown or wrong-tier ids used to vanish silently, so a basket could quietly lose items and
+				// still return a confident total. Name them: "this package does not sell that" is a real
+				// answer, and the silence let testers believe they had bought things they had not.
+				const resolvedIds = new Set([...standard, ...addons].map((i) => i.id));
+				const dropped = item_ids.filter((id) => !resolvedIds.has(id));
 				const d = discountFor(total, "mcp", preset_id);
 				return toolResult({
+					...(dropped.length
+						? {
+							not_available_in_this_package: {
+								item_ids: dropped,
+								note: `Not sold in ${preset.name}, so NOT included in the total below. Tell the visitor plainly rather than letting them assume it is in there — some items exist only in other packages.`,
+							},
+							}
+						: {}),
 					preset: { id: preset_id, name: preset.name, bundle_price: preset.price },
 					selected: { standard, addons },
 					total,
@@ -125,23 +161,120 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 			},
 		);
 
-		this.server.registerTool(
-			"book_intro_call",
-			{
-				title: "Book an intro meeting with Marian (the human ending)",
-				annotations: { ...READ_ONLY },
-				description:
-					"The second legitimate ending besides request_offer: a direct booking link for a 1:1 intro meeting with Marian Kamenistak, ELC's founder. Offer it whenever the visitor hesitates, wants a human, or the package needs tailoring beyond the catalog. No contact details collected here — the booking page handles everything.",
-				inputSchema: {},
-			},
-			async () =>
-				toolResult({
-					booking_url: "https://app.reclaim.ai/m/meet-marian/now",
-					what: "Direct calendar booking, 30 minutes with Marian. No form before it, no qualification call script — the conversation starts from whatever was built here.",
-					tip: "If a package is already composed, tell the visitor to mention it on the call: Marian sees AI-channel inquiries with their basket, so the call starts from their numbers.",
-					also: "Not ready for either? The free layer runs today, no invoice: https://www.engineeringleaders.io/partner/membership/free/",
-				}),
-		);
+			this.server.registerTool(
+				"book_intro_call",
+				{
+					title: "Book an intro meeting with Marian (the human ending)",
+					annotations: { ...READ_ONLY },
+					description:
+						"The second legitimate ending besides request_offer: a direct booking link for a 1:1 intro meeting with Marian Kamenistak, ELC's founder. Offer it whenever the visitor hesitates, wants a human, or the package needs tailoring beyond the catalog. No contact details collected here — the booking page handles everything. Pass preset_id and item_ids if a package was composed: the response then carries a paste-ready booking note, so the call starts from their numbers instead of from scratch.",
+					inputSchema: {
+						preset_id: z
+							.enum(PRESET_IDS as [string, ...string[]])
+							.optional()
+							.describe("Optional: the package composed so far, if any"),
+						item_ids: z.array(z.string()).optional().describe("Optional: the basket composed so far, if any"),
+					},
+				},
+				// 2026-08-20: this used to return a bare link plus a tip telling the visitor to remember
+				// their own basket and recite it on the call. Anyone who booked instead of requesting an
+				// offer therefore arrived with nothing attached, losing the composed package at exactly
+				// the moment intent was highest. The basket now comes back as a paste-ready line. Still
+				// no contact details collected here.
+				async ({ preset_id, item_ids }) => {
+					const base = {
+						booking_url: "https://app.reclaim.ai/m/meet-marian/now",
+						what: "Direct calendar booking, 30 minutes with Marian. No form before it, no qualification call script — the conversation starts from whatever was built here.",
+						also: "Not ready for either? The free layer runs today, no invoice: https://www.engineeringleaders.io/partner/membership/free/",
+					};
+					if (!preset_id || !item_ids?.length) {
+						return toolResult({
+							...base,
+							tip: "No package composed yet — that is fine, the call can start from the two questions. If one gets built first, call this tool again with the basket so the booking note carries it.",
+						});
+					}
+					const preset = presetById(preset_id);
+					const { standard, addons, total } = resolveBasket(preset_id, item_ids);
+					const d = discountFor(total, "mcp", preset_id);
+					const count = standard.length + addons.length;
+					return toolResult({
+						...base,
+						composed_package: {
+							package: preset?.name ?? preset_id,
+							items: count,
+							list_total: total,
+							...(d ? { ai_channel_total: d.discounted, discount_pct: d.pct } : {}),
+						},
+						booking_note: `${preset?.name ?? preset_id} package, ${count} items, ${eur(d ? d.discounted : total)}/year${d ? ` (incl. ${d.pct}% AI-channel discount)` : ""}. Built with the ELC partnership builder.`,
+						tip: "Give the visitor the booking_note verbatim and tell them to paste it into the booking form's note field. That is what carries their basket to Marian — do not rely on them remembering it.",
+						...(d
+							? {
+									discount_caveat:
+										"Booking a call does not itself lock the AI-channel discount; sending the offer through request_offer is what registers it. Say so plainly rather than implying the call preserves it.",
+								}
+							: {}),
+					});
+				},
+			);
+
+			this.server.registerTool(
+				"fit_to_budget",
+				{
+					title: "Compose the best package for an exact budget",
+					annotations: { ...READ_ONLY },
+					description:
+						"Use when the visitor names a NUMBER rather than a band — 'we have 8,000 approved', 'can we do this for five thousand'. Returns a deterministic best-value composition under that ceiling: what fits, what was left out AND why, how much budget is unspent, and what the cheapest excluded item costs. Foundation items are kept first, then the remaining items cheapest-first so the budget buys as much as possible. Priced against the AI-channel figure by default, since that is what they would actually pay. Never hand-pick a basket yourself when a budget is stated — this tool is the authoritative composition, the same way customize_package is the authoritative total.",
+					inputSchema: {
+						preset_id: z.enum(PRESET_IDS as [string, ...string[]]).describe("The package to trim to budget (from match_package)"),
+						budget: z.number().describe("The visitor's ceiling in EUR, as a number (8000, not '8K')"),
+						must_have: z
+							.array(z.string())
+							.optional()
+							.describe("Optional: item ids the visitor explicitly asked for; kept first if they fit"),
+						against: z
+							.enum(["discounted", "list"])
+							.optional()
+							.describe("Price the budget against the AI-channel figure (default) or the list price"),
+					},
+				},
+				async ({ preset_id, budget, must_have, against }) =>
+					toolResult(fitToBudget({ preset_id, budget, must_have, against }) as unknown as Record<string, unknown>),
+			);
+
+			this.server.registerTool(
+				"build_business_case",
+				{
+					title: "Compute the ROI case and a forwardable approval memo",
+					annotations: { ...READ_ONLY },
+					description:
+						"Turns a composed basket into the argument that gets it approved: recruiter-fee equivalence, break-even hire count, cost per room, cost per month, what the spend replaces, and every assumption behind those numbers. Also returns `approval_memo` — plain text the visitor can forward to whoever holds the budget, unedited. Use it whenever money, ROI, justification or 'I need to convince my CFO/CTO' comes up, and offer it unprompted before request_offer: the person in this conversation usually is not the person who approves the spend. Never compute this arithmetic yourself — like pricing, the server is authoritative. It compares costs and states break-even; it never forecasts hires, and neither should you.",
+					inputSchema: {
+						preset_id: z.enum(PRESET_IDS as [string, ...string[]]).describe("The package being justified"),
+						item_ids: z.array(z.string()).describe("The basket: item ids toggled ON"),
+						company: z.string().optional().describe("Optional: company name, for the memo"),
+						requester_name: z.string().optional().describe("Optional: who is asking for approval, signed at the memo's foot"),
+						open_senior_roles: z
+							.number()
+							.optional()
+							.describe("Optional: senior roles they need to fill in 12 months — sharpens the comparison into their numbers"),
+						avg_first_year_salary: z
+							.number()
+							.optional()
+							.describe("Optional: average first-year salary in EUR for those roles; turns the generic fee band into their own"),
+						kpis: z.string().optional().describe("Optional: what has to move this year, in their words"),
+					},
+				},
+				async ({ preset_id, item_ids, company, requester_name, open_senior_roles, avg_first_year_salary, kpis }) => {
+					const c = buildBusinessCase({ preset_id, item_ids, company, open_senior_roles, avg_first_year_salary, kpis });
+					if ("error" in c) return toolResult(c as Record<string, unknown>);
+					return toolResult({
+						...(c as unknown as Record<string, unknown>),
+						approval_memo: approvalMemo(c, requester_name),
+						approval_memo_usage:
+							"Offer this as something they can forward as-is. Do not rewrite the numbers into prose of your own; hand it over whole, then ask whether they want it sent with the offer.",
+					});
+				},
+			);
 
 		this.server.registerTool(
 			"design_journey",

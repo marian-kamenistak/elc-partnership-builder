@@ -90,11 +90,13 @@ describe("routing", () => {
 			}
 		}
 	});
-	it("exclusivity budget lands on quasar + category-exclusivity at 32000", () => {
+	// Renamed from quasar in the 7-package cutover (2026-08-20): exclusivity now composes on
+	// `product`, same €32,000 landing point.
+	it("exclusivity budget lands on product + category-exclusivity at 32000", () => {
 		const result = matchPackage("product", "exclusivity");
 		expect(result.ok).toBe(true);
 		if (result.ok) {
-			expect(result.matches[0].preset_id).toBe("quasar");
+			expect(result.matches[0].preset_id).toBe("product");
 			expect(result.matches[0].included_addons).toContain("category-exclusivity");
 			expect(result.matches[0].price).toBe(32000);
 		}
@@ -103,6 +105,36 @@ describe("routing", () => {
 		const result = matchPackage("world-domination", "solid");
 		expect(result.ok).toBe(false);
 		if (!result.ok) expect(result.error).toContain("talent");
+	});
+	// The bug this suite missed for two weeks: start/talent pointed at legacy `orbit`, and
+	// matchPackage threw an uncaught error rather than returning a guiding failure. Every cell
+	// must resolve to a preset the builder can actually compose, and no cell may throw.
+	it("no routing cell throws, and every match resolves to a live composable preset", () => {
+		for (const budget of routing.budgets) {
+			for (const goal of routing.goals) {
+				expect(() => matchPackage(goal, budget), `${budget}/${goal} must not throw`).not.toThrow();
+				const r = matchPackage(goal, budget);
+				expect(r.ok, `${budget}/${goal} must resolve`).toBe(true);
+				if (r.ok) {
+					for (const m of r.matches) {
+						expect(PRESET_IDS, `${budget}/${goal} → ${m.preset_id}`).toContain(m.preset_id);
+						expect(m.default_item_ids.length, `${budget}/${goal} → ${m.preset_id} has an empty basket`).toBeGreaterThan(0);
+					}
+				}
+			}
+		}
+	});
+	it("every live package is reachable from some goal x budget cell", () => {
+		const reachable = new Set<string>();
+		for (const budget of routing.budgets) {
+			for (const goal of routing.goals) {
+				const r = matchPackage(goal, budget);
+				if (r.ok) for (const m of r.matches) reachable.add(m.preset_id);
+			}
+		}
+		for (const id of PRESET_IDS) {
+			expect(reachable, `${id} ships but the wizard can never match into it`).toContain(id);
+		}
 	});
 });
 
