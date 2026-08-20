@@ -22,8 +22,9 @@ import { handleReclaimHook, type ReclaimEnv } from "./reclaim";
 import { aiDiscount, availableItems, discountFor, eur, journeyItemsFor, PRESET_IDS, presetById, resolveBasket } from "./core/catalog";
 import { approvalMemo, buildBusinessCase } from "./core/businesscase";
 import { fitToBudget } from "./core/fit";
+import { isSeatPriced, priceSeats, seatSpecFor } from "./core/seats";
 import { buildJourney } from "./core/journey";
-import { guardrailBlock } from "./core/guardrails";
+import { detectBoundaryConflicts, guardrailBlock } from "./core/guardrails";
 import { matchPackage } from "./core/match";
 import { partnershipOptions } from "./core/options";
 import { submitOffer, type SubmitEnv } from "./core/submit";
@@ -108,9 +109,13 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 				inputSchema: {
 					preset_id: z.enum(PRESET_IDS as [string, ...string[]]).describe("The package being customized"),
 					item_ids: z.array(z.string()).describe("Item ids currently toggled ON (from match_package default_item_ids, plus/minus changes)"),
+					seats: z
+						.number()
+						.optional()
+						.describe("Team only: how many people they are enrolling. Team is priced per seat with volume bands, so ALWAYS ask for a headcount before quoting it — the bundle price is only the 3-seat entry."),
 				},
 			},
-			async ({ preset_id, item_ids }) => {
+			async ({ preset_id, item_ids, seats }) => {
 				const preset = presetById(preset_id);
 				if (!preset) return toolResult({ error: `unknown preset "${preset_id}" — valid: ${PRESET_IDS.join(", ")}` });
 				// An empty basket used to price a €12,000 package as "Free" (2026-08-20 persona testing:
@@ -129,8 +134,25 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 				// answer, and the silence let testers believe they had bought things they had not.
 				const resolvedIds = new Set([...standard, ...addons].map((i) => i.id));
 				const dropped = item_ids.filter((id) => !resolvedIds.has(id));
-				const d = discountFor(total, "mcp", preset_id);
+				// Team is sold per seat, so the fixed bundle total is only right at the 3-seat minimum.
+				// Quoting it to a buyer with eight leaders under-delivers by five people, and neither side
+				// finds out until kickoff (2026-08-20 persona finding). When a headcount is given, seats are
+				// the price; when it is not, say so rather than letting the bundle figure stand as a quote.
+				const seatPricing = isSeatPriced(preset_id) && seats !== undefined ? priceSeats(preset_id, seats) : null;
+				if (seatPricing && "error" in seatPricing) return toolResult(seatPricing as unknown as Record<string, unknown>);
+				const effectiveTotal = seatPricing ? seatPricing.total : total;
+				const d = discountFor(effectiveTotal, "mcp", preset_id);
 				return toolResult({
+					...(seatPricing
+						? { seat_pricing: seatPricing }
+						: isSeatPriced(preset_id)
+							? {
+								seats_not_yet_known: {
+									minimum_seats: seatSpecFor(preset_id)?.minimum_seats,
+									note: `${preset.name} is priced per seat. The total below is the ${seatSpecFor(preset_id)?.minimum_seats}-seat entry only. Ask how many people they are enrolling, then call again with seats — do not present this figure as their price.`,
+								},
+								}
+							: {}),
 					...(dropped.length
 						? {
 							not_available_in_this_package: {
@@ -141,8 +163,8 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 						: {}),
 					preset: { id: preset_id, name: preset.name, bundle_price: preset.price },
 					selected: { standard, addons },
-					total,
-					total_display: total === 0 ? "Free" : `${eur(total)} / year, excl. VAT`,
+					total: effectiveTotal,
+					total_display: seatPricing ? seatPricing.total_display : effectiveTotal === 0 ? "Free" : `${eur(effectiveTotal)} / year, excl. VAT`,
 					...(d
 						? {
 								ai_channel_discount: {
@@ -353,11 +375,21 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 						});
 					}
 				}
+				// Flag asks ELC does not sell, without blocking the send. Silence used to read as consent:
+				// four community-destroying conditions once submitted with no comment (2026-08-20).
+				const conflicts = detectBoundaryConflicts(kpis);
 				const result = await submitOffer(this.env as SubmitEnv, {
 					name,
 					email,
 					company,
-					kpis: [kpis, visibility_interest ? `Visibility interest: ${visibility_interest}` : ""].filter(Boolean).join(" | ") || undefined,
+					kpis:
+						[
+							kpis,
+							visibility_interest ? `Visibility interest: ${visibility_interest}` : "",
+							conflicts.length ? `BOUNDARY FLAG: they asked for something not for sale (${conflicts.length} item${conflicts.length > 1 ? "s" : ""}). Read their own words above before the call.` : "",
+						]
+							.filter(Boolean)
+							.join(" | ") || undefined,
 					presetId: preset_id,
 					itemIds: item_ids,
 					channel: "mcp",
@@ -365,6 +397,14 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 				if (!result.ok) return toolResult({ error: result.error });
 				return toolResult({
 					submitted: true,
+					...(conflicts.length
+						? {
+							boundary_conflict: {
+								rules: conflicts.map((c) => c.rule),
+								note: "The offer was sent, but they asked for something ELC does not sell. Tell them now, plainly, before they assume it was agreed. Marian has the same flag, so he will not walk into the call thinking these were accepted.",
+							},
+							}
+						: {}),
 					preset: result.presetName,
 					list_total: result.listTotal,
 					...(result.discountPct

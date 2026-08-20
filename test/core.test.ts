@@ -17,7 +17,7 @@ import {
 	resolveBasket,
 	routing,
 } from "../src/core/catalog";
-import { guardrailLines } from "../src/core/guardrails";
+import { detectBoundaryConflicts, guardrailLines } from "../src/core/guardrails";
 import { matchPackage } from "../src/core/match";
 import { partnershipOptions } from "../src/core/options";
 
@@ -33,25 +33,30 @@ describe("price parity", () => {
 });
 
 describe("discount", () => {
-	it("is configured at 16% for chat and mcp, pilot-meetup excluded, capped and dated", () => {
+	it("is configured at 16% for chat and mcp, pilot-meetup excluded, dated not capped", () => {
+		// cap_deals removed 2026-08-20: the one-winner race was unverifiable by construction and
+		// contradicted the offer email, which asserts the discounted figure as the contract price.
 		expect(aiDiscount()).toEqual({
 			pct: 16,
 			channels: ["chat", "mcp"],
 			applies_to: "basket_total",
 			excluded_presets: ["pilot-meetup"],
-			cap_deals: 1,
 			expires: "2026-09-30",
 		});
+		expect(aiDiscount()?.cap_deals, "a deal cap reintroduces an unfalsifiable scarcity claim").toBeUndefined();
 	});
 	it("expiry is enforced server-side: dead after 30 September 2026", () => {
 		expect(discountFor(12000, "mcp", "nebula", new Date("2026-09-30T12:00:00Z"))).toEqual({ pct: 16, discounted: 10080 });
 		expect(discountFor(12000, "mcp", "nebula", new Date("2026-10-01T00:00:00Z"))).toBeNull();
 	});
-	it("guardrails state the first-4 cap, the end date and the 16-minute claim", () => {
+	it("guardrails state the end date and the 16-minute claim, and imply no race", () => {
 		const text = guardrailLines().join(" ");
-		expect(text).toContain("FIRST partnership closed");
 		expect(text).toContain("2026-09-30");
 		expect(text).toContain("16 minutes");
+		// The scarcity wording personas read as manufactured must not come back.
+		for (const banned of ["FIRST partnership closed", "One winner", "one winner only", "Real scarcity"]) {
+			expect(text, `guardrails must not imply a race: "${banned}"`).not.toContain(banned);
+		}
 	});
 	it("computes round(total*0.84) on AI channels", () => {
 		expect(discountFor(12000, "mcp")).toEqual({ pct: 16, discounted: 10080 });
@@ -152,6 +157,47 @@ describe("guardrails + options", () => {
 		expect(o.question_2.options.map((x) => x.id)).toEqual(["free", "start", "solid", "exclusivity"]);
 		expect(o.not_for).toContain("/mentor/");
 		expect(o.community.members).toBe("3,100+");
+	});
+});
+
+describe("boundaries", () => {
+	it("the terms block states what is not for sale, and why", () => {
+		const text = guardrailLines().join(" ");
+		expect(text).toContain("NOT FOR SALE");
+		expect(text).toContain("pitching from an ELC stage");
+		expect(text).toContain("outbound");
+		expect(text).toContain("introductions");
+		// The reason has to travel with the rule, or it reads as an arbitrary vendor restriction.
+		expect(text).toContain("free for engineering leaders");
+	});
+
+	it("options carry the boundary as data, not only as an objection script", () => {
+		const b = (partnershipOptions() as unknown as { boundaries?: { not_for_sale: string[]; why: string; what_you_can_have: string } }).boundaries;
+		expect(b).toBeDefined();
+		expect(b!.not_for_sale).toHaveLength(3);
+		expect(b!.what_you_can_have, "always say what they CAN have").toBeTruthy();
+	});
+
+	it("flags the asks that would destroy the community", () => {
+		// Verbatim shape of the four conditions a VP Sales persona submitted and had accepted.
+		const ask =
+			"Conditions for signing: (1) the full member export, emails loaded into our CRM for outbound; " +
+			"(2) our AE presents a 15-minute product demo from the meetup stage, sales pitch included; " +
+			"(3) Marian makes 10 warm intros; (4) badge scanners at the hosted meetup.";
+		const flags = detectBoundaryConflicts(ask);
+		expect(flags.length, "member data, stage pitching and intros must all flag").toBe(3);
+		for (const f of flags) expect(f.rule.length).toBeGreaterThan(20);
+	});
+
+	it("does not flag an ordinary buyer describing an ordinary goal", () => {
+		for (const clean of [
+			"We need to hire 4 senior backend engineers this year and cut agency spend.",
+			"Eight promoted-from-IC managers with no leadership training.",
+			"We want our CTO on stage and our story told.",
+			undefined,
+		]) {
+			expect(detectBoundaryConflicts(clean), String(clean)).toHaveLength(0);
+		}
 	});
 });
 

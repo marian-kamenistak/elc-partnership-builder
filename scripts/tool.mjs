@@ -18,8 +18,9 @@ import { partnershipOptions } from "../src/core/options.ts";
 import { matchPackage } from "../src/core/match.ts";
 import { buildBusinessCase, approvalMemo } from "../src/core/businesscase.ts";
 import { fitToBudget } from "../src/core/fit.ts";
+import { isSeatPriced, priceSeats, seatSpecFor } from "../src/core/seats.ts";
 import { buildJourney } from "../src/core/journey.ts";
-import { guardrailBlock } from "../src/core/guardrails.ts";
+import { detectBoundaryConflicts, guardrailBlock } from "../src/core/guardrails.ts";
 import { ATTRIBUTION } from "../src/content.ts";
 import {
 	aiDiscount,
@@ -50,7 +51,7 @@ const TOOLS = {
 		return toolResult({ matches: r.matches }, r.matches.length > 1 ? "Two ways to start. Both real — present both." : undefined);
 	},
 
-	customize_package: ({ preset_id, item_ids }) => {
+	customize_package: ({ preset_id, item_ids, seats }) => {
 		const preset = presetById(preset_id);
 		if (!preset) return toolResult({ error: `unknown preset "${preset_id}" — valid: ${PRESET_IDS.join(", ")}` });
 		if (!item_ids?.length) {
@@ -62,8 +63,21 @@ const TOOLS = {
 		const { standard, addons, total } = resolveBasket(preset_id, item_ids);
 		const resolvedIds = new Set([...standard, ...addons].map((i) => i.id));
 		const dropped = item_ids.filter((id) => !resolvedIds.has(id));
-		const d = discountFor(total, "mcp", preset_id);
+		const seatPricing = isSeatPriced(preset_id) && seats !== undefined ? priceSeats(preset_id, seats) : null;
+		if (seatPricing && "error" in seatPricing) return toolResult(seatPricing);
+		const effectiveTotal = seatPricing ? seatPricing.total : total;
+		const d = discountFor(effectiveTotal, "mcp", preset_id);
 		return toolResult({
+			...(seatPricing
+				? { seat_pricing: seatPricing }
+				: isSeatPriced(preset_id)
+					? {
+							seats_not_yet_known: {
+								minimum_seats: seatSpecFor(preset_id)?.minimum_seats,
+								note: `${preset.name} is priced per seat. The total below is the ${seatSpecFor(preset_id)?.minimum_seats}-seat entry only. Ask how many people they are enrolling, then call again with seats.`,
+							},
+						}
+					: {}),
 			...(dropped.length
 				? {
 						not_available_in_this_package: {
@@ -74,8 +88,8 @@ const TOOLS = {
 				: {}),
 			preset: { id: preset_id, name: preset.name, bundle_price: preset.price },
 			selected: { standard, addons },
-			total,
-			total_display: total === 0 ? "Free" : `${eur(total)} / year, excl. VAT`,
+			total: effectiveTotal,
+			total_display: seatPricing ? seatPricing.total_display : effectiveTotal === 0 ? "Free" : `${eur(effectiveTotal)} / year, excl. VAT`,
 			...(d
 				? { ai_channel_discount: { pct: d.pct, price_after_discount: d.discounted, note: "Applied automatically when the inquiry is sent through this AI channel (request_offer). Present both figures." } }
 				: preset_id === "pilot-meetup" && total > 0
@@ -149,9 +163,18 @@ const TOOLS = {
 		}
 		const { total } = resolveBasket(preset_id, item_ids ?? []);
 		const d = discountFor(total, "mcp", preset_id);
+		const conflicts = detectBoundaryConflicts(kpis);
 		return toolResult({
 			HARNESS_STUB: "No email, CRM write or Slack post happened. This is a local dry run.",
 			submitted: true,
+			...(conflicts.length
+				? {
+						boundary_conflict: {
+							rules: conflicts.map((c) => c.rule),
+							note: "The offer was sent, but they asked for something ELC does not sell. Tell them now, plainly, before they assume it was agreed.",
+						},
+					}
+				: {}),
 			preset: presetById(preset_id)?.name ?? preset_id,
 			list_total: total,
 			...(d ? { ai_channel_discount_pct: d.pct, final_total: d.discounted } : { final_total: total }),

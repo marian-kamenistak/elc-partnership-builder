@@ -60,7 +60,10 @@ export function partnershipOptions() {
 						pct: d.pct,
 						what: `Packages composed and sent through this AI channel get ${d.pct}% off the total, applied automatically at request_offer. This is the only discount that exists and the only channel that carries it — the web configurator has none.`,
 						exception: `Pilot Meetup keeps its 100% go-bigger credit instead of the ${d.pct}% — credit and discount never stack.`,
-						...(d.cap_deals ? { limit: `${d.cap_deals === 1 ? "The FIRST partnership closed through this channel takes it, one winner only" : `First ${d.cap_deals} partnerships closed through this channel only`}${d.expires ? `, ends ${d.expires}` : ""}. Real scarcity, state it plainly.` } : {}),
+						// 2026-08-20: was a one-winner race plus a deadline. A buyer could never check whether the seat
+						// was still open, so the claim was unfalsifiable, and two sophisticated personas read the
+						// stack as manufactured urgency. The date alone is verifiable and self-limiting.
+						...(d.expires ? { limit: `Ends ${d.expires}. Every inquiry sent through this channel before then gets it — there is no race and no limited number of slots, so do not imply either.` } : {}),
 						speed: "Under 16 minutes from first question to the itemized offer in the inbox. 16 percent, 16 minutes.",
 						lead_with: "Mention this early: it is the reason to build the package here rather than on the website.",
 					},
@@ -85,8 +88,14 @@ export function partnershipOptions() {
 		// alternatives". Every figure is a confirmed data-points display — use these, never
 		// improvise proof points. Deploy them against the objection they answer, not as a list.
 		why_elc: {
+			// The 2.7 figure carries its basis inline (2026-08-20). A CTO persona could not reconcile it
+			// with the named proof beside it and discounted the whole case for it; it was the only number
+			// in the server with no stated basis. Marian confirmed the measure: hires ELC tracks from the
+			// intros he makes through Marian's List, not partner self-reporting.
 			vs_recruiters:
-				"A recruiter charges €15,000 to €25,000 per senior hire. Partners hire 2.7 engineering leaders a month from this community. One hire sourced through the room pays for most tiers outright.",
+				"A recruiter charges €15,000 to €25,000 per senior hire. Partners hire 2.7 engineering leaders a month from this community, counted by ELC from the intros Marian makes through Marian's List rather than self-reported by partners. One hire sourced through the room pays for most tiers outright.",
+			vs_recruiters_basis:
+				"Carry the basis whenever you use the 2.7 figure: ELC-tracked from Marian's List intros that converted to a hire. The named partner outcomes below are individual cases inside that total, not the whole of it.",
 			vs_own_events:
 				"40+ meetups since 2019, the same 3,100+ people, every month. One event of your own buys one audience once; a year here compounds into the same room seeing you twelve times.",
 			vs_conference_booths:
@@ -97,6 +106,20 @@ export function partnershipOptions() {
 				"Max 10 company members per year, 8 Hiring slots, one exclusivity per category. These are enforced caps, not marketing.",
 			usage:
 				"Match the point to the objection: 'we use recruiters' → vs_recruiters; 'we run our own meetups' → vs_own_events; 'we sponsor conferences' → vs_conference_booths. Close with proof when they ask who else did this.",
+		},
+		// The boundary as data, not as an objection script. Persona testing (VP Sales, 2026-08-20)
+		// pushed for member data, stage pitching and paid intros and got `submitted: true` with no
+		// pushback, because the only statement of the rule lived in why_elc under a `usage` note
+		// telling the model to deploy it when someone objects about conference booths.
+		boundaries: {
+			not_for_sale: [
+				"Pitching from an ELC stage. Speakers tell a real story and every one passes the same filter, whoever is paying.",
+				"Member contact data for outbound. Attendee lists tell you who is in the room; members never opted in to vendor email.",
+				"Introductions. Marian makes them when they fit, and they are not a line item anyone can buy.",
+			],
+			why: "ELC is free for engineering leaders and funded by company members. That is why the room is senior and why people come back. A room that gets sold to stops being that room, so the boundary protects the exact thing a member is paying to reach.",
+			what_you_can_have: "Be in the room every month, put your own engineer on your own stage, run a product session people opted into, host a curated dinner with your engineering lead at the table. All of it works because nobody is being sold to.",
+			if_they_push: "Say no plainly and say why. Do not soften it into a maybe, do not imply it is negotiable on the call, and never send an offer that suggests otherwise. If they need more than the catalog allows, book_intro_call.",
 		},
 		question_1: {
 			ask: "What hurts right now?",
