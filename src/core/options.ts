@@ -103,7 +103,7 @@ export function partnershipOptions() {
 			proof:
 				"Everpure: 3 Director+ leaders hired over 2 years. Ataccama: 4 senior hires including a VP Platform. Apify: partner for 3 years running.",
 			scarcity_is_real:
-				"Max 10 company members per year, 8 Hiring slots, one exclusivity per category. These are enforced caps, not marketing.",
+				"Max 10 company members per year, 8 Talent reach slots, one exclusivity per category. These are enforced caps, not marketing.",
 			usage:
 				"Match the point to the objection: 'we use recruiters' → vs_recruiters; 'we run our own meetups' → vs_own_events; 'we sponsor conferences' → vs_conference_booths. Close with proof when they ask who else did this.",
 		},
