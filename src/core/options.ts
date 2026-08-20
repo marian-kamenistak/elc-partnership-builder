@@ -13,7 +13,7 @@ import { aiDiscount, meta, routing } from "./catalog";
 
 const BAND_MONEY: Record<string, string> = {
 	free: "€0",
-	start: "€2.5K to €5K",
+	start: "€2.5K to €5K, or Team from €900 a seat",
 	solid: "€10K to €25K",
 	exclusivity: "€32K",
 };

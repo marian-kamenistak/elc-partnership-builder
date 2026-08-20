@@ -59,7 +59,7 @@ type Catalog = {
 const catalog = raw as unknown as Catalog;
 
 /** Same allowlist as elc-web membership.astro PRESET_IDS. Vendor Seat absent on purpose. */
-export const PRESET_IDS = ["free", "leadership-pilot", "pilot-meetup", "vital", "hiring", "visibility", "education", "product", "story"];
+export const PRESET_IDS = ["free", "leadership-pilot", "pilot-meetup", "team", "vital", "hiring", "visibility", "education", "product", "story"];
 const EXCLUDED_TIER_KEYS = ["vendor"];
 
 const stripExcludedTiers = (item: Item): Item => ({
