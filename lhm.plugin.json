@@ -73,10 +73,13 @@
               "free",
               "leadership-pilot",
               "pilot-meetup",
-              "orbit",
-              "nebula",
-              "supernova",
-              "quasar"
+              "team",
+              "vital",
+              "hiring",
+              "visibility",
+              "education",
+              "product",
+              "story"
             ],
             "description": "The package being customized"
           },
@@ -117,10 +120,13 @@
               "free",
               "leadership-pilot",
               "pilot-meetup",
-              "orbit",
-              "nebula",
-              "supernova",
-              "quasar"
+              "team",
+              "vital",
+              "hiring",
+              "visibility",
+              "education",
+              "product",
+              "story"
             ]
           },
           "item_ids": {
@@ -182,10 +188,13 @@
               "free",
               "leadership-pilot",
               "pilot-meetup",
-              "orbit",
-              "nebula",
-              "supernova",
-              "quasar"
+              "team",
+              "vital",
+              "hiring",
+              "visibility",
+              "education",
+              "product",
+              "story"
             ]
           },
           "item_ids": {
