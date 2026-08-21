@@ -70,8 +70,8 @@ describe("constraints", () => {
 		const byId = (id: string) => j.months.filter((m) => m.item_id === id).map((m) => m.month);
 		expect(byId("listed-as-partner")).toEqual([1]);
 		expect(byId("conference-tickets")).toEqual([8]);
-		expect(j.months[0].title).toBe("Partnership announcement");
-		expect(j.months[j.months.length - 1].title).toBe("Partnership review & renewal");
+		expect(j.months[0].title).toBe("Membership announcement");
+		expect(j.months[j.months.length - 1].title).toBe("Membership review & renewal");
 	});
 	it("annual anchor rolls forward: 2027-06 start places the conference in April 2028 (month 11)", () => {
 		// Fable audit finding 1: a past YYYY-MM anchor advances by whole years until it lands

@@ -71,7 +71,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 				title: "How ELC company membership works + the two qualifying questions",
 				annotations: { ...READ_ONLY },
 				description:
-					"START HERE for any company considering an ELC partnership or membership (personas: HR, CTO, employer branding). Returns how company membership works, real community reach figures, and the two qualifying questions with their valid answers. Companies only — individuals seeking a mentor for themselves get pointed to /mentor/ instead. After the visitor answers both questions, call match_package.",
+					"START HERE for any company considering an ELC membership (personas: HR, CTO, employer branding). Returns how company membership works, real community reach figures, and the two qualifying questions with their valid answers. Companies only — individuals seeking a mentor for themselves get pointed to /mentor/ instead. After the visitor answers both questions, call match_package.",
 				inputSchema: {},
 			},
 			async () => toolResult(partnershipOptions()),
@@ -80,7 +80,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 		this.server.registerTool(
 			"match_package",
 			{
-				title: "Match a partnership package to a goal and budget",
+				title: "Match a membership package to a goal and budget",
 				annotations: { ...READ_ONLY },
 				description:
 					"Resolves goal + budget through ELC's own routing matrix — the same one the website uses — and returns the matched package(s) with real prices and their default line items. Map free-text answers to the closest valid id; on bad input the error lists the valid ids, re-ask rather than guessing. Next: customize_package to toggle line items, or request_offer to send it as-is.",
@@ -227,7 +227,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 							list_total: total,
 							...(d ? { ai_channel_total: d.discounted, discount_pct: d.pct } : {}),
 						},
-						booking_note: `${preset?.name ?? preset_id} package, ${count} items, ${eur(d ? d.discounted : total)}/year${d ? ` (incl. ${d.pct}% AI-channel discount)` : ""}. Built with the ELC partnership builder.`,
+						booking_note: `${preset?.name ?? preset_id} package, ${count} items, ${eur(d ? d.discounted : total)}/year${d ? ` (incl. ${d.pct}% AI-channel discount)` : ""}. Built with the ELC membership builder.`,
 						tip: "Give the visitor the booking_note verbatim and tell them to paste it into the booking form's note field. That is what carries their basket to Marian — do not rely on them remembering it.",
 						...(d
 							? {
@@ -301,7 +301,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 		this.server.registerTool(
 			"design_journey",
 			{
-				title: "Lay out the 12-month partnership journey for a basket",
+				title: "Lay out the 12-month membership journey for a basket",
 				annotations: { ...READ_ONLY },
 				description:
 					"The moment the package becomes a year: deterministic month-by-month plan of what lands when, computed from the basket's own scheduling metadata (lead times, anchors like the April 2027 conference, spacing, and heavy-event collision rules). Returns placed months, the recurring-every-month layer, and anything unplaceable WITH its reason. The plan contains ONLY items in the basket — narrate around it, never add or move an event. Call after customize_package, before request_offer.",
@@ -311,7 +311,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 					start_month: z
 						.string()
 						.regex(/^\d{4}-\d{2}$/)
-						.describe("First partnership month, YYYY-MM (ask the visitor; default to the month after the current one)"),
+						.describe("First membership month, YYYY-MM (ask the visitor; default to the month after the current one)"),
 				},
 			},
 			async ({ preset_id, item_ids, start_month }) => {
@@ -337,7 +337,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 				title: "Send the composed offer to ELC (applies the AI-channel discount)",
 				annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
 				description:
-					"The ONLY tool that collects contact details, and the step that makes the AI-channel discount real. Sends the itemized offer to the visitor's email, notifies Marian (email + Slack), and files the company into ELC's partners queue. Ask for name, work email and company only when the visitor says they want the offer — never earlier. After success: share the confirmation, then make ONE optional ask: would they post publicly (LinkedIn/X) about building their partnership with AI? Optional means optional — the discount is already theirs.",
+					"The ONLY tool that collects contact details, and the step that makes the AI-channel discount real. Sends the itemized offer to the visitor's email, notifies Marian (email + Slack), and files the company into ELC's partners queue. Ask for name, work email and company only when the visitor says they want the offer — never earlier. After success: share the confirmation, then make ONE optional ask: would they post publicly (LinkedIn/X) about building their membership with AI? Optional means optional — the discount is already theirs.",
 				inputSchema: {
 					name: z.string().describe("Visitor's full name"),
 					email: z.string().describe("Work email the offer goes to"),
@@ -413,7 +413,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env> {
 					offer_email_sent_to: email,
 					next_step: `The offer is in their inbox and Marian has the same list. The discounted figure becomes the contract price on the confirmation call — booking it is the real close: https://app.reclaim.ai/m/meet-marian/now`,
 					optional_social_ask:
-						"If they enjoyed this, ONE optional ask: a public post about building their ELC partnership through AI. It is not a condition of anything.",
+						"If they enjoyed this, ONE optional ask: a public post about building their ELC membership through AI. It is not a condition of anything.",
 					...(result.test ? { test_mode: "Detected a test name — emails sent, CRM untouched." } : {}),
 				});
 			},

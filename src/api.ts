@@ -98,10 +98,10 @@ function openapi() {
 	return {
 		openapi: "3.1.0",
 		info: {
-			title: "ELC Partnership Builder API",
+			title: "ELC Membership Builder API",
 			version: "1.0.0",
 			description:
-				"Read-only REST layer over the ELC Partnership Builder: qualify, match, customize and plan a company partnership with Engineering Leaders Community (3,100+ engineering leaders, Central Europe). Prices come from the published catalog the website renders. Sending an offer runs through the MCP server at /mcp/partnership or the chat at /partner/chat/, where the 16% AI-channel discount applies.",
+				"Read-only REST layer over the ELC Membership Builder: qualify, match, customize and plan a company membership with Engineering Leaders Community (3,100+ engineering leaders, Central Europe). Prices come from the published catalog the website renders. Sending an offer runs through the MCP server at /mcp/partnership or the chat at /partner/chat/, where the 16% AI-channel discount applies.",
 			contact: { name: "Engineering Leaders Community", url: `${SITE}/partner/`, email: "weare@engineeringleaders.io" },
 			license: { name: "MIT" },
 		},

@@ -21,7 +21,7 @@ export function docsHtml(tools: ToolDoc[], discountPct: number | null): string {
 		.join("\n");
 
 	const discountLine = discountPct
-		? `<p><strong>Why build it here:</strong> partnerships assembled through this AI channel get <strong>${discountPct}% off</strong> the composed package total, applied automatically when the inquiry is sent. Under 16 minutes from first question to the itemized offer. <strong>Limited: the first partnership closed through this channel takes the discount, until 30 September 2026.</strong></p>`
+		? `<p><strong>Why build it here:</strong> memberships assembled through this AI channel get <strong>${discountPct}% off</strong> the composed package total, applied automatically when the inquiry is sent. Under 16 minutes from first question to the itemized offer. <strong>Limited: the first membership closed through this channel takes the discount, until 30 September 2026.</strong></p>`
 		: "";
 
 	return `<!doctype html>
@@ -29,24 +29,24 @@ export function docsHtml(tools: ToolDoc[], discountPct: number | null): string {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ELC Partnership Builder — MCP server | Engineering Leaders Community</title>
-<meta name="description" content="Build a tailored ELC partnership package from your own AI assistant: qualify, match a tier, customize priced line items, and send the inquiry${discountPct ? ` with a ${discountPct}% AI-channel discount` : ""}. Free remote MCP server, no auth.">
+<title>ELC Membership Builder — MCP server | Engineering Leaders Community</title>
+<meta name="description" content="Build a tailored ELC membership package from your own AI assistant: qualify, match a tier, customize priced line items, and send the inquiry${discountPct ? ` with a ${discountPct}% AI-channel discount` : ""}. Free remote MCP server, no auth.">
 <link rel="canonical" href="${ENDPOINT}">
-<meta property="og:title" content="ELC Partnership Builder — MCP server">
-<meta property="og:description" content="Build a tailored ELC partnership from your AI assistant${discountPct ? ` — ${discountPct}% AI-channel discount applied at inquiry` : ""}. 3,100+ engineering leaders in Central Europe.">
+<meta property="og:title" content="ELC Membership Builder — MCP server">
+<meta property="og:description" content="Build a tailored ELC membership from your AI assistant${discountPct ? ` — ${discountPct}% AI-channel discount applied at inquiry` : ""}. 3,100+ engineering leaders in Central Europe.">
 <meta property="og:url" content="${ENDPOINT}">
 <meta property="og:type" content="website">
 <script type="application/ld+json">${JSON.stringify({
 		"@context": "https://schema.org",
 		"@type": "SoftwareApplication",
-		name: "ELC Partnership Builder",
+		name: "ELC Membership Builder",
 		applicationCategory: "BusinessApplication",
 		operatingSystem: "Any (MCP server, streamable HTTP)",
 		url: ENDPOINT,
 		offers: { "@type": "Offer", price: 0, priceCurrency: "EUR", description: "Free to connect and use, no auth." },
 		author: { "@type": "Person", name: "Marian Kamenistak", url: "https://www.marian.coach/" },
 		publisher: { "@type": "Organization", name: "Engineering Leaders Community", url: "https://www.engineeringleaders.io/" },
-		description: `MCP server that composes and prices ELC partnership packages from the published offer catalog${discountPct ? `, with a ${discountPct}% discount on inquiries sent through the AI channel` : ""}.`,
+		description: `MCP server that composes and prices ELC membership packages from the published offer catalog${discountPct ? `, with a ${discountPct}% discount on inquiries sent through the AI channel` : ""}.`,
 	})}</script>
 <style>
 	body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #1a1a1a; }
@@ -62,8 +62,8 @@ export function docsHtml(tools: ToolDoc[], discountPct: number | null): string {
 </style>
 </head>
 <body>
-<h1>ELC Partnership Builder — MCP server</h1>
-<p>Build a tailored company partnership with Engineering Leaders Community — 3,100+ engineering leaders across Prague, Brno, Bratislava and Kraków — directly from your AI assistant: understand what ELC membership is, match a package to your goal and budget, customize it line item by line item, and send the inquiry.</p>
+<h1>ELC Membership Builder — MCP server</h1>
+<p>Build a tailored company membership with Engineering Leaders Community — 3,100+ engineering leaders across Prague, Brno, Bratislava and Kraków — directly from your AI assistant: understand what ELC membership is, match a package to your goal and budget, customize it line item by line item, and send the inquiry.</p>
 ${discountLine}
 <p><strong>Endpoint:</strong> <code>${ENDPOINT}</code> (streamable HTTP, no auth, no signup)</p>
 
@@ -88,7 +88,7 @@ ${rows}
 <p>The read-only tools double as GET endpoints for scripts and spreadsheets: <code>${ENDPOINT}/api/options</code>, <code>/api/match?goal=hiring&amp;budget=solid</code>, <code>/api/customize</code>, <code>/api/journey</code>. Spec: <a href="${ENDPOINT}/api/openapi.json">openapi.json</a>. Sending an offer stays on the MCP tool and <a href="https://www.engineeringleaders.io/partner/chat/?ref=mcp">the chat</a> — the doors that carry the discount.</p>
 
 <h2>Sibling server</h2>
-<p>ELC's general toolkit (leadership-ratio benchmark, partnership business case, community-launch readiness) runs at <a href="https://www.engineeringleaders.io/mcp">engineeringleaders.io/mcp</a> — same pattern, complementary tools.</p>
+<p>ELC's general toolkit (leadership-ratio benchmark, membership business case, community-launch readiness) runs at <a href="https://www.engineeringleaders.io/mcp">engineeringleaders.io/mcp</a> — same pattern, complementary tools.</p>
 
 <h2>Source &amp; method</h2>
 <p>Every price comes from ELC's published offer catalog — the same generated file the website's own configurator renders, so this server cannot quote a price the site disagrees with. Community figures come from ELC's member base, no survey panels, no scraped data.</p>

@@ -324,7 +324,7 @@ function offerEmailHtml(args: {
 		stats: ["3,100+ members", "120+ every meetup", "500+ at the conference"],
 		nudgeText:
 			"Want the year shaped around your KPIs? Reply to this email with what you need to move, and we build the twelve months around it.",
-		footer: "You got this because you built an offer through ELC's Partnership AI Builder.",
+		footer: "You got this because you built an offer through ELC's Membership AI Builder.",
 	};
 
 	const rowHtml = (i: ResolvedItem) =>

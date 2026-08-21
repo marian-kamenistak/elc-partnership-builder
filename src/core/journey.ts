@@ -130,7 +130,7 @@ export function buildJourney(items: JourneyItem[], startMonth: string): JourneyR
 			if (m > 12) {
 				unplaced.push({
 					item_id: occ.item.id,
-					reason: `anchored to ${a}, which falls outside the 12 months from ${startMonth} — lands in the following partnership year`,
+					reason: `anchored to ${a}, which falls outside the 12 months from ${startMonth} — lands in the following membership year`,
 				});
 				continue;
 			}
@@ -179,8 +179,8 @@ export function buildJourney(items: JourneyItem[], startMonth: string): JourneyR
 		{
 			month: 1,
 			item_id: null,
-			title: "Partnership announcement",
-			detail: "The partnership goes public: announcement from Marian on LinkedIn and in the newsletter, your logo live across ELC channels.",
+			title: "Membership announcement",
+			detail: "The membership goes public: announcement from Marian on LinkedIn and in the newsletter, your logo live across ELC channels.",
 		},
 	];
 	// Number series occurrences CHRONOLOGICALLY — the expansion index reflects placement order,
@@ -196,7 +196,7 @@ export function buildJourney(items: JourneyItem[], startMonth: string): JourneyR
 	months.push({
 		month: 12,
 		item_id: null,
-		title: "Partnership review & renewal",
+		title: "Membership review & renewal",
 		detail: "The year in numbers: warm intros, hires, reach, rooms you were in. Renewal terms agreed while the results are on the table.",
 	});
 	months.sort((a, b) => a.month - b.month);
