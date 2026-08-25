@@ -15,6 +15,15 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
+	// Turnstile + Reclaim webhook secrets come from the account-level Secrets Store.
+	// Not third-party auth, so Composio cannot broker them. Resolved to strings in
+	// src/index.ts via resolveSecrets(). Source of truth stays 1Password.
+	// CHAT_TURNSTILE_SECRET is the "ELC Partner Chat" widget (0x4AAAAAAEKh8uEYFTt9Kew0) —
+	// a DIFFERENT widget from elc-web's "ELC Partner Offer".
+	"secrets_store_secrets": [
+		{ "binding": "CHAT_TURNSTILE_SECRET", "store_id": "e5f76638e1054323adf7fda88007bd94", "secret_name": "PARTNER_CHAT_TURNSTILE_SECRET" },
+		{ "binding": "RECLAIM_WEBHOOK_SECRET", "store_id": "e5f76638e1054323adf7fda88007bd94", "secret_name": "RECLAIM_WEBHOOK_SECRET" },
+	],
 	"name": "elc-partnership-builder",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-03-10",

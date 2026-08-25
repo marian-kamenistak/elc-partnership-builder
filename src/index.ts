@@ -19,6 +19,7 @@ import { ATTRIBUTION, SITE } from "./content";
 import { handleApi } from "./api";
 import { handleChat, type ChatEnv } from "./chat";
 import { handleReclaimHook, type ReclaimEnv } from "./reclaim";
+import { resolveSecrets } from "./lib/read-secret";
 import { aiDiscount, availableItems, discountFor, eur, journeyItemsFor, PRESET_IDS, presetById, resolveBasket } from "./core/catalog";
 import { approvalMemo, buildBusinessCase } from "./core/businesscase";
 import { fitToBudget } from "./core/fit";
@@ -456,7 +457,17 @@ const TOOL_DOCS: ToolDoc[] = [
 	},
 ];
 
-function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
+// Secrets moved to the Cloudflare Secrets Store 2026-08-25. A store binding is an object
+// with an async .get(), not a string, so both are normalised to plain strings ONCE here.
+// That leaves ChatEnv / ReclaimEnv and every downstream comparison unchanged — and avoids
+// the failure where a missed usage sends "[object Object]" into a Turnstile verify (which
+// answers invalid-input-secret and fails the gate CLOSED) or an HMAC check.
+// CHAT_SESSION_SECRET is deliberately absent: it is unmanaged, Cloudflare-only, and stays a
+// plain Worker secret. readSecret passes plain strings through untouched either way.
+const STORE_BACKED_SECRETS = ["CHAT_TURNSTILE_SECRET", "RECLAIM_WEBHOOK_SECRET"] as const;
+
+async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
+	env = (await resolveSecrets(env as unknown as Record<string, unknown>, STORE_BACKED_SECRETS)) as unknown as Env;
 	const url = new URL(request.url);
 	const path = url.pathname.replace(/\/$/, "");
 
