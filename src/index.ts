@@ -508,9 +508,21 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
 		const accept = request.headers.get("accept") ?? "";
 		// Serve HTML to every GET that is not explicitly an SSE ask — the one thing only a real
 		// MCP client requests. Accept: */* (curl, crawlers, registry health-checks) gets HTML.
-		if (request.method === "GET" && !accept.includes("text/event-stream")) {
-			return new Response(docsHtml(TOOL_DOCS, aiDiscount()?.pct ?? null), {
-				headers: { "content-type": "text/html; charset=utf-8" },
+		// HEAD is handled alongside GET, added 2026-08-25 — same fix as elc-toolkit, same reason.
+		// HEAD used to fall through to the MCP transport, which 404s it, so `HEAD /mcp/partnership`
+		// returned 404 while GET returned 200. Link checkers and Slack/Discord unfurlers read HEAD
+		// first, so an endpoint linked from mcpservers.org looked dead to every one of them.
+		// Per RFC 9110 a HEAD response carries the GET headers and NO body.
+		if (
+			(request.method === "GET" || request.method === "HEAD") &&
+			!accept.includes("text/event-stream")
+		) {
+			const html = docsHtml(TOOL_DOCS, aiDiscount()?.pct ?? null);
+			return new Response(request.method === "HEAD" ? null : html, {
+				headers: {
+					"content-type": "text/html; charset=utf-8",
+					"content-length": String(new TextEncoder().encode(html).length),
+				},
 			});
 		}
 		return ElcPartnershipBuilder.serve("/mcp/partnership").fetch(request, env, ctx);
