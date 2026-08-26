@@ -18,6 +18,7 @@ import { z } from "zod";
 import { ATTRIBUTION, SITE } from "./content";
 import { handleApi } from "./api";
 import { handleChat, type ChatEnv } from "./chat";
+import { POSTHOG_KEY } from "./llm-analytics";
 import { handleReclaimHook, type ReclaimEnv } from "./reclaim";
 import { resolveSecrets } from "./lib/read-secret";
 import { aiDiscount, availableItems, discountFor, eur, journeyItemsFor, PRESET_IDS, presetById, resolveBasket } from "./core/catalog";
@@ -30,6 +31,13 @@ import { matchPackage } from "./core/match";
 import { partnershipOptions } from "./core/options";
 import { submitOffer, type SubmitEnv } from "./core/submit";
 import { docsHtml, type ToolDoc } from "./docs";
+import {
+	geoFromRequest,
+	instrumentMcpUsage,
+	type McpGeo,
+	type McpUsageConfig,
+	type McpUsageEnv,
+} from "./mcp-usage";
 
 const READ_ONLY = {
 	readOnlyHint: true,
@@ -59,13 +67,33 @@ function toolResult(payload: Record<string, unknown>, note?: string) {
 	};
 }
 
-export class ElcPartnershipBuilder extends McpAgent<Env> {
+/** See src/mcp-usage.ts. Note this server ALREADY Slacks on conversion (see reclaim.ts and
+ *  core/submit.ts). This instrumentation covers the other ~95% — every session that explores
+ *  packages and leaves without submitting, which until now was completely invisible. */
+const USAGE_CONFIG: McpUsageConfig = {
+	serverName: "elc-partnership-builder",
+	domain: "engineeringleaders.io",
+	// One source of truth for the project key across both doors — the MCP door here and the
+	// chat door's LLM analytics. They must stay the same project or the two halves of the
+	// funnel stop joining.
+	posthogKey: POSTHOG_KEY,
+};
+
+export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 	server = new McpServer({
 		name: "elc-partnership-builder",
 		version: "1.0.0",
 	});
 
 	async init() {
+		instrumentMcpUsage({
+			server: this.server,
+			config: USAGE_CONFIG,
+			env: this.env as McpUsageEnv,
+			geo: this.props ?? {},
+			waitUntil: (p) => this.ctx.waitUntil(p),
+		});
+
 		this.server.registerTool(
 			"get_partnership_options",
 			{
@@ -501,7 +529,9 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
 				headers: { "content-type": "application/json; charset=utf-8" },
 			});
 		}
-		return handleChat(request, env as unknown as ChatEnv);
+		// ctx is handed down so the chat's PostHog flush can run on waitUntil — without it the
+		// isolate can be torn down with the LLM analytics events still in memory.
+		return handleChat(request, env as unknown as ChatEnv, ctx);
 	}
 
 	if (path === "/mcp/partnership") {
@@ -525,6 +555,8 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
 				},
 			});
 		}
+		// request.cf only exists on the edge request; hand it to the DO via ctx.props.
+		(ctx as ExecutionContext & { props?: McpGeo }).props = geoFromRequest(request);
 		return ElcPartnershipBuilder.serve("/mcp/partnership").fetch(request, env, ctx);
 	}
 

@@ -80,6 +80,10 @@
 		// switch (friendly book-a-call message instead of a dead widget).
 		"CHAT_MODEL": "claude-sonnet-5",
 		"CHAT_ENABLED": "true",
+		// LLM analytics content policy (src/llm-analytics.ts). "consented" stores the
+		// conversation only for visitors who did not opt out of PostHog on elc-web; cost,
+		// latency and token counts are recorded either way. "never" / "always" override.
+		"CHAT_AI_CONTENT": "consented",
 	},
 	"observability": {
 		"enabled": true,

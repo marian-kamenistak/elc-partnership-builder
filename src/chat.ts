@@ -32,6 +32,7 @@ import { buildJourney } from "./core/journey";
 import { matchPackage } from "./core/match";
 import { partnershipOptions } from "./core/options";
 import { submitOffer, type SubmitEnv } from "./core/submit";
+import { LlmTracer, safeId } from "./llm-analytics";
 
 export type ChatEnv = SubmitEnv & {
 	ANTHROPIC_API_KEY?: string;
@@ -39,6 +40,8 @@ export type ChatEnv = SubmitEnv & {
 	CHAT_TURNSTILE_SECRET?: string;
 	CHAT_MODEL?: string;
 	CHAT_ENABLED?: string;
+	/** "consented" (default) | "always" | "never" — see llm-analytics.ts. */
+	CHAT_AI_CONTENT?: string;
 	CHAT_RATE_LIMITER?: { limit(o: { key: string }): Promise<{ success: boolean }> };
 };
 
@@ -260,7 +263,7 @@ async function runTool(env: ChatEnv, name: string, input: any, side: SideEvent[]
 	}
 }
 
-export async function handleChat(request: Request, env: ChatEnv): Promise<Response> {
+export async function handleChat(request: Request, env: ChatEnv, ctx?: ExecutionContext): Promise<Response> {
 	const sse = (o: unknown) => `data: ${JSON.stringify(o)}\n\n`;
 	const headers = {
 		"content-type": "text/event-stream; charset=utf-8",
@@ -324,6 +327,20 @@ export async function handleChat(request: Request, env: ChatEnv): Promise<Respon
 	}));
 
 	const model = env.CHAT_MODEL ?? "claude-sonnet-5";
+
+	// ── LLM analytics (PostHog AI observability) ──────────────────────────────────────────────
+	// Every id here comes from the widget and is validated, never trusted: this endpoint is
+	// public. A conversation that predates the widget change (or a client that sends nothing)
+	// falls back to a server-minted trace id — the turn is still costed, it just cannot be
+	// stitched to the other turns of its conversation.
+	const tracer = new LlmTracer({
+		traceId: safeId(body.conversation_id) ?? crypto.randomUUID(),
+		distinctId: safeId(body.ph_distinct_id),
+		sessionId: safeId(body.ph_session_id),
+		contentMode: env.CHAT_AI_CONTENT,
+		waitUntil: ctx ? (p) => ctx.waitUntil(p) : undefined,
+	});
+
 	const stream = new ReadableStream({
 		async start(controller) {
 			const emit = (o: unknown) => controller.enqueue(new TextEncoder().encode(sse(o)));
@@ -334,6 +351,9 @@ export async function handleChat(request: Request, env: ChatEnv): Promise<Respon
 				// result back, continue until an end_turn or the iteration cap.
 				while (iterations < MAX_TOOL_ITERATIONS) {
 					iterations++;
+					// Snapshot before the loop reassigns `messages` — this is what THIS turn sent.
+					const turnInput = messages;
+					const turnStart = Date.now();
 					const res = await fetch("https://api.anthropic.com/v1/messages", {
 						method: "POST",
 						headers: {
@@ -353,6 +373,24 @@ export async function handleChat(request: Request, env: ChatEnv): Promise<Respon
 					if (!res.ok || !res.body) {
 						const errText = await res.text().catch(() => "");
 						console.error("anthropic error", res.status, errText.slice(0, 300));
+						// A refusal, an overload or an expired key looks identical to the visitor
+						// ("hiccuped") and identical in Workers observability (HTTP 200, because
+						// the SSE response itself succeeded). This is the only place the
+						// difference is recorded.
+						tracer.generation({
+							model,
+							input: turnInput,
+							output: [],
+							inputTokens: 0,
+							outputTokens: 0,
+							cacheReadTokens: 0,
+							cacheCreationTokens: 0,
+							latency: (Date.now() - turnStart) / 1000,
+							httpStatus: res.status,
+							isError: true,
+							error: errText.slice(0, 300) || `http_${res.status}`,
+							iteration: iterations,
+						});
 						emit({ type: "error", message: "The assistant hiccuped. Say that again?" });
 						break;
 					}
@@ -365,6 +403,12 @@ export async function handleChat(request: Request, env: ChatEnv): Promise<Respon
 					const contentBlocks: any[] = [];
 					let currentTool: { id: string; name: string; json: string } | null = null;
 					let textAcc = "";
+					// Usage arrives in two places: message_start carries the input side (including
+					// the cache split, which is the whole point of the ephemeral system prompt),
+					// message_delta carries the final output count. Both were being parsed and
+					// thrown away before this.
+					const usage = { input: 0, output: 0, cacheRead: 0, cacheCreation: 0 };
+					let firstTokenAt: number | null = null;
 
 					const processLine = (line: string) => {
 						if (!line.startsWith("data: ")) return;
@@ -374,15 +418,23 @@ export async function handleChat(request: Request, env: ChatEnv): Promise<Respon
 						} catch {
 							return;
 						}
-						if (ev.type === "content_block_start") {
+						if (ev.type === "message_start") {
+							const u = ev.message?.usage ?? {};
+							usage.input = u.input_tokens ?? 0;
+							usage.output = u.output_tokens ?? 0;
+							usage.cacheRead = u.cache_read_input_tokens ?? 0;
+							usage.cacheCreation = u.cache_creation_input_tokens ?? 0;
+						} else if (ev.type === "content_block_start") {
 							if (ev.content_block?.type === "tool_use") {
 								currentTool = { id: ev.content_block.id, name: ev.content_block.name, json: "" };
 							}
 						} else if (ev.type === "content_block_delta") {
 							if (ev.delta?.type === "text_delta") {
+								if (firstTokenAt === null) firstTokenAt = Date.now();
 								textAcc += ev.delta.text;
 								emit({ type: "text", delta: ev.delta.text });
 							} else if (ev.delta?.type === "input_json_delta" && currentTool) {
+								if (firstTokenAt === null) firstTokenAt = Date.now();
 								currentTool.json += ev.delta.partial_json;
 							}
 						} else if (ev.type === "content_block_stop") {
@@ -393,8 +445,9 @@ export async function handleChat(request: Request, env: ChatEnv): Promise<Respon
 								contentBlocks.push({ type: "text", text: textAcc });
 								textAcc = "";
 							}
-						} else if (ev.type === "message_delta" && ev.delta?.stop_reason) {
-							stopReason = ev.delta.stop_reason;
+						} else if (ev.type === "message_delta") {
+							if (ev.delta?.stop_reason) stopReason = ev.delta.stop_reason;
+							if (ev.usage?.output_tokens != null) usage.output = ev.usage.output_tokens;
 						}
 					};
 
@@ -411,13 +464,41 @@ export async function handleChat(request: Request, env: ChatEnv): Promise<Respon
 					if (textAcc) contentBlocks.push({ type: "text", text: textAcc });
 
 					const toolUses = contentBlocks.filter((b) => b.type === "tool_use");
+					const genSpanId = tracer.generation({
+						model,
+						input: turnInput,
+						output: contentBlocks,
+						inputTokens: usage.input,
+						outputTokens: usage.output,
+						cacheReadTokens: usage.cacheRead,
+						cacheCreationTokens: usage.cacheCreation,
+						latency: (Date.now() - turnStart) / 1000,
+						...(firstTokenAt !== null ? { timeToFirstToken: (firstTokenAt - turnStart) / 1000 } : {}),
+						stopReason,
+						httpStatus: res.status,
+						iteration: iterations,
+						toolsCalled: toolUses.map((t) => t.name),
+					});
+
 					if (stopReason !== "tool_use" || !toolUses.length) break;
 
 					messages = [...messages, { role: "assistant", content: contentBlocks }];
 					const results: any[] = [];
 					for (const tu of toolUses) {
 						const side: SideEvent[] = [];
+						const toolStart = Date.now();
 						const out = await runTool(env, tu.name, tu.input ?? {}, side);
+						// `runTool` reports failure in-band (an `error` key on the payload) rather
+						// than by throwing, so that is what the span has to read.
+						const failed = Boolean(out && typeof out === "object" && "error" in (out as object));
+						tracer.span({
+							name: tu.name,
+							spanId: tu.id,
+							parentId: genSpanId,
+							latency: (Date.now() - toolStart) / 1000,
+							input: tu.input ?? {},
+							isError: failed,
+						});
 						for (const s of side) emit(s);
 						results.push({ type: "tool_result", tool_use_id: tu.id, content: JSON.stringify(out) });
 					}
@@ -426,9 +507,27 @@ export async function handleChat(request: Request, env: ChatEnv): Promise<Respon
 				emit({ type: "done" });
 			} catch (e) {
 				console.error("chat exception", String(e));
+				// The loop threw — most likely a malformed tool_use JSON or a truncated upstream
+				// stream. Recorded so a spike shows up as errored traces, not as silence.
+				tracer.generation({
+					model,
+					input: messages,
+					output: [],
+					inputTokens: 0,
+					outputTokens: 0,
+					cacheReadTokens: 0,
+					cacheCreationTokens: 0,
+					latency: 0,
+					isError: true,
+					error: String(e).slice(0, 300),
+					iteration: 0,
+				});
 				emit({ type: "error", message: "Something broke mid-thought. Try again." });
 				emit({ type: "done" });
 			} finally {
+				// Fire-and-forget via ctx.waitUntil — the visitor never waits on PostHog, and the
+				// isolate stays alive long enough for the events to leave.
+				tracer.flush();
 				controller.close();
 			}
 		},
