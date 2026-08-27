@@ -102,9 +102,17 @@ function redact(value: unknown, depth = 0): unknown {
 	if (typeof value === "string") return value.replace(EMAIL_IN_TEXT, REDACTED);
 	if (Array.isArray(value)) return value.map((v) => redact(v, depth + 1));
 	if (value && typeof value === "object") {
+		const entries = Object.entries(value as Record<string, unknown>);
+		// `$mcp_parameters` carries the whole JSON-RPC envelope, and a tools/call's params are
+		// `{ name, arguments }` — where `name` is the TOOL name, not a person's. Redacting it
+		// there cost nothing analytically (it survives in `$mcp_tool_name`) but was simply
+		// wrong, and a redactor that fires on the wrong field is one you stop trusting on the
+		// right one. A real person-name always sits inside `arguments`, never beside it.
+		const isCallParams = entries.some(([k]) => k === "arguments") && entries.some(([k]) => k === "name");
 		const out: Record<string, unknown> = {};
-		for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
-			out[k] = PII_KEYS.test(k) ? REDACTED : redact(v, depth + 1);
+		for (const [k, v] of entries) {
+			const isEnvelopeToolName = isCallParams && k === "name";
+			out[k] = PII_KEYS.test(k) && !isEnvelopeToolName ? REDACTED : redact(v, depth + 1);
 		}
 		return out;
 	}
@@ -366,6 +374,10 @@ export function instrumentMcpUsage({
 			// are not. Both sinks see the same call, deliberately at different fidelity.
 			if (props.$mcp_parameters !== undefined) props.$mcp_parameters = redact(props.$mcp_parameters);
 			if (props.$mcp_response !== undefined) props.$mcp_response = redact(props.$mcp_response);
+			// The intent string is agent-authored prose, so no key-based rule can reach it — but
+			// an agent will happily write "help Jan at jan@acme.com price a package" into it. The
+			// free-text email scrub applies here for exactly that.
+			if (typeof props.$mcp_intent === "string") props.$mcp_intent = redact(props.$mcp_intent);
 			event.properties = props;
 			return event;
 		},
