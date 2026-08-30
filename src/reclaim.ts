@@ -22,23 +22,71 @@ import type { SubmitEnv } from "./core/submit";
 
 export type ReclaimEnv = SubmitEnv & { RECLAIM_WEBHOOK_SECRET?: string };
 
-async function hmacHex(secret: string, body: string): Promise<string> {
+/**
+ * Reclaim's `x-reclaim-signature-256`, in BOTH encodings.
+ *
+ * This used to compute hex only. Reclaim's webhook docs describe the digest as base64, and a
+ * mismatch here is invisible in the worst way: every delivery 401s, Reclaim retries, and after 24h
+ * of failures it AUTO-SUSPENDS the webhook config — so the integration turns itself off and nothing
+ * in this codebase ever logs a booking that did not arrive. As of 2026-08-30 not one real booking
+ * had ever reached this handler, which is consistent with exactly that.
+ *
+ * Rather than bet on which encoding is right, accept either. Both are HMAC-SHA256 over the same raw
+ * body with the same secret, so accepting the alternative representation of the same digest adds no
+ * attack surface — it is the same proof, spelled differently.
+ */
+async function hmacDigest(secret: string, body: string): Promise<{ hex: string; b64: string }> {
 	const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
 	const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(body));
-	return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
+	const bytes = new Uint8Array(sig);
+	return {
+		hex: [...bytes].map((b) => b.toString(16).padStart(2, "0")).join(""),
+		b64: btoa(String.fromCharCode(...bytes)),
+	};
 }
 
-/** Pull an attendee email out of whatever shape the payload has. */
-function extractEmail(o: unknown): string | null {
+/** Marian's own addresses. He is the HOST on every payload, never the booker. */
+const OWN_EMAILS = new Set(["marian@engineeringleaders.io", "marian@marian.coach", "marian@kamenistak.com", "leads@marian.coach"]);
+
+/**
+ * The BOOKER's email — not the host's.
+ *
+ * THE BUG THIS REPLACES (found 2026-08-30 by a signed probe). The old version walked the payload
+ * depth-first and, at each object, preferred attendee-ish keys before a bare `email`. That looks
+ * right and is not: the preference was applied PER OBJECT, while the recursion visited objects in
+ * key order. Reclaim's shape is
+ *
+ *   meeting: { participants: [{ is_host: true, email: <MARIAN> }], attendee: { attendee_email: <BOOKER> } }
+ *
+ * and `participants` precedes `attendee`, so the walk reached the host's bare `email` first and
+ * returned it. Every booking looked up Marian in Attio instead of the prospect — silently, because
+ * "person found, no queue entry" is a perfectly ordinary-looking outcome.
+ *
+ * So: read the known attendee path FIRST, explicitly. Only then fall back to a scan, and make the
+ * scan skip host records and Marian's own addresses. Same lesson the mc-web booking hook already
+ * carries for `name` (see mentoring-inquiry-builder/src/hooks.ts extractAttendeeName) — the fix
+ * there was never ported here.
+ */
+export function extractEmail(o: unknown): string | null {
+	const valid = (v: unknown): string | null =>
+		typeof v === "string" && /^\S+@\S+\.\S+$/.test(v) && !OWN_EMAILS.has(v.toLowerCase()) ? v.toLowerCase() : null;
+
+	// 1. The documented Reclaim path, checked before anything walks anywhere.
+	const m = (o as any)?.meeting;
+	const direct = valid(m?.attendee?.attendee_email) ?? valid((o as any)?.attendee?.attendee_email);
+	if (direct) return direct;
+
+	// 2. Fallback scan for non-Reclaim senders (Zapier mappings, manual curl). Host participant
+	//    records are skipped outright so the scan cannot reintroduce the original bug.
 	const seen = new Set<unknown>();
 	const walk = (v: unknown, depth: number): string | null => {
 		if (depth > 6 || v === null || typeof v !== "object" || seen.has(v)) return null;
 		seen.add(v);
 		const rec = v as Record<string, unknown>;
-		// Prefer explicitly attendee-ish keys before falling back to any email-shaped string.
+		if (rec.is_host === true) return null;
 		for (const k of ["attendeeEmail", "attendee_email", "inviteeEmail", "email"]) {
-			const val = rec[k];
-			if (typeof val === "string" && /^\S+@\S+\.\S+$/.test(val)) return val.toLowerCase();
+			const hit = valid(rec[k]);
+			if (hit) return hit;
 		}
 		for (const val of Object.values(rec)) {
 			const found = walk(val, depth + 1);
@@ -49,10 +97,18 @@ function extractEmail(o: unknown): string | null {
 	return walk(o, 0);
 }
 
-function extractMeetingId(o: unknown): string {
-	const rec = o as Record<string, unknown>;
-	for (const k of ["id", "eventId", "meetingId"]) {
-		const v = rec?.[k];
+/**
+ * The meeting id — which Reclaim nests at `meeting.meeting_id`, a path the old version never looked
+ * at. It checked three TOP-LEVEL keys only, so it returned "unknown" on every real payload.
+ *
+ * That is not cosmetic. The idempotency marker downstream is the string
+ * `Call booked (Reclaim meeting <id>)`, so with every id "unknown" the marker was identical for
+ * everyone: the second booking by anyone would match the first one's note and be silently dropped
+ * as a duplicate delivery.
+ */
+export function extractMeetingId(o: unknown): string {
+	const rec = o as Record<string, any>;
+	for (const v of [rec?.meeting?.meeting_id, rec?.meeting?.id, rec?.meeting_id, rec?.id, rec?.eventId, rec?.meetingId]) {
 		if (typeof v === "string" || typeof v === "number") return String(v);
 	}
 	return "unknown";
@@ -68,10 +124,12 @@ export async function handleReclaimHook(request: Request, env: ReclaimEnv): Prom
 		console.log("[RECLAIM_HOOK_LOG_ONLY]", raw.slice(0, 2000));
 		return ok("log-only: RECLAIM_WEBHOOK_SECRET not set");
 	}
-	const sigHeader = (request.headers.get("x-reclaim-signature-256") ?? "").replace(/^sha256=/, "");
-	const expected = await hmacHex(secret, raw);
-	if (sigHeader !== expected) {
-		console.error("[RECLAIM_HOOK_BAD_SIG]");
+	const sigHeader = (request.headers.get("x-reclaim-signature-256") ?? "").replace(/^sha256=/, "").trim();
+	const expected = await hmacDigest(secret, raw);
+	if (sigHeader !== expected.hex && sigHeader !== expected.b64) {
+		// Log the LENGTH, never the value: 64 means Reclaim sent hex, 44 means base64, anything else
+		// means the header shape changed and neither branch will ever match again.
+		console.error("[RECLAIM_HOOK_BAD_SIG] header_len=" + sigHeader.length);
 		return new Response(JSON.stringify({ ok: false, error: "bad_signature" }), { status: 401, headers: { "content-type": "application/json" } });
 	}
 
