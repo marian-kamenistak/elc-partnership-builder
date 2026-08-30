@@ -20,7 +20,35 @@
  */
 import type { SubmitEnv } from "./core/submit";
 
-export type ReclaimEnv = SubmitEnv & { RECLAIM_WEBHOOK_SECRET?: string };
+export type ReclaimEnv = SubmitEnv & {
+	RECLAIM_WEBHOOK_SECRET?: string;
+	/** Where a NON-partnership intro booking is announced. Unset → falls back to the partners
+	 *  channel with the mismatch spelled out, because losing the signal is worse than misfiling it. */
+	SLACK_INTRO_CHANNEL?: string;
+};
+
+/**
+ * Partnership booking, or a plain intro call?
+ *
+ * `app.reclaim.ai/m/meet-marian/now` serves BOTH: it is the CTA on 13 ELC partner surfaces
+ * (for-companies, partner/membership, partner/chat, OfferForm, PartnerHero, EN + CZ) and it is
+ * also the link Marian hands out for a general 30-minute intro. One link, one scheduling_link_id,
+ * two audiences — so the id cannot separate them and neither can the title.
+ *
+ * What CAN: Reclaim forwards `data-`-prefixed query params from the booking URL into the signed
+ * payload as `custom_data.data.*`. The partner surfaces append `?data-src=partner`, so a tagged
+ * booking is a partnership lead and an untagged one is an intro. Same mechanism the mentoring
+ * server uses to carry its claim code.
+ *
+ * Untagged defaults to INTRO deliberately. The two error directions are not equal: filing a
+ * partnership lead as an intro loses a Slack label, while filing a stranger's intro as a
+ * partnership lead writes "Call booked" onto a real company's queue note in Attio. Prefer the
+ * mistake that does not touch the CRM.
+ */
+export function isPartnershipBooking(payload: unknown): boolean {
+	const src = (payload as any)?.meeting?.custom_data?.data?.src;
+	return typeof src === "string" && src.trim().toLowerCase() === "partner";
+}
 
 /**
  * Reclaim's `x-reclaim-signature-256`, in BOTH encodings.
@@ -147,10 +175,32 @@ export async function handleReclaimHook(request: Request, env: ReclaimEnv): Prom
 		console.log("[RECLAIM_HOOK_NO_EMAIL]", raw.slice(0, 2000));
 		return ok("no attendee email found, logged for calibration");
 	}
+	const isPartner = isPartnershipBooking(payload);
+	const introChannel = env.SLACK_INTRO_CHANNEL;
+
 	if (/cancel/i.test(eventType)) {
-		// Cancellations only ping Slack — never silently un-book a CRM note.
-		await postSlack(env, `:calendar: Reclaim: *${email}* cancelled their call (meeting ${meetingId}).`);
+		// Cancellations only ping Slack — never silently un-book a CRM note. Routed to the same
+		// channel the booking went to, or the cancellation lands somewhere nobody is watching.
+		await postSlack(
+			env,
+			`:calendar: Reclaim: *${email}* cancelled their ${isPartner ? "partnership call" : "intro call"} (meeting ${meetingId}).`,
+			isPartner ? undefined : introChannel,
+		);
 		return ok("cancellation pinged");
+	}
+
+	// ── Plain intro call: Slack only, nothing touches Attio (Marian, 2026-08-30) ────────────────
+	// The partnership machinery below looks up the booker's COMPANY, finds its elc_partners_queue
+	// entry and appends "Call booked" to the queue note. For someone booking a 30-minute intro that
+	// is the wrong CRM object and the wrong channel — an intro is not a pipeline event until it
+	// goes somewhere. So this returns before any of it.
+	if (!isPartner) {
+		await postSlack(
+			env,
+			`:wave: *Intro call booked* via Reclaim: ${email} (meeting ${meetingId}). Not a partnership lead — nothing written to Attio.`,
+			introChannel,
+		);
+		return ok("intro call, slack only");
 	}
 
 	// ── Attio: person by email → company → partners-queue entry → append the booked line ──────
@@ -208,16 +258,28 @@ export async function handleReclaimHook(request: Request, env: ReclaimEnv): Prom
 	return ok(`processed: ${attioNote}`);
 }
 
-async function postSlack(env: ReclaimEnv, text: string): Promise<void> {
-	if (!env.SLACK_BOT_TOKEN_ELC || !env.SLACK_PARTNERS_CHANNEL) return;
-	try {
+async function postSlack(env: ReclaimEnv, text: string, channel?: string): Promise<void> {
+	const target = channel || env.SLACK_PARTNERS_CHANNEL;
+	if (!env.SLACK_BOT_TOKEN_ELC || !target) return;
+	const send = async (ch: string) => {
 		const res = await fetch("https://slack.com/api/chat.postMessage", {
 			method: "POST",
 			headers: { Authorization: `Bearer ${env.SLACK_BOT_TOKEN_ELC}`, "content-type": "application/json; charset=utf-8" },
-			body: JSON.stringify({ channel: env.SLACK_PARTNERS_CHANNEL, text, unfurl_links: false }),
+			body: JSON.stringify({ channel: ch, text, unfurl_links: false }),
 		});
-		const data: any = await res.json().catch(() => ({ ok: false }));
-		if (!data.ok) console.error("reclaim slack post failed", data.error);
+		return (await res.json().catch(() => ({ ok: false }))) as any;
+	};
+	try {
+		const data = await send(target);
+		if (data.ok) return;
+		console.error("reclaim slack post failed", data.error, "channel=" + target);
+		// `not_in_channel` / a bad id must not swallow a booking. Retry into the partners channel,
+		// labelled, so a misconfigured SLACK_INTRO_CHANNEL is visible rather than silent.
+		if (target !== env.SLACK_PARTNERS_CHANNEL && env.SLACK_PARTNERS_CHANNEL) {
+			await send(env.SLACK_PARTNERS_CHANNEL).then((d) => {
+				if (!d.ok) console.error("reclaim slack fallback failed", d.error);
+			});
+		}
 	} catch (e) {
 		console.error("reclaim slack exception", String(e));
 	}

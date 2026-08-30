@@ -84,6 +84,12 @@
 		// conversation only for visitors who did not opt out of PostHog on elc-web; cost,
 		// latency and token counts are recorded either way. "never" / "always" override.
 		"CHAT_AI_CONTENT": "consented",
+		// Where a NON-partnership intro booking is announced (src/reclaim.ts). The /now scheduling
+		// link serves both audiences, so bookings without the `?data-src=partner` tag the partner
+		// pages append are plain intro calls and do not belong in the partners channel. #elc-member-bot
+		// — the ELC bot's own channel, so no new membership is needed. If a post here fails the
+		// handler retries into SLACK_PARTNERS_CHANNEL rather than dropping the booking.
+		"SLACK_INTRO_CHANNEL": "C0BLUJ76PRA",
 	},
 	"observability": {
 		"enabled": true,

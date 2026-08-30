@@ -7,7 +7,7 @@
  * `participants` (the host) comes before `attendee` (the booker).
  */
 import { describe, expect, it } from "vitest";
-import { extractEmail, extractMeetingId } from "../src/reclaim";
+import { extractEmail, extractMeetingId, isPartnershipBooking } from "../src/reclaim";
 
 const RECLAIM_CREATED = {
 	type: "SchedulingLink.Meeting.Created",
@@ -70,5 +70,30 @@ describe("extractMeetingId — the idempotency key", () => {
 	it("falls back through the older top-level keys, then to unknown", () => {
 		expect(extractMeetingId({ id: "top" })).toBe("top");
 		expect(extractMeetingId({ nothing: true })).toBe("unknown");
+	});
+});
+
+describe("partnership vs plain intro — one link, two audiences", () => {
+	it("treats a booking tagged from the partner pages as partnership", () => {
+		expect(isPartnershipBooking({ meeting: { custom_data: { data: { src: "partner" } } } })).toBe(true);
+	});
+
+	it("is forgiving about case and stray whitespace in the tag", () => {
+		expect(isPartnershipBooking({ meeting: { custom_data: { data: { src: " Partner " } } } })).toBe(true);
+	});
+
+	it("treats an UNTAGGED booking as a plain intro — the safe default", () => {
+		// The two mistakes are not symmetrical. Filing a partnership lead as an intro costs a Slack
+		// label; filing a stranger's intro as partnership writes "Call booked" onto a real company's
+		// queue note in Attio. So absence of the tag must never mean partnership.
+		expect(isPartnershipBooking(RECLAIM_CREATED)).toBe(false);
+		expect(isPartnershipBooking({ meeting: {} })).toBe(false);
+		expect(isPartnershipBooking({})).toBe(false);
+		expect(isPartnershipBooking(null)).toBe(false);
+	});
+
+	it("does not accept some other data- param as the partnership signal", () => {
+		expect(isPartnershipBooking({ meeting: { custom_data: { data: { src: "newsletter" } } } })).toBe(false);
+		expect(isPartnershipBooking({ meeting: { custom_data: { data: { claim: "partner" } } } })).toBe(false);
 	});
 });
