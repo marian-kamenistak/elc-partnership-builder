@@ -26,6 +26,14 @@ export function guardrailLines(): string[] {
 					`Speed: the flow from first question to the itemized offer in the inbox runs under 16 minutes. A fair claim to make; a signed agreement still needs Marian's call.`,
 				]
 			: []),
+		// 2026-09-03: one-offs (/reach) have their own count-based combo discount and never take the
+		// AI-channel percentage. Stated here so the "ONLY discount" line above cannot be read as
+		// contradicting quote_reach_combo.
+		...(meta.oneoff
+			? [
+					`One-off items (get_reach_options) are priced separately: ${meta.oneoff.combo_discounts.map((d) => `${d.min_items}+ items ${d.pct}% off`).join(", ")}, never combined with the AI-channel percentage, and every one-off is 100% credited against a company membership signed within ${meta.oneoff.credit_days} days.`,
+				]
+			: []),
 		// 2026-08-20 (Marian): the boundary rides with the terms rather than as a second always-on
 		// block, so it reaches the model without adding more payload noise. It existed only inside
 		// why_elc as an objection-handling script, so a VP Sales who never objected never met it and

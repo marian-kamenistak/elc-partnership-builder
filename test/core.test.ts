@@ -38,7 +38,8 @@ describe("discount", () => {
 		// contradicted the offer email, which asserts the discounted figure as the contract price.
 		expect(aiDiscount()).toEqual({
 			pct: 16,
-			channels: ["chat", "mcp"],
+			// webmcp joined 2026-08-27 (the visitor's own agent driving the configurator counts as the AI door).
+			channels: ["chat", "mcp", "webmcp"],
 			applies_to: "basket_total",
 			excluded_presets: ["pilot-meetup"],
 			expires: "2026-09-30",
@@ -274,5 +275,69 @@ describe("three endings + free cross-sell (2026-08-09)", () => {
 		expect(o.endings?.offer).toContain("request_offer");
 		expect(o.endings?.intro_call).toContain("book_intro_call");
 		expect(o.endings?.free_start).toContain("/partner/membership/free/");
+	});
+});
+
+// ── One-offs (/reach, 2026-09-03) ────────────────────────────────────────────────────────────
+import { ONEOFF_IDS, oneoffMeta, oneoffs, quoteOneoffs } from "../src/core/catalog";
+import { reachOptions } from "../src/core/reach";
+
+describe("one-offs", () => {
+	it("ship nine items with resolved outcomes and no placeholders or notes", () => {
+		expect(oneoffs.length).toBeGreaterThanOrEqual(9);
+		for (const o of oneoffs) {
+			expect(o.price).toBeGreaterThan(0);
+			expect(o.examples.length).toBeGreaterThanOrEqual(2);
+			for (const line of o.outcomes) expect(line).not.toMatch(/\{[a-z_]+\.[a-z0-9_]+\}/);
+			expect((o as Record<string, unknown>).notes).toBeUndefined();
+		}
+	});
+
+	it("hosted meetup one-off equals the Pilot Meetup preset price (one meetup, one standalone price)", () => {
+		const meetup = oneoffs.find((o) => o.item === "hosted-meetup");
+		const pilot = presets.find((p) => p.id === "pilot-meetup");
+		expect(meetup?.price).toBe(pilot?.price);
+		expect(pilot?.price).toBe(4000);
+	});
+
+	it("combo discount: 1 item none, 2 items 10%, 3+ items 15%, job listing never counts", () => {
+		expect(oneoffMeta?.combo_discounts).toEqual([
+			{ min_items: 2, pct: 10 },
+			{ min_items: 3, pct: 15 },
+		]);
+		const one = quoteOneoffs(["newsletter-section"]);
+		expect(one.combo).toBeNull();
+		expect(one.total).toBe(2500);
+
+		const two = quoteOneoffs(["newsletter-section", "newsletter-dedicated"]);
+		expect(two.list_total).toBe(7500);
+		expect(two.combo).toEqual({ qualifying_items: 2, pct: 10, saved: 750 });
+		expect(two.total).toBe(6750);
+
+		const three = quoteOneoffs(["newsletter-section", "newsletter-dedicated", "linkedin-post"]);
+		expect(three.list_total).toBe(8000);
+		expect(three.combo?.pct).toBe(15);
+		expect(three.total).toBe(6800);
+
+		// A job listing rides at list price and does not lift the basket into a discount tier.
+		const withJob = quoteOneoffs(["newsletter-section", "job-listing"]);
+		expect(withJob.combo).toBeNull();
+		expect(withJob.total).toBe(3000);
+		expect(withJob.items.find((i) => i.id === "job-listing")?.counts_toward_combo).toBe(false);
+	});
+
+	it("drops unknown ids by name and de-duplicates", () => {
+		const q = quoteOneoffs(["dinner", "dinner", "nope"]);
+		expect(q.items).toHaveLength(1);
+		expect(q.unknown_ids).toEqual(["nope"]);
+		expect(q.total).toBe(4000);
+	});
+
+	it("reach options carry every id, the credit, and the not-for-sale boundary", () => {
+		const r = reachOptions();
+		expect(r.items.map((i) => i.id)).toEqual(ONEOFF_IDS);
+		expect(r.credit).toContain("90 days");
+		expect(r.not_for_sale.length).toBeGreaterThanOrEqual(3);
+		expect(JSON.stringify(r)).not.toMatch(/sponsor/i);
 	});
 });

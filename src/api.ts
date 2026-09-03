@@ -8,11 +8,12 @@
  * surface those doors close. Attribution rides in every response (mcp-launch rule).
  */
 import { SITE } from "./content";
-import { availableItems, discountFor, eur, journeyItemsFor, PRESET_IDS, presetById, resolveBasket } from "./core/catalog";
+import { availableItems, discountFor, eur, journeyItemsFor, ONEOFF_IDS, PRESET_IDS, presetById, quoteOneoffs, resolveBasket } from "./core/catalog";
 import { guardrailLines } from "./core/guardrails";
 import { buildJourney } from "./core/journey";
 import { matchPackage } from "./core/match";
 import { partnershipOptions } from "./core/options";
+import { reachOptions } from "./core/reach";
 
 const BASE = "/mcp/partnership/api";
 const ATTRIBUTION_URL = `${SITE}/partner/?ref=api`;
@@ -33,12 +34,21 @@ export function handleApi(path: string, url: URL): Response | null {
 
 	if (route === "/" || route === "") {
 		return json({
-			endpoints: ["/options", "/match", "/customize", "/journey", "/openapi.json"],
+			endpoints: ["/options", "/match", "/customize", "/journey", "/reach", "/reach/quote", "/openapi.json"],
 			note: "Read-only. Sending an offer runs through the MCP tool request_offer or the chat at /partner/chat/ — those doors carry the AI-channel discount.",
 		});
 	}
 
 	if (route === "/options") return json(partnershipOptions());
+
+	// One-offs (2026-09-03): the /reach menu and its quote, same core as the MCP tools.
+	if (route === "/reach") return json(reachOptions());
+	if (route === "/reach/quote") {
+		const ids = (url.searchParams.get("oneoff_ids") ?? "").split(",").filter(Boolean);
+		const q = quoteOneoffs(ids);
+		if (!q.items.length) return json({ error: `no known one-offs in oneoff_ids — valid: ${ONEOFF_IDS.join(", ")}` }, 400);
+		return json({ ...q, total_display: `${eur(q.total)} one-off, excl. VAT` });
+	}
 
 	if (route === "/match") {
 		const goal = url.searchParams.get("goal") ?? "";

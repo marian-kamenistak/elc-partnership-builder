@@ -3,9 +3,13 @@
 ## What this is
 The Partnership AI Builder for the **elc** stream: an authless MCP server at
 `https://www.engineeringleaders.io/mcp/partnership` plus the chat backend for the
-`/partner/chat/` widget on elc-web. Five tools (`get_partnership_options`, `match_package`,
-`customize_package`, `design_journey`, `request_offer`) price a partnership from the published
-catalog with a 16% AI-channel discount. Registered on the MCP Registry and Smithery.
+`/partner/chat/` widget on elc-web. Eleven tools: `get_started` (routes a greeting/test/unclear
+message to the right tool below), `get_partnership_options`, `match_package`,
+`customize_package`, `book_intro_call`, `fit_to_budget`, `build_business_case`,
+`design_journey`, `request_offer` — price a partnership from the published catalog with a 16%
+AI-channel discount — plus `get_reach_options` and `quote_reach_combo` (2026-09-03), the one-off
+menu behind engineeringleaders.io/reach: single items bought once, combo discount by item count,
+no AI-channel percentage. Registered on the MCP Registry and Smithery.
 
 ## Stack
 - Cloudflare Worker + Durable Object `ElcPartnershipBuilder` (`MCP_OBJECT`), `McpAgent` (`agents` ^0.17), streamable HTTP
@@ -36,7 +40,7 @@ catalog with a 16% AI-channel discount. Registered on the MCP Registry and Smith
 ## Definition of done
 - [ ] `npm test` and `npm run type-check` exit 0
 - [ ] `wrangler deploy` exits 0
-- [ ] `tools/list` POST to `https://www.engineeringleaders.io/mcp/partnership` returns the 5 tools; GET returns 200 HTML
+- [ ] `tools/list` POST to `https://www.engineeringleaders.io/mcp/partnership` returns **12** — the 11 tools above plus `get_more_tools`, which `instrumentMcpUsage` injects; GET returns 200 HTML
 - [ ] `wrangler tail --format json` for 60s: zero `console.error`, zero exceptions
 - [ ] Any offer change also walked through the stream checklist in `business/elc/CLAUDE.md` (pages, elc-web, llms, schemas)
 

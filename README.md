@@ -39,6 +39,8 @@ No MCP-capable tool? The same builder runs as a chat at [engineeringleaders.io/p
 | Tool | Answers |
 |---|---|
 | `get_partnership_options` | Should my company partner with ELC, and how does membership work? |
+| `get_reach_options` | We want one thing once (a newsletter send, a meetup in our office, a dinner). What does it cost? |
+| `quote_reach_combo` | What do these one-offs cost together? |
 | `match_package` | Which package fits our goal and budget? |
 | `customize_package` | What exactly is inside, and what does our version cost? |
 | `design_journey` | What happens across the 12 months if we sign? |

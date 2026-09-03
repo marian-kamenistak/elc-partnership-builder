@@ -25,7 +25,8 @@
  *  - Suggestions are computed server-side from which tool just ran (deterministic, zero model
  *    cost) — the widget's chips must never depend on the model remembering to offer them.
  */
-import { discountFor, eur, PRESET_IDS, resolveBasket } from "./core/catalog";
+import { discountFor, eur, ONEOFF_IDS, PRESET_IDS, quoteOneoffs, resolveBasket } from "./core/catalog";
+import { reachOptions } from "./core/reach";
 import { availableItems, journeyItemsFor, presetById } from "./core/catalog";
 import { guardrailBlock } from "./core/guardrails";
 import { buildJourney } from "./core/journey";
@@ -75,6 +76,7 @@ const SYSTEM_PROMPT = `You are the ELC Membership Builder, the conversational do
 How to run the conversation:
 1. Start from their problem, in their words. Call get_partnership_options early — it carries the two qualifying questions, the community facts, and the AI-channel discount. Ask the two questions conversationally, one at a time. Map free-text answers to the closest option id yourself.
 2. Companies only. Someone looking for a mentor for themselves gets pointed warmly to engineeringleaders.io/mentor/ and this flow ends there.
+2b. One thing, once. If they want a single item rather than a year (a newsletter section or a dedicated send for their conference, a meetup in their office, a podcast episode, a dinner, a survey, a demo session, a LinkedIn post, a job listing), call get_reach_options instead of the wizard, then quote_reach_combo for the items they pick. The AI-channel discount does not apply to one-offs; the combo discount and the 90-day credit do. Three or more one-offs is where a membership usually costs less: say so, then get_partnership_options.
 3. Match with match_package, then shape the basket with customize_package as they react. Every number you say comes from a tool response. If you have not called the tool, you do not have the number.
 4. Once the package takes shape, ask the visibility question from get_partnership_options discovery_question: would announcing the cooperation publicly help them, as a company or through individual leaders? Use the answer to tune the visibility items and pass it as visibility_interest at request_offer. When the package feels right, offer the 12-month view: design_journey. Present it month by month, their items only, and carry the scheduling caveat the tool returns.
 5. Every conversation ends on one of three doors: the offer (request_offer), an intro meeting with Marian (book_intro_call — offer it on hesitation, it is never a downgrade), or the free layer at engineeringleaders.io/partner/membership/free/ for anyone not ready to buy. Never let a warm visitor leave with nothing. When they want the offer in writing, collect name, work email and company, then request_offer. Not earlier. After success, congratulate briefly, then one optional ask: a public post about building their membership with AI. Optional means optional, the discount is theirs either way.
@@ -91,6 +93,20 @@ const TOOLS = [
 		name: "get_partnership_options",
 		description: "How ELC company membership works, community reach figures, the two qualifying questions with valid answers, and the AI-channel discount. Call this first.",
 		input_schema: { type: "object" as const, properties: {}, required: [] },
+	},
+	{
+		name: "get_reach_options",
+		description: "One-offs: single items a company buys once (newsletter section, dedicated newsletter, hosted meetup, podcast episode, dinner, survey, demo session, LinkedIn post, job listing) with prices, lead times, examples, the combo discount rule and the 90-day credit. Call this instead of the wizard when the visitor wants one thing, not a year.",
+		input_schema: { type: "object" as const, properties: {}, required: [] },
+	},
+	{
+		name: "quote_reach_combo",
+		description: "Authoritative total for a one-off basket with the combo discount by item count. Never add one-off prices yourself.",
+		input_schema: {
+			type: "object" as const,
+			properties: { oneoff_ids: { type: "array", items: { type: "string", enum: ONEOFF_IDS } } },
+			required: ["oneoff_ids"],
+		},
 	},
 	{
 		name: "match_package",
@@ -206,6 +222,31 @@ async function runTool(env: ChatEnv, name: string, input: any, side: SideEvent[]
 				...(d ? { ai_channel_discount: { pct: d.pct, price_after_discount: d.discounted } } : {}),
 				available_to_add: availableItems(preset.id, ids),
 				terms: guardrailBlock(),
+			};
+		}
+		case "get_reach_options": {
+			side.push({ type: "suggestions", chips: ["A newsletter section for our event", "A dedicated newsletter", "A meetup in our office", "A dinner with CTOs", "We want more than one thing"] });
+			return reachOptions();
+		}
+		case "quote_reach_combo": {
+			const ids = Array.isArray(input.oneoff_ids) ? input.oneoff_ids.map(String) : [];
+			const q = quoteOneoffs(ids);
+			if (!q.items.length) return { error: `no known one-offs — valid: ${ONEOFF_IDS.join(", ")}` };
+			side.push({
+				type: "basket",
+				preset_id: "oneoff",
+				preset: "One-offs",
+				total: q.list_total,
+				discounted: q.combo ? q.total : null,
+				pct: q.combo?.pct ?? null,
+				item_ids: q.items.map((i) => i.id),
+				item_count: q.items.length,
+			});
+			side.push({ type: "suggestions", chips: ["Book a date with Marian", "Add another item", "Would a membership be cheaper?"] });
+			return {
+				...q,
+				total_display: `${eur(q.total)} one-off, excl. VAT`,
+				credit_note: `100% credited against a company membership signed within ${q.credit_days} days.`,
 			};
 		}
 		case "book_intro_call": {

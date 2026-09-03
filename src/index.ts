@@ -21,7 +21,8 @@ import { handleChat, type ChatEnv } from "./chat";
 import { POSTHOG_KEY } from "./llm-analytics";
 import { handleReclaimHook, type ReclaimEnv } from "./reclaim";
 import { resolveSecrets } from "./lib/read-secret";
-import { aiDiscount, availableItems, discountFor, eur, journeyItemsFor, PRESET_IDS, presetById, resolveBasket } from "./core/catalog";
+import { aiDiscount, availableItems, discountFor, eur, journeyItemsFor, ONEOFF_IDS, PRESET_IDS, presetById, quoteOneoffs, resolveBasket } from "./core/catalog";
+import { reachOptions } from "./core/reach";
 import { approvalMemo, buildBusinessCase } from "./core/businesscase";
 import { fitToBudget } from "./core/fit";
 import { isSeatPriced, priceSeats, seatSpecFor } from "./core/seats";
@@ -93,6 +94,68 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 			geo: this.props ?? {},
 			waitUntil: (p) => this.ctx.waitUntil(p),
 		});
+
+		this.server.registerTool(
+			"get_started",
+			{
+				title: "Start here — what can this MCP server do?",
+				annotations: { ...READ_ONLY },
+				description:
+					"Call this for a greeting (hi, hello), a connectivity/liveness test, 'what can you do', or any message too general to match a specific tool below. Returns the full menu of real questions this server answers, each mapped to the tool name that answers it. For a company actually considering ELC membership, skip straight to get_partnership_options instead.",
+				inputSchema: {},
+			},
+			async () => {
+				const menu = TOOL_DOCS.map(
+					(d) => `- "${d.question}" → \`${d.name}\`: ${d.description}`,
+				).join("\n");
+				return toolResult({
+					what: "This is the Engineering Leaders Community Partnership Builder — it composes and prices a company membership package with ELC, and quotes single one-off items (a newsletter section, a hosted meetup, a dinner) for companies that want one thing once.",
+					menu,
+					start_here: "For a company considering a year-long membership, call get_partnership_options next. For one thing once, call get_reach_options.",
+				});
+			},
+		);
+
+		this.server.registerTool(
+			"get_reach_options",
+			{
+				title: "One-offs: single items a company buys once, with prices",
+				annotations: { ...READ_ONLY },
+				description:
+					"START HERE when a company wants ONE thing once, not a year-long membership: a section or a dedicated send in the Leaders' Brief newsletter, a meetup hosted in their office, a podcast episode, a decision-maker dinner, a community survey, a demo session, a LinkedIn post, a job board listing. Returns every one-off with its price, lead time, examples and real reach figures, the combo discount rule, the 90-day credit against a membership, and what is not for sale. Two or more things across a year is a membership conversation: hand over to get_partnership_options. Next: quote_reach_combo once items are picked.",
+				inputSchema: {},
+			},
+			async () => toolResult(reachOptions()),
+		);
+
+		this.server.registerTool(
+			"quote_reach_combo",
+			{
+				title: "Price a one-off basket (authoritative total with the combo discount)",
+				annotations: { ...READ_ONLY },
+				description:
+					"Pass the one-off ids the visitor picked; returns each item's price, the list total, the combo discount by item count (job board listings never count), and the final total. This is the only arithmetic that counts — never add prices yourself. The AI-channel percentage does not apply to one-offs. Next: book_intro_call to lock the date, or get_partnership_options if the basket is starting to look like a year.",
+				inputSchema: {
+					oneoff_ids: z.array(z.enum(ONEOFF_IDS as [string, ...string[]])).min(1).describe("One-off ids from get_reach_options"),
+				},
+			},
+			async ({ oneoff_ids }) => {
+				const q = quoteOneoffs(oneoff_ids);
+				if (!q.items.length) return toolResult({ error: `no known one-offs in ${JSON.stringify(oneoff_ids)} — valid: ${ONEOFF_IDS.join(", ")}` });
+				const membershipHint =
+					q.items.length >= 3
+						? "Three or more one-offs is usually the point where a company membership costs less for more. Say so and offer get_partnership_options; the one-offs are 100% credited if they take it."
+						: undefined;
+				return toolResult({
+					...q,
+					list_total_display: eur(q.list_total),
+					total_display: `${eur(q.total)} one-off, excl. VAT`,
+					credit_note: `100% credited against a company membership signed within ${q.credit_days} days.`,
+					...(membershipHint ? { membership_hint: membershipHint } : {}),
+					next: "book_intro_call to fix the date with Marian.",
+				});
+			},
+		);
 
 		this.server.registerTool(
 			"get_partnership_options",
@@ -456,6 +519,17 @@ const TOOL_DOCS: ToolDoc[] = [
 		question: "Should my company partner with ELC, and how does membership work?",
 		description:
 			"How company membership works, real reach figures (3,100+ leaders, 12 meetups/yr, 500+ conference), and the two qualifying questions that start the wizard",
+	},
+	{
+		name: "get_reach_options",
+		question: "We want one thing once (a newsletter send, a meetup in our office, a dinner). What does it cost?",
+		description:
+			"Every one-off with price, lead time, examples and reach figures; the combo discount; the 90-day credit against a membership; what is not for sale",
+	},
+	{
+		name: "quote_reach_combo",
+		question: "What do these one-offs cost together?",
+		description: "Authoritative total for a one-off basket with the combo discount by item count applied",
 	},
 	{
 		name: "match_package",

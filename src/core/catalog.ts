@@ -44,6 +44,29 @@ export type Preset = {
 export type RoutingEntry = { preset: string; addons?: string[] };
 export type Discount = { pct: number; channels: string[]; applies_to: string; excluded_presets?: string[]; cap_deals?: number; expires?: string };
 
+/** A single item a company buys once, no package (2026-09-03, /reach). Outcomes arrive resolved. */
+export type OneOff = {
+	id: string;
+	item?: string;
+	name: string;
+	value: string;
+	examples: string[];
+	outcomes: string[];
+	price: number;
+	premium_price?: number;
+	lead_time: string;
+	cap?: { total_per_year: number };
+	cta_url?: string;
+	included_in: string[];
+};
+export type OneOffMeta = {
+	combo_discounts: { min_items: number; pct: number }[];
+	credit_days: number;
+	no_stack_with?: string[];
+	excluded_from_combo?: string[];
+	example_combos?: { id: string; name: string; items: string[] }[];
+};
+
 type Catalog = {
 	generatedAt: string;
 	meta: {
@@ -52,10 +75,12 @@ type Catalog = {
 		global_caps: Record<string, number>;
 		interest_groups: Record<string, string>;
 		discounts?: Record<string, Discount>;
+		oneoff?: OneOffMeta;
 	};
 	routing: { goals: string[]; budgets: string[]; match: Record<string, Record<string, RoutingEntry[]>> };
 	presets: Preset[];
 	items: Item[];
+	oneoffs?: OneOff[];
 };
 
 const catalog = raw as unknown as Catalog;
@@ -168,6 +193,58 @@ export function discountFor(
 }
 
 export const eur = (n: number): string => `€${n.toLocaleString("en-US")}`;
+
+// ── One-offs (/reach) ───────────────────────────────────────────────────────────────────────
+export const oneoffs: OneOff[] = catalog.oneoffs ?? [];
+export const oneoffMeta: OneOffMeta | null = meta.oneoff ?? null;
+export const ONEOFF_IDS = oneoffs.map((o) => o.id);
+export const oneoffById = (id: string): OneOff | undefined => oneoffs.find((o) => o.id === id);
+
+export type OneOffQuote = {
+	items: { id: string; name: string; price: number; lead_time: string; counts_toward_combo: boolean }[];
+	unknown_ids: string[];
+	list_total: number;
+	combo: { qualifying_items: number; pct: number; saved: number } | null;
+	total: number;
+	credit_days: number;
+};
+
+/**
+ * Price a one-off basket. The combo discount is by COUNT of qualifying items (job board listings
+ * keep their own rate card and never count), applied to the qualifying items' total only. Server
+ * side is authoritative: the model never does this arithmetic. Never stacks with the AI-channel
+ * percentage — a one-off basket is not a package, so discountFor is simply never called on it.
+ */
+export function quoteOneoffs(ids: string[]): OneOffQuote {
+	const m = oneoffMeta;
+	const excluded = new Set(m?.excluded_from_combo ?? []);
+	const wanted = [...new Set(ids)];
+	const items: OneOffQuote["items"] = [];
+	const unknown: string[] = [];
+	for (const id of wanted) {
+		const o = oneoffById(id);
+		if (!o) {
+			unknown.push(id);
+			continue;
+		}
+		items.push({ id: o.id, name: o.name, price: o.price, lead_time: o.lead_time, counts_toward_combo: !excluded.has(o.id) });
+	}
+	const listTotal = items.reduce((acc, i) => acc + i.price, 0);
+	const qualifying = items.filter((i) => i.counts_toward_combo);
+	const qualifyingTotal = qualifying.reduce((acc, i) => acc + i.price, 0);
+	const tier = [...(m?.combo_discounts ?? [])]
+		.sort((a, b) => b.min_items - a.min_items)
+		.find((d) => qualifying.length >= d.min_items);
+	const saved = tier ? Math.round(qualifyingTotal * (tier.pct / 100)) : 0;
+	return {
+		items,
+		unknown_ids: unknown,
+		list_total: listTotal,
+		combo: tier ? { qualifying_items: qualifying.length, pct: tier.pct, saved } : null,
+		total: listTotal - saved,
+		credit_days: m?.credit_days ?? 0,
+	};
+}
 
 /**
  * The basket resolved into journey-engine inputs: per-tier display names, plus each item's
