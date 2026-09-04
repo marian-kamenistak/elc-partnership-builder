@@ -51,7 +51,11 @@ export function reachOptions() {
 		not_for_sale: [
 			"Pitching from an ELC stage. The speaker at a hosted meetup tells a real story and passes the same filter as every ELC speaker.",
 			"Member contact data. A dedicated newsletter is sent by ELC to ELC's list; the list is never handed over.",
-			"Introductions.",
+			// 2026-09-04, Marian's call: introductions move from "never" to "only with the
+			// member's explicit consent". The promise that actually matters — the list is
+			// never handed over — is unchanged, and the line above still carries it. A
+			// brokered intro contacts the member, not the buyer, and happens only on a yes.
+			"Introductions without the member's consent. ELC will carry a request to a member and introduce you only if they say yes; you never receive contact data, and a no costs you nothing.",
 		],
 		next_tool:
 			"When the visitor picks items, call quote_reach_combo. To lock a date, book_intro_call. Prices are EUR ex VAT; Marian confirms every one-off on a call.",
