@@ -1,4 +1,4 @@
-name: deploy
+name: ci
 
 # elc-partnership-builder is a PUBLIC repo. src/data/offer-catalog.json (real pricing,
 # internal notes, the unpublished vendor tier) is deliberately gitignored and generated
@@ -47,6 +47,13 @@ jobs:
 
       - name: Test
         run: npm test
+
+      # worker-configuration.d.ts (Cloudflare Workers ambient runtime types — Request,
+      # Response, ExecutionContext, crypto, ...) is gitignored and only exists on Marian's
+      # Mac because `wrangler types` was already run there. A fresh CI checkout has never
+      # generated it. Purely local — reads wrangler.jsonc, no Cloudflare API access needed.
+      - name: Generate Cloudflare Workers runtime types
+        run: npm run cf-typegen
 
       - name: Type check
         run: npm run type-check
