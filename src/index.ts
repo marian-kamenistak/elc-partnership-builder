@@ -39,6 +39,7 @@ import {
 	type McpUsageConfig,
 	type McpUsageEnv,
 } from "./mcp-usage";
+import { getMoreToolsResult } from "@posthog/mcp";
 
 const READ_ONLY = {
 	readOnlyHint: true,
@@ -67,6 +68,26 @@ function toolResult(payload: Record<string, unknown>, note?: string) {
 		structuredContent: payload,
 	};
 }
+
+/** Shared by both `get_started` and `get_more_tools`'s greeting branch (see below) — one
+ *  source of truth for the menu text so the two entry points never drift apart. */
+function getStartedResult() {
+	const menu = TOOL_DOCS.map(
+		(d) => `- "${d.question}" → \`${d.name}\`: ${d.description}`,
+	).join("\n");
+	return toolResult({
+		what: "This is the Engineering Leaders Community Partnership Builder — it composes and prices a company membership package with ELC, and quotes single one-off items (a newsletter section, a hosted meetup, a dinner) for companies that want one thing once.",
+		menu,
+		start_here: "For a company considering a year-long membership, call get_partnership_options next. For one thing once, call get_reach_options.",
+	});
+}
+
+/** Matches a bare liveness/greeting ping — "hi", "test", "are you there" — as opposed to a
+ *  real described capability gap. Deliberately an exact (trimmed, punctuation-stripped)
+ *  match, not a "starts with": a genuine gap report is a sentence, and a loose prefix match
+ *  would swallow real ones that happen to start with a greeting word. */
+const GREETING_PING =
+	/^(hi+|hello+|hey+|yo+|sup|howdy|hola|ahoy|ping|test(ing)?|are you (there|working|alive)|is (this|anyone) (working|there)|still there|you there|greetings|what('?s| is) up)[.!?\s]*$/i;
 
 /** See src/mcp-usage.ts. Note this server ALREADY Slacks on conversion (see reclaim.ts and
  *  core/submit.ts). This instrumentation covers the other ~95% — every session that explores
@@ -104,16 +125,26 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 					"Call this for a greeting (hi, hello), a connectivity/liveness test, 'what can you do', or any message too general to match a specific tool below. Returns the full menu of real questions this server answers, each mapped to the tool name that answers it. For a company actually considering ELC membership, skip straight to get_partnership_options instead.",
 				inputSchema: {},
 			},
-			async () => {
-				const menu = TOOL_DOCS.map(
-					(d) => `- "${d.question}" → \`${d.name}\`: ${d.description}`,
-				).join("\n");
-				return toolResult({
-					what: "This is the Engineering Leaders Community Partnership Builder — it composes and prices a company membership package with ELC, and quotes single one-off items (a newsletter section, a hosted meetup, a dinner) for companies that want one thing once.",
-					menu,
-					start_here: "For a company considering a year-long membership, call get_partnership_options next. For one thing once, call get_reach_options.",
-				});
+			async () => getStartedResult(),
+		);
+
+		this.server.registerTool(
+			"get_more_tools",
+			{
+				title: "Report a missing capability — also answers a bare hello/liveness ping",
+				annotations: { ...READ_ONLY },
+				description:
+					"Check for additional tools whenever your task might benefit from specialized capabilities, even if existing tools could work as a fallback. Also the right tool for a bare greeting (hi, hello), a connectivity/liveness test, or any message too general to match a specific tool below — pass it as `context` and this returns the full menu instead of a dead end.",
+				inputSchema: {
+					context: z
+						.string()
+						.describe(
+							"A description of your goal and what kind of tool would help accomplish it, OR a plain greeting/liveness ping like 'hi' or 'test'.",
+						),
+				},
 			},
+			async ({ context }) =>
+				GREETING_PING.test(context.trim()) ? getStartedResult() : { content: getMoreToolsResult().content },
 		);
 
 		this.server.registerTool(
