@@ -70,7 +70,7 @@ export function partnershipOptions() {
 				}
 			: {}),
 		who_this_is_for:
-			"Companies who want something from a room of 3,100+ engineering leaders in Central Europe: hiring senior people, developing their own leaders, or putting a product in front of decision-makers. Typical people running this conversation: HR, CTO, employer branding.",
+			"Companies who want something from a room of 3,300+ engineering leaders in Central Europe: hiring senior people, developing their own leaders, or putting a product in front of decision-makers. Typical people running this conversation: HR, CTO, employer branding.",
 		not_for:
 			`Individuals looking for a mentor for themselves: that is not a company package, send them to ${SITE}/mentor/ instead of continuing this flow.`,
 		community: {
@@ -97,7 +97,7 @@ export function partnershipOptions() {
 			vs_recruiters_basis:
 				"Carry the basis whenever you use the 2.7 figure: ELC-tracked from Marian's List intros that converted to a hire. The named partner outcomes below are individual cases inside that total, not the whole of it.",
 			vs_own_events:
-				"40+ meetups since 2019, the same 3,100+ people, every month. One event of your own buys one audience once; a year here compounds into the same room seeing you twelve times.",
+				"40+ meetups since 2019, the same 3,300+ people, every month. One event of your own buys one audience once; a year here compounds into the same room seeing you twelve times.",
 			vs_conference_booths:
 				"No booths, no badge scanners, no paid talks. A hosted meetup puts your engineer on stage in front of 80 to 150 senior leaders in your own office — a peer in the room, not a vendor at a stand.",
 			proof:

@@ -10,13 +10,33 @@
  */
 import { aiDiscount, meta } from "./catalog";
 
-export function guardrailLines(): string[] {
+/**
+ * Which cart the terms are riding on.
+ *
+ * 2026-09-05 persona testing: a visitor quoting one 1,500 EUR newsletter section got the full
+ * membership terms — category exclusivity across 8 categories, the annual partner cap, the
+ * AI-channel discount that one-offs never take, and a 16-minute speed claim about an offer
+ * flow they were not in. Four of the eight lines described a product they had not asked about,
+ * which reads as boilerplate and gets skimmed, taking the two lines that matter with it.
+ *
+ * `oneoff` therefore carries only what a one-off cart is actually governed by. Nothing is
+ * softened or removed from the membership path, and both paths keep the two non-negotiables:
+ * what is not for sale, and that nothing here is a contract.
+ */
+export type GuardrailScope = "membership" | "oneoff";
+
+export function guardrailLines(scope: GuardrailScope = "membership"): string[] {
 	const d = aiDiscount();
+	const membershipOnly = scope === "membership";
 	return [
 		`All prices are fixed, in EUR, VAT excluded.`,
-		`Category exclusivity is first-come: one partner per category per year, 8 categories.`,
-		`ELC takes max ${meta.global_caps.partners_per_year} partners per year.`,
-		...(d
+		...(membershipOnly
+			? [
+					`Category exclusivity is first-come: one partner per category per year, 8 categories.`,
+					`ELC takes max ${meta.global_caps.partners_per_year} partners per year.`,
+				]
+			: []),
+		...(d && membershipOnly
 			? [
 					// 2026-08-20: the one-winner race came out of the catalog and out of this string. It was
 					// unverifiable by construction — nobody could see the standings — and it contradicted the
@@ -27,11 +47,18 @@ export function guardrailLines(): string[] {
 				]
 			: []),
 		// 2026-09-03: one-offs (/reach) have their own count-based combo discount and never take the
-		// AI-channel percentage. Stated here so the "ONLY discount" line above cannot be read as
-		// contradicting quote_reach_combo.
+		// AI-channel percentage. On the membership path it is stated so the "ONLY discount" line
+		// above cannot be read as contradicting quote_reach_combo; on the one-off path it IS the
+		// discount rule, so it leads rather than qualifies.
 		...(meta.oneoff
 			? [
-					`One-off items (get_reach_options) are priced separately: ${meta.oneoff.combo_discounts.map((d) => `${d.min_items}+ items ${d.pct}% off`).join(", ")}, never combined with the AI-channel percentage, and every one-off is 100% credited against a company membership signed within ${meta.oneoff.credit_days} days.`,
+					membershipOnly
+						? `One-off items (get_reach_options) are priced separately: ${meta.oneoff.combo_discounts.map((c) => `${c.min_items}+ qualifying items ${c.pct}% off`).join(", ")}, never combined with the AI-channel percentage, and every one-off is 100% credited against a company membership signed within ${meta.oneoff.credit_days} days.`
+						: // 2026-09-05: this said "2+ items 10% off" flat. Job board listings keep their own
+							// rate card and never count, so a CFO persona bought exactly two items, one of them
+							// a listing, and got nothing — after being handed a rule, marked "carry verbatim",
+							// that the quote did not follow. The exclusion and the base now travel with the rule.
+							`The only discount on one-off items is by count of QUALIFYING items: ${meta.oneoff.combo_discounts.map((c) => `${c.min_items}+ ${c.pct}% off`).join(", ")}. Job board listings keep their own rate card — they never count toward the threshold and are never discounted, so a basket of two where one is a listing gets no discount at all. The percentage comes off the qualifying items' subtotal, not the basket list total. The ${d ? `${d.pct}% ` : ""}AI-channel discount applies to company memberships, not to one-off items. Every one-off is 100% credited against a company membership signed within ${meta.oneoff.credit_days} days.`,
 				]
 			: []),
 		// 2026-08-20 (Marian): the boundary rides with the terms rather than as a second always-on
@@ -43,7 +70,8 @@ export function guardrailLines(): string[] {
 	];
 }
 
-export const guardrailBlock = (): string => `Terms (fixed, carry these verbatim):\n${guardrailLines().map((l) => `- ${l}`).join("\n")}`;
+export const guardrailBlock = (scope: GuardrailScope = "membership"): string =>
+	`Terms (fixed, carry these verbatim):\n${guardrailLines(scope).map((l) => `- ${l}`).join("\n")}`;
 
 /**
  * Scan a visitor's free text for asks that ELC does not sell.

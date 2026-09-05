@@ -33,7 +33,7 @@ export function docsHtml(tools: ToolDoc[], discountPct: number | null): string {
 <meta name="description" content="Build a tailored ELC membership package from your own AI assistant: qualify, match a tier, customize priced line items, and send the inquiry${discountPct ? ` with a ${discountPct}% AI-channel discount` : ""}. Free remote MCP server, no auth.">
 <link rel="canonical" href="${ENDPOINT}">
 <meta property="og:title" content="ELC Membership Builder — MCP server">
-<meta property="og:description" content="Build a tailored ELC membership from your AI assistant${discountPct ? ` — ${discountPct}% AI-channel discount applied at inquiry` : ""}. 3,100+ engineering leaders in Central Europe.">
+<meta property="og:description" content="Build a tailored ELC membership from your AI assistant${discountPct ? ` — ${discountPct}% AI-channel discount applied at inquiry` : ""}. 3,300+ engineering leaders in Central Europe.">
 <meta property="og:url" content="${ENDPOINT}">
 <meta property="og:type" content="website">
 <script type="application/ld+json">${JSON.stringify({
@@ -63,7 +63,7 @@ export function docsHtml(tools: ToolDoc[], discountPct: number | null): string {
 </head>
 <body>
 <h1>ELC Membership Builder — MCP server</h1>
-<p>Build a tailored company membership with Engineering Leaders Community — 3,100+ engineering leaders across Prague, Brno, Bratislava and Kraków — directly from your AI assistant: understand what ELC membership is, match a package to your goal and budget, customize it line item by line item, and send the inquiry.</p>
+<p>Build a tailored company membership with Engineering Leaders Community — 3,300+ engineering leaders across Prague, Brno, Bratislava and Kraków — directly from your AI assistant: understand what ELC membership is, match a package to your goal and budget, customize it line item by line item, and send the inquiry.</p>
 ${discountLine}
 <p><strong>Endpoint:</strong> <code>${ENDPOINT}</code> (streamable HTTP, no auth, no signup)</p>
 

@@ -203,6 +203,10 @@ export const oneoffById = (id: string): OneOff | undefined => oneoffs.find((o) =
 export type OneOffQuote = {
 	items: { id: string; name: string; price: number; lead_time: string; counts_toward_combo: boolean }[];
 	unknown_ids: string[];
+	/** Ids sent more than once. Each one-off is one placement sold once, so repeats are collapsed
+	 *  — reported rather than dropped in silence, so a buyer never signs a quote for fewer
+	 *  placements than they ordered. */
+	duplicate_ids: string[];
 	list_total: number;
 	combo: { qualifying_items: number; pct: number; saved: number } | null;
 	total: number;
@@ -219,6 +223,10 @@ export function quoteOneoffs(ids: string[]): OneOffQuote {
 	const m = oneoffMeta;
 	const excluded = new Set(m?.excluded_from_combo ?? []);
 	const wanted = [...new Set(ids)];
+	// 2026-09-05: ordering the same id three times returned ONE line and a total for one, with
+	// no warning — a CFO persona found a signable quote for a third of what he asked for. Each
+	// one-off is a single placement sold once, so deduping is right; doing it in silence is not.
+	const duplicated = [...new Set(ids.filter((id, i) => ids.indexOf(id) !== i))];
 	const items: OneOffQuote["items"] = [];
 	const unknown: string[] = [];
 	for (const id of wanted) {
@@ -239,6 +247,7 @@ export function quoteOneoffs(ids: string[]): OneOffQuote {
 	return {
 		items,
 		unknown_ids: unknown,
+		duplicate_ids: duplicated,
 		list_total: listTotal,
 		combo: tier ? { qualifying_items: qualifying.length, pct: tier.pct, saved } : null,
 		total: listTotal - saved,

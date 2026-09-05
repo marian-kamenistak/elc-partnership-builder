@@ -21,13 +21,13 @@ import { handleChat, type ChatEnv } from "./chat";
 import { POSTHOG_KEY } from "./llm-analytics";
 import { handleReclaimHook, type ReclaimEnv } from "./reclaim";
 import { resolveSecrets } from "./lib/read-secret";
-import { aiDiscount, availableItems, discountFor, eur, journeyItemsFor, ONEOFF_IDS, PRESET_IDS, presetById, quoteOneoffs, resolveBasket } from "./core/catalog";
+import { aiDiscount, availableItems, discountFor, eur, journeyItemsFor, meta, ONEOFF_IDS, PRESET_IDS, presetById, quoteOneoffs, resolveBasket } from "./core/catalog";
 import { reachOptions } from "./core/reach";
 import { approvalMemo, buildBusinessCase } from "./core/businesscase";
 import { fitToBudget } from "./core/fit";
 import { isSeatPriced, priceSeats, seatSpecFor } from "./core/seats";
 import { buildJourney } from "./core/journey";
-import { detectBoundaryConflicts, guardrailBlock } from "./core/guardrails";
+import { detectBoundaryConflicts, guardrailBlock, type GuardrailScope } from "./core/guardrails";
 import { matchPackage } from "./core/match";
 import { partnershipOptions } from "./core/options";
 import { submitOffer, type SubmitEnv } from "./core/submit";
@@ -60,9 +60,9 @@ const ATTR_PATH = "/partner/";
  * being pitched a deadline while still failing to describe their own problem. Terms belong on
  * priced answers, which is the only place they mean anything.
  */
-function toolResult(payload: Record<string, unknown>, note?: string) {
+function toolResult(payload: Record<string, unknown>, note?: string, scope: GuardrailScope = "membership") {
 	const isError = "error" in payload;
-	const body = [note, JSON.stringify(payload, null, 2), isError ? null : guardrailBlock()].filter(Boolean).join("\n\n");
+	const body = [note, JSON.stringify(payload, null, 2), isError ? null : guardrailBlock(scope)].filter(Boolean).join("\n\n");
 	return {
 		content: [{ type: "text" as const, text: body + (isError ? "" : ATTRIBUTION(ATTR_PATH)) }],
 		structuredContent: payload,
@@ -156,7 +156,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 					"START HERE when a company wants ONE thing once, not a year-long membership: a section or a dedicated send in the Leaders' Brief newsletter, a meetup hosted in their office, a podcast episode, a decision-maker dinner, a community survey, a demo session, a LinkedIn post, a job board listing. Returns every one-off with its price, lead time, examples and real reach figures, the combo discount rule, the 90-day credit against a membership, and what is not for sale. Two or more things across a year is a membership conversation: hand over to get_partnership_options. Next: quote_reach_combo once items are picked.",
 				inputSchema: {},
 			},
-			async () => toolResult(reachOptions()),
+			async () => toolResult(reachOptions(), undefined, "oneoff"),
 		);
 
 		this.server.registerTool(
@@ -181,10 +181,24 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 					...q,
 					list_total_display: eur(q.list_total),
 					total_display: `${eur(q.total)} one-off, excl. VAT`,
+					// State the base, always. "15% off" against the list total does not reconcile by
+					// hand whenever a non-qualifying item is in the basket, and a CFO who cannot
+					// reproduce a number stops trusting every other number in the quote.
+					discount_basis: q.combo
+						? `${q.combo.pct}% applies to the ${q.combo.qualifying_items} qualifying item(s) only — ${eur(q.combo.saved)} off. Job board listings never count toward the threshold and are never discounted, so this will not reconcile against the list total.`
+						: `No combo discount: ${q.items.filter((i) => i.counts_toward_combo).length} qualifying item(s), and the lowest threshold is ${Math.min(...(meta.oneoff?.combo_discounts ?? [{ min_items: 2 }]).map((c) => c.min_items))}. Job board listings never count toward it and are never discounted.`,
+					...(q.duplicate_ids.length
+						? {
+								duplicate_note: `Sent more than once and counted once: ${q.duplicate_ids.join(", ")}. Each one-off is a single placement sold once — to run the same placement repeatedly, say so and it is quoted as separate dated placements, not by repeating the id.`,
+							}
+						: {}),
 					credit_note: `100% credited against a company membership signed within ${q.credit_days} days.`,
 					...(membershipHint ? { membership_hint: membershipHint } : {}),
-					next: "book_intro_call to fix the date with Marian.",
-				});
+						next: "book_intro_call to fix the date with Marian.",
+					},
+					undefined,
+					"oneoff",
+				);
 			},
 		);
 
@@ -549,7 +563,7 @@ const TOOL_DOCS: ToolDoc[] = [
 		name: "get_partnership_options",
 		question: "Should my company partner with ELC, and how does membership work?",
 		description:
-			"How company membership works, real reach figures (3,100+ leaders, 12 meetups/yr, 500+ conference), and the two qualifying questions that start the wizard",
+			"How company membership works, real reach figures (3,300+ leaders, 12 meetups/yr, 500+ conference), and the two qualifying questions that start the wizard",
 	},
 	{
 		name: "get_reach_options",

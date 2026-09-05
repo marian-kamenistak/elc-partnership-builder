@@ -14,7 +14,7 @@ export function andJoin(items: readonly string[]): string {
 
 export const ELC_FACTS = {
 	members: 3100,
-	membersLabel: "3,100+",
+	membersLabel: "3,300+",
 	meetupsPerYear: 12,
 	meetupsHeld: "40+",
 	meetupAttendance: 120,

@@ -152,12 +152,42 @@ describe("guardrails + options", () => {
 		expect(text).toContain("16% AI-channel discount");
 		expect(text).toContain("Marian Kamenistak confirms");
 	});
+	// 2026-09-05 persona finding: a visitor quoting one 1,500 EUR newsletter section received the
+	// full membership terms — exclusivity across 8 categories, the annual partner cap, the
+	// AI-channel discount that one-offs never take, and a 16-minute claim about a flow they were
+	// not in. Four of eight lines described a product they had not asked about.
+	it("one-off terms drop the membership-only lines and keep both non-negotiables", () => {
+		const oneoff = guardrailLines("oneoff").join(" ");
+		for (const membershipOnly of ["Category exclusivity", "max 10 partners", "16 minutes"]) {
+			expect(oneoff, `one-off terms must not carry "${membershipOnly}"`).not.toContain(membershipOnly);
+		}
+		expect(oneoff).toContain("VAT excluded");
+		expect(oneoff).toContain("NOT FOR SALE");
+		expect(oneoff).toContain("Marian Kamenistak confirms");
+		// The count-based combo rule leads on this path rather than qualifying an absent rule.
+		expect(oneoff).toContain("only discount on one-off items is by count of QUALIFYING items");
+		expect(oneoff).toContain("never apply it here");
+		// 2026-09-05: the rule used to read "2+ items 10% off" with no mention that job board
+		// listings never count — so a CFO bought two items, one a listing, got nothing, and had
+		// been handed that rule marked "carry verbatim". The exclusion and the base must travel
+		// with the rule or the terms contradict the arithmetic.
+		expect(oneoff, "the combo rule must state the job-listing exclusion").toContain(
+			"never count toward the threshold",
+		);
+		expect(oneoff, "the combo rule must state what the percentage applies to").toContain(
+			"qualifying items' subtotal",
+		);
+	});
+	it("membership stays the default scope and is unchanged", () => {
+		expect(guardrailLines()).toEqual(guardrailLines("membership"));
+		expect(guardrailLines("membership").join(" ")).toContain("Category exclusivity");
+	});
 	it("options carry both questions, the mentor link-out, and no invented numbers", () => {
 		const o = partnershipOptions();
 		expect(o.question_1.options.map((x) => x.id).sort()).toEqual(["hiring", "newsite", "product", "talent"]);
 		expect(o.question_2.options.map((x) => x.id)).toEqual(["free", "start", "solid", "exclusivity"]);
 		expect(o.not_for).toContain("/mentor/");
-		expect(o.community.members).toBe("3,100+");
+		expect(o.community.members).toBe("3,300+");
 	});
 });
 

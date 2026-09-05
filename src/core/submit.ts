@@ -321,7 +321,7 @@ function offerEmailHtml(args: {
 		cta: "Book the call with Marian",
 		photosLabel: "What you are buying into",
 		photosCaption: "This is the room. 12 meetups a year in Prague, Brno, Bratislava and Kraków.",
-		stats: ["3,100+ members", "120+ every meetup", "500+ at the conference"],
+		stats: ["3,300+ members", "120+ every meetup", "500+ at the conference"],
 		nudgeText:
 			"Want the year shaped around your KPIs? Reply to this email with what you need to move, and we build the twelve months around it.",
 		footer: "You got this because you built an offer through ELC's Membership AI Builder.",
