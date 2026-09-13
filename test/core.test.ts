@@ -166,7 +166,11 @@ describe("guardrails + options", () => {
 		expect(oneoff).toContain("Marian Kamenistak confirms");
 		// The count-based combo rule leads on this path rather than qualifying an absent rule.
 		expect(oneoff).toContain("only discount on one-off items is by count of QUALIFYING items");
-		expect(oneoff).toContain("never apply it here");
+		// Phrasing changed in a325085 (2026-09-05) from "never apply it here"; that commit
+		// rewrote the line and left this assertion behind. What the line must still do is tell a
+		// one-off buyer the AI-channel discount is not theirs — asserted on that clause rather
+		// than on a wording this copy is free to keep changing.
+		expect(oneoff).toContain("AI-channel discount applies to company memberships, not to one-off items");
 		// 2026-09-05: the rule used to read "2+ items 10% off" with no mention that job board
 		// listings never count — so a CFO bought two items, one a listing, got nothing, and had
 		// been handed that rule marked "carry verbatim". The exclusion and the base must travel

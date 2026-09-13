@@ -39,6 +39,13 @@ import {
 	type McpUsageConfig,
 	type McpUsageEnv,
 } from "./mcp-usage";
+import {
+	ignoredNotice,
+	normalizeMcpRequest,
+	parseArgs,
+	permissiveShape,
+	type ParseResult,
+} from "./mcp-tolerant";
 import { getMoreToolsResult } from "@posthog/mcp";
 
 const READ_ONLY = {
@@ -69,6 +76,37 @@ function toolResult(payload: Record<string, unknown>, note?: string, scope: Guar
 	};
 }
 
+/**
+ * Renders a `parseArgs` failure through the same envelope every other answer uses, so the shape
+ * of a response never depends on whether the arguments were right.
+ *
+ * `probe` is the difference between a caller asking what the tool wants and a caller getting it
+ * wrong, and the two deserve different answers: a bare `{}` is a question and comes back as a
+ * normal result carrying the field menu, while arguments that were supplied and rejected stay an
+ * error. Both go out under an `error` key, which is what suppresses the fixed-terms block and the
+ * attribution footer — the 2026-08-20 persona finding in `toolResult` applies exactly here, since
+ * a message whose entire content is "these are the arguments" is the last place to attach a
+ * discount countdown.
+ */
+function guidance(parsed: Extract<ParseResult<unknown>, { ok: false }>) {
+	const result = toolResult({
+		error: parsed.probe ? "arguments_needed" : "invalid_arguments",
+		message: parsed.message,
+	});
+	return parsed.probe ? result : { ...result, isError: true as const };
+}
+
+/** Staples `ignoredNotice` onto a finished answer. `toolResult` has no trailing-text slot — its
+ *  `note` is a lead-in, printed above the JSON — and the notice has to read AFTER the answer it
+ *  qualifies ("the answer above"), so it is appended to the rendered text here. */
+function withIgnored(result: ReturnType<typeof toolResult>, notice: string) {
+	if (!notice) return result;
+	return {
+		...result,
+		content: [{ type: "text" as const, text: result.content.map((c) => c.text).join("") + notice }],
+	};
+}
+
 /** Shared by both `get_started` and `get_more_tools`'s greeting branch (see below) — one
  *  source of truth for the menu text so the two entry points never drift apart. */
 function getStartedResult() {
@@ -92,6 +130,58 @@ const GREETING_PING =
 /** See src/mcp-usage.ts. Note this server ALREADY Slacks on conversion (see reclaim.ts and
  *  core/submit.ts). This instrumentation covers the other ~95% — every session that explores
  *  packages and leaves without submitting, which until now was completely invisible. */
+/**
+ * Slack response summary for this server specifically.
+ *
+ * The shared `defaultSummarize` takes the first text block, which everywhere else is prose. Here
+ * `toolResult` makes the primary text a `JSON.stringify(payload, null, 2)` blob, so the channel's
+ * `→ …` line rendered as `{ "what": "This is the Engineering Leaders Community Partnership…` —
+ * two hundred characters of punctuation saying nothing about what the visitor was quoted. This is
+ * what `McpUsageConfig.summarize` exists for (open follow-up from the 2026-09-04 Plan 1 run).
+ *
+ * Reads `structuredContent`, which is the same payload without the stringify.
+ */
+function summarizePartnership(_toolName: string, response: unknown): string | undefined {
+	const payload = (response as { structuredContent?: unknown })?.structuredContent;
+	if (!payload || typeof payload !== "object" || Array.isArray(payload)) return undefined;
+	const p = payload as Record<string, unknown>;
+
+	if (typeof p.error === "string") {
+		const detail = typeof p.message === "string" ? p.message.split("\n")[0] : "";
+		return `:warning: ${p.error}${detail ? ` — ${detail}` : ""}`;
+	}
+
+	// The keys worth seeing at a glance, most specific first — a price beats a package name,
+	// a package name beats a generic blurb.
+	const HEADLINE = [
+		"total_eur",
+		"annual_total_eur",
+		"price_eur",
+		"quoted_total_eur",
+		"preset_id",
+		"package",
+		"tier",
+		"verdict",
+		"status",
+		"what",
+	];
+	const parts: string[] = [];
+	for (const key of HEADLINE) {
+		const value = p[key];
+		if (value === undefined || value === null || value === "" || typeof value === "object") continue;
+		parts.push(`${key}: ${String(value)}`);
+		if (parts.length >= 3) break;
+	}
+	if (parts.length === 0) {
+		// Nothing recognised — say what came back rather than dumping it.
+		const keys = Object.keys(p).slice(0, 6);
+		if (keys.length === 0) return undefined;
+		return `returned ${keys.join(", ")}`;
+	}
+	const line = parts.join(" · ");
+	return line.length > 200 ? `${line.slice(0, 200)}…` : line;
+}
+
 const USAGE_CONFIG: McpUsageConfig = {
 	serverName: "elc-partnership-builder",
 	domain: "engineeringleaders.io",
@@ -99,6 +189,94 @@ const USAGE_CONFIG: McpUsageConfig = {
 	// chat door's LLM analytics. They must stay the same project or the two halves of the
 	// funnel stop joining.
 	posthogKey: POSTHOG_KEY,
+	summarize: summarizePartnership,
+};
+
+/* The real argument contracts. `registerTool` advertises `permissiveShape(…)` of each — every
+ * field optional, enums as plain strings — and the handler enforces the shape below through
+ * `parseArgs`. Nothing is loosened by this: `parseArgs` runs the same zod object the SDK used to
+ * run, so `request_offer`'s `final_price_confirmed` and the three contact fields still refuse an
+ * incomplete submission. What changes is only the answer a wrong call gets — the field menu
+ * instead of a raw Zod dump. See `src/mcp-tolerant.ts` for the traffic that motivated it. */
+
+const QUOTE_REACH_SHAPE = {
+	oneoff_ids: z.array(z.enum(ONEOFF_IDS as [string, ...string[]])).min(1).describe("One-off ids from get_reach_options"),
+};
+
+const MATCH_PACKAGE_SHAPE = {
+	goal: z.string().describe("One of the goal ids from get_partnership_options question_1"),
+	budget: z.string().describe("One of the budget ids from get_partnership_options question_2"),
+};
+
+const CUSTOMIZE_PACKAGE_SHAPE = {
+	preset_id: z.enum(PRESET_IDS as [string, ...string[]]).describe("The package being customized"),
+	item_ids: z.array(z.string()).describe("Item ids currently toggled ON (from match_package default_item_ids, plus/minus changes)"),
+	seats: z
+		.number()
+		.optional()
+		.describe("Starter only: how many people they are enrolling. Starter is priced per seat with volume bands, so ALWAYS ask for a headcount before quoting it — the bundle price is only the 3-seat entry."),
+};
+
+const BOOK_INTRO_CALL_SHAPE = {
+	preset_id: z
+		.enum(PRESET_IDS as [string, ...string[]])
+		.optional()
+		.describe("Optional: the package composed so far, if any"),
+	item_ids: z.array(z.string()).optional().describe("Optional: the basket composed so far, if any"),
+};
+
+const FIT_TO_BUDGET_SHAPE = {
+	preset_id: z.enum(PRESET_IDS as [string, ...string[]]).describe("The package to trim to budget (from match_package)"),
+	budget: z.number().describe("The visitor's ceiling in EUR, as a number (8000, not '8K')"),
+	must_have: z
+		.array(z.string())
+		.optional()
+		.describe("Optional: item ids the visitor explicitly asked for; kept first if they fit"),
+	against: z
+		.enum(["discounted", "list"])
+		.optional()
+		.describe("Price the budget against the AI-channel figure (default) or the list price"),
+};
+
+const BUILD_BUSINESS_CASE_SHAPE = {
+	preset_id: z.enum(PRESET_IDS as [string, ...string[]]).describe("The package being justified"),
+	item_ids: z.array(z.string()).describe("The basket: item ids toggled ON"),
+	company: z.string().optional().describe("Optional: company name, for the memo"),
+	requester_name: z.string().optional().describe("Optional: who is asking for approval, signed at the memo's foot"),
+	open_senior_roles: z
+		.number()
+		.optional()
+		.describe("Optional: senior roles they need to fill in 12 months — sharpens the comparison into their numbers"),
+	avg_first_year_salary: z
+		.number()
+		.optional()
+		.describe("Optional: average first-year salary in EUR for those roles; turns the generic fee band into their own"),
+	kpis: z.string().optional().describe("Optional: what has to move this year, in their words"),
+};
+
+const DESIGN_JOURNEY_SHAPE = {
+	preset_id: z.enum(PRESET_IDS as [string, ...string[]]),
+	item_ids: z.array(z.string()).describe("The basket: item ids toggled ON"),
+	start_month: z
+		.string()
+		.regex(/^\d{4}-\d{2}$/)
+		.describe("First membership month, YYYY-MM (ask the visitor; default to the month after the current one)"),
+};
+
+const REQUEST_OFFER_SHAPE = {
+	name: z.string().describe("Visitor's full name"),
+	email: z.string().describe("Work email the offer goes to"),
+	company: z.string().describe("Company name"),
+	kpis: z.string().optional().describe("Optional: what they need to move this year, in their words"),
+	visibility_interest: z
+		.enum(["company", "individual", "quiet", "undecided"])
+		.optional()
+		.describe("From the discovery question: do they want to invest in their visibility through the cooperation — as a company, through individual leaders, or stay quiet?"),
+	final_price_confirmed: z
+		.boolean()
+		.describe("REQUIRED TRUE: set only after the visitor has seen and explicitly confirmed the exact final total (the discounted figure if the discount applies). Sending without this confirmation is refused."),
+	preset_id: z.enum(PRESET_IDS as [string, ...string[]]),
+	item_ids: z.array(z.string()).describe("The final basket: item ids toggled ON"),
 };
 
 export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
@@ -123,7 +301,11 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				annotations: { ...READ_ONLY },
 				description:
 					"Call this for a greeting (hi, hello), a connectivity/liveness test, 'what can you do', or any message too general to match a specific tool below. Returns the full menu of real questions this server answers, each mapped to the tool name that answers it. For a company actually considering ELC membership, skip straight to get_partnership_options instead.",
-				inputSchema: {},
+				// `permissiveShape({})` rather than a bare `{}`: an empty shape leaves
+				// @posthog/mcp free to inject a REQUIRED `context`, so the front door of this
+				// server rejected the one call shape every agent tries first — `get_started`
+				// with no arguments at all.
+				inputSchema: permissiveShape({}),
 			},
 			async () => getStartedResult(),
 		);
@@ -159,7 +341,9 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				annotations: { ...READ_ONLY },
 				description:
 					"START HERE when a company wants ONE thing once, not a year-long membership: a section or a dedicated send in the Leaders' Brief newsletter, a meetup hosted in their office, a podcast episode, a decision-maker dinner, a community survey, a demo session, a LinkedIn post, a job board listing. Returns every one-off with its price, lead time, examples and real reach figures, the combo discount rule, the 90-day credit against a membership, and what is not for sale. Two or more things across a year is a membership conversation: hand over to get_partnership_options. Next: quote_reach_combo once items are picked.",
-				inputSchema: {},
+				// See get_started above: a bare `{}` lets @posthog/mcp inject a REQUIRED `context`,
+				// which is exactly what made the no-argument call this menu exists for fail.
+				inputSchema: permissiveShape({}),
 			},
 			async () => toolResult(reachOptions(), undefined, "oneoff"),
 		);
@@ -171,18 +355,20 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				annotations: { ...READ_ONLY },
 				description:
 					"Pass the one-off ids the visitor picked; returns each item's price, the list total, the combo discount by item count (job board listings never count), and the final total. This is the only arithmetic that counts — never add prices yourself. The AI-channel percentage does not apply to one-offs. Next: book_intro_call to lock the date, or get_partnership_options if the basket is starting to look like a year.",
-				inputSchema: {
-					oneoff_ids: z.array(z.enum(ONEOFF_IDS as [string, ...string[]])).min(1).describe("One-off ids from get_reach_options"),
-				},
+				inputSchema: permissiveShape(QUOTE_REACH_SHAPE),
 			},
-			async ({ oneoff_ids }) => {
+			async (raw) => {
+				const parsed = parseArgs("quote_reach_combo", QUOTE_REACH_SHAPE, raw);
+				if (!parsed.ok) return guidance(parsed);
+				const { oneoff_ids } = parsed.data;
 				const q = quoteOneoffs(oneoff_ids);
 				if (!q.items.length) return toolResult({ error: `no known one-offs in ${JSON.stringify(oneoff_ids)} — valid: ${ONEOFF_IDS.join(", ")}` });
 				const membershipHint =
 					q.items.length >= 3
 						? "Three or more one-offs is usually the point where a company membership costs less for more. Say so and offer get_partnership_options; the one-offs are 100% credited if they take it."
 						: undefined;
-				return toolResult({
+				return withIgnored(
+					toolResult({
 					...q,
 					list_total_display: eur(q.list_total),
 					total_display: `${eur(q.total)} one-off, excl. VAT`,
@@ -203,6 +389,8 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 					},
 					undefined,
 					"oneoff",
+					),
+					ignoredNotice("quote_reach_combo", parsed.ignored, QUOTE_REACH_SHAPE),
 				);
 			},
 		);
@@ -214,7 +402,9 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				annotations: { ...READ_ONLY },
 				description:
 					"START HERE for any company considering an ELC membership (personas: HR, CTO, employer branding). Returns how company membership works, real community reach figures, and the two qualifying questions with their valid answers. Companies only — individuals seeking a mentor for themselves get pointed to /mentor/ instead. After the visitor answers both questions, call match_package.",
-				inputSchema: {},
+				// See get_started above: a bare `{}` lets @posthog/mcp inject a REQUIRED `context`,
+				// which is exactly what made the no-argument call this menu exists for fail.
+				inputSchema: permissiveShape({}),
 			},
 			async () => toolResult(partnershipOptions()),
 		);
@@ -226,17 +416,20 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				annotations: { ...READ_ONLY },
 				description:
 					"Resolves goal + budget through ELC's own routing matrix — the same one the website uses — and returns the matched package(s) with real prices and their default line items. Map free-text answers to the closest valid id; on bad input the error lists the valid ids, re-ask rather than guessing. Next: customize_package to toggle line items, or request_offer to send it as-is.",
-				inputSchema: {
-					goal: z.string().describe("One of the goal ids from get_partnership_options question_1"),
-					budget: z.string().describe("One of the budget ids from get_partnership_options question_2"),
-				},
+				inputSchema: permissiveShape(MATCH_PACKAGE_SHAPE),
 			},
-			async ({ goal, budget }) => {
+			async (raw) => {
+				const parsed = parseArgs("match_package", MATCH_PACKAGE_SHAPE, raw);
+				if (!parsed.ok) return guidance(parsed);
+				const { goal, budget } = parsed.data;
 				const result = matchPackage(goal, budget);
 				if (!result.ok) return toolResult({ error: result.error });
-				return toolResult(
-					{ matches: result.matches },
-					result.matches.length > 1 ? "Two ways to start. Both real — present both." : undefined,
+				return withIgnored(
+					toolResult(
+						{ matches: result.matches },
+						result.matches.length > 1 ? "Two ways to start. Both real — present both." : undefined,
+					),
+					ignoredNotice("match_package", parsed.ignored, MATCH_PACKAGE_SHAPE),
 				);
 			},
 		);
@@ -248,16 +441,12 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				annotations: { ...READ_ONLY },
 				description:
 					"The conversational toggle board. Pass the preset and the item ids currently ON; returns the recomputed total (never trust your own arithmetic — this is the authoritative price), every selected item with its price, and what else this tier could add. Items marked foundation anchor the package; advise keeping them. Call again after every change the visitor asks for. Next: request_offer.",
-				inputSchema: {
-					preset_id: z.enum(PRESET_IDS as [string, ...string[]]).describe("The package being customized"),
-					item_ids: z.array(z.string()).describe("Item ids currently toggled ON (from match_package default_item_ids, plus/minus changes)"),
-					seats: z
-						.number()
-						.optional()
-						.describe("Starter only: how many people they are enrolling. Starter is priced per seat with volume bands, so ALWAYS ask for a headcount before quoting it — the bundle price is only the 3-seat entry."),
-				},
+				inputSchema: permissiveShape(CUSTOMIZE_PACKAGE_SHAPE),
 			},
-			async ({ preset_id, item_ids, seats }) => {
+			async (raw) => {
+				const parsed = parseArgs("customize_package", CUSTOMIZE_PACKAGE_SHAPE, raw);
+				if (!parsed.ok) return guidance(parsed);
+				const { preset_id, item_ids, seats } = parsed.data;
 				const preset = presetById(preset_id);
 				if (!preset) return toolResult({ error: `unknown preset "${preset_id}" — valid: ${PRESET_IDS.join(", ")}` });
 				// An empty basket used to price a €12,000 package as "Free" (2026-08-20 persona testing:
@@ -284,7 +473,8 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				if (seatPricing && "error" in seatPricing) return toolResult(seatPricing as unknown as Record<string, unknown>);
 				const effectiveTotal = seatPricing ? seatPricing.total : total;
 				const d = discountFor(effectiveTotal, "mcp", preset_id);
-				return toolResult({
+				return withIgnored(
+					toolResult({
 					...(seatPricing
 						? { seat_pricing: seatPricing }
 						: isSeatPriced(preset_id)
@@ -321,7 +511,9 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 								}
 							: {}),
 					available_to_add: availableItems(preset_id, item_ids),
-				});
+					}),
+					ignoredNotice("customize_package", parsed.ignored, CUSTOMIZE_PACKAGE_SHAPE),
+				);
 			},
 		);
 
@@ -332,20 +524,21 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 					annotations: { ...READ_ONLY },
 					description:
 						"The second legitimate ending besides request_offer: a direct booking link for a 1:1 intro meeting with Marian Kamenistak, ELC's founder. Offer it whenever the visitor hesitates, wants a human, or the package needs tailoring beyond the catalog. No contact details collected here — the booking page handles everything. Pass preset_id and item_ids if a package was composed: the response then carries a paste-ready booking note, so the call starts from their numbers instead of from scratch.",
-					inputSchema: {
-						preset_id: z
-							.enum(PRESET_IDS as [string, ...string[]])
-							.optional()
-							.describe("Optional: the package composed so far, if any"),
-						item_ids: z.array(z.string()).optional().describe("Optional: the basket composed so far, if any"),
-					},
+					inputSchema: permissiveShape(BOOK_INTRO_CALL_SHAPE),
 				},
 				// 2026-08-20: this used to return a bare link plus a tip telling the visitor to remember
 				// their own basket and recite it on the call. Anyone who booked instead of requesting an
 				// offer therefore arrived with nothing attached, losing the composed package at exactly
 				// the moment intent was highest. The basket now comes back as a paste-ready line. Still
 				// no contact details collected here.
-				async ({ preset_id, item_ids }) => {
+				async (raw) => {
+					const parsed = parseArgs("book_intro_call", BOOK_INTRO_CALL_SHAPE, raw);
+					// Both fields are optional and the bare link IS a real answer here — handing a
+					// hesitating visitor the field menu instead of the booking URL would break the one
+					// ending this tool exists to provide. So a probe falls through to the no-basket
+					// branch below; only supplied-and-wrong arguments are an error.
+					if (!parsed.ok && !parsed.probe) return guidance(parsed);
+					const { preset_id, item_ids } = parsed.ok ? parsed.data : { preset_id: undefined, item_ids: undefined };
 					const base = {
 						booking_url: "https://app.reclaim.ai/m/meet-marian/now",
 						what: "Direct calendar booking, 30 minutes with Marian. No form before it, no qualification call script — the conversation starts from whatever was built here.",
@@ -361,7 +554,8 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 					const { standard, addons, total } = resolveBasket(preset_id, item_ids);
 					const d = discountFor(total, "mcp", preset_id);
 					const count = standard.length + addons.length;
-					return toolResult({
+					return withIgnored(
+						toolResult({
 						...base,
 						composed_package: {
 							package: preset?.name ?? preset_id,
@@ -377,7 +571,9 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 										"Booking a call does not itself lock the AI-channel discount; sending the offer through request_offer is what registers it. Say so plainly rather than implying the call preserves it.",
 								}
 							: {}),
-					});
+						}),
+						ignoredNotice("book_intro_call", parsed.ok ? parsed.ignored : [], BOOK_INTRO_CALL_SHAPE),
+					);
 				},
 			);
 
@@ -388,21 +584,17 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 					annotations: { ...READ_ONLY },
 					description:
 						"Use when the visitor names a NUMBER rather than a band — 'we have 8,000 approved', 'can we do this for five thousand'. Returns a deterministic best-value composition under that ceiling: what fits, what was left out AND why, how much budget is unspent, and what the cheapest excluded item costs. Foundation items are kept first, then the remaining items cheapest-first so the budget buys as much as possible. Priced against the AI-channel figure by default, since that is what they would actually pay. Never hand-pick a basket yourself when a budget is stated — this tool is the authoritative composition, the same way customize_package is the authoritative total.",
-					inputSchema: {
-						preset_id: z.enum(PRESET_IDS as [string, ...string[]]).describe("The package to trim to budget (from match_package)"),
-						budget: z.number().describe("The visitor's ceiling in EUR, as a number (8000, not '8K')"),
-						must_have: z
-							.array(z.string())
-							.optional()
-							.describe("Optional: item ids the visitor explicitly asked for; kept first if they fit"),
-						against: z
-							.enum(["discounted", "list"])
-							.optional()
-							.describe("Price the budget against the AI-channel figure (default) or the list price"),
-					},
+					inputSchema: permissiveShape(FIT_TO_BUDGET_SHAPE),
 				},
-				async ({ preset_id, budget, must_have, against }) =>
-					toolResult(fitToBudget({ preset_id, budget, must_have, against }) as unknown as Record<string, unknown>),
+				async (raw) => {
+					const parsed = parseArgs("fit_to_budget", FIT_TO_BUDGET_SHAPE, raw);
+					if (!parsed.ok) return guidance(parsed);
+					const { preset_id, budget, must_have, against } = parsed.data;
+					return withIgnored(
+						toolResult(fitToBudget({ preset_id, budget, must_have, against }) as unknown as Record<string, unknown>),
+						ignoredNotice("fit_to_budget", parsed.ignored, FIT_TO_BUDGET_SHAPE),
+					);
+				},
 			);
 
 			this.server.registerTool(
@@ -412,31 +604,23 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 					annotations: { ...READ_ONLY },
 					description:
 						"Turns a composed basket into the argument that gets it approved: recruiter-fee equivalence, break-even hire count, cost per room, cost per month, what the spend replaces, and every assumption behind those numbers. Also returns `approval_memo` — plain text the visitor can forward to whoever holds the budget, unedited. Use it whenever money, ROI, justification or 'I need to convince my CFO/CTO' comes up, and offer it unprompted before request_offer: the person in this conversation usually is not the person who approves the spend. Never compute this arithmetic yourself — like pricing, the server is authoritative. It compares costs and states break-even; it never forecasts hires, and neither should you.",
-					inputSchema: {
-						preset_id: z.enum(PRESET_IDS as [string, ...string[]]).describe("The package being justified"),
-						item_ids: z.array(z.string()).describe("The basket: item ids toggled ON"),
-						company: z.string().optional().describe("Optional: company name, for the memo"),
-						requester_name: z.string().optional().describe("Optional: who is asking for approval, signed at the memo's foot"),
-						open_senior_roles: z
-							.number()
-							.optional()
-							.describe("Optional: senior roles they need to fill in 12 months — sharpens the comparison into their numbers"),
-						avg_first_year_salary: z
-							.number()
-							.optional()
-							.describe("Optional: average first-year salary in EUR for those roles; turns the generic fee band into their own"),
-						kpis: z.string().optional().describe("Optional: what has to move this year, in their words"),
-					},
+					inputSchema: permissiveShape(BUILD_BUSINESS_CASE_SHAPE),
 				},
-				async ({ preset_id, item_ids, company, requester_name, open_senior_roles, avg_first_year_salary, kpis }) => {
+				async (raw) => {
+					const parsed = parseArgs("build_business_case", BUILD_BUSINESS_CASE_SHAPE, raw);
+					if (!parsed.ok) return guidance(parsed);
+					const { preset_id, item_ids, company, requester_name, open_senior_roles, avg_first_year_salary, kpis } = parsed.data;
 					const c = buildBusinessCase({ preset_id, item_ids, company, open_senior_roles, avg_first_year_salary, kpis });
 					if ("error" in c) return toolResult(c as Record<string, unknown>);
-					return toolResult({
-						...(c as unknown as Record<string, unknown>),
-						approval_memo: approvalMemo(c, requester_name),
-						approval_memo_usage:
-							"Offer this as something they can forward as-is. Do not rewrite the numbers into prose of your own; hand it over whole, then ask whether they want it sent with the offer.",
-					});
+					return withIgnored(
+						toolResult({
+							...(c as unknown as Record<string, unknown>),
+							approval_memo: approvalMemo(c, requester_name),
+							approval_memo_usage:
+								"Offer this as something they can forward as-is. Do not rewrite the numbers into prose of your own; hand it over whole, then ask whether they want it sent with the offer.",
+						}),
+						ignoredNotice("build_business_case", parsed.ignored, BUILD_BUSINESS_CASE_SHAPE),
+					);
 				},
 			);
 
@@ -447,26 +631,25 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				annotations: { ...READ_ONLY },
 				description:
 					"The moment the package becomes a year: deterministic month-by-month plan of what lands when, computed from the basket's own scheduling metadata (lead times, anchors like the April 2027 conference, spacing, and heavy-event collision rules). Returns placed months, the recurring-every-month layer, and anything unplaceable WITH its reason. The plan contains ONLY items in the basket — narrate around it, never add or move an event. Call after customize_package, before request_offer.",
-				inputSchema: {
-					preset_id: z.enum(PRESET_IDS as [string, ...string[]]),
-					item_ids: z.array(z.string()).describe("The basket: item ids toggled ON"),
-					start_month: z
-						.string()
-						.regex(/^\d{4}-\d{2}$/)
-						.describe("First membership month, YYYY-MM (ask the visitor; default to the month after the current one)"),
-				},
+				inputSchema: permissiveShape(DESIGN_JOURNEY_SHAPE),
 			},
-			async ({ preset_id, item_ids, start_month }) => {
+			async (raw) => {
+				const parsed = parseArgs("design_journey", DESIGN_JOURNEY_SHAPE, raw);
+				if (!parsed.ok) return guidance(parsed);
+				const { preset_id, item_ids, start_month } = parsed.data;
 				const items = journeyItemsFor(preset_id, item_ids);
 				if (!items.length) return toolResult({ error: "empty_basket — pass the item_ids from customize_package" });
 				try {
 					const journey = buildJourney(items, start_month);
-					return toolResult({
-						...journey,
-						note: "Deterministic skeleton. Present it as the year this basket buys; items without scheduling metadata yet were placed as flexible one-offs.",
-						scheduling_caveat:
-							"Event months (hosted meetups, dinners, stage slots) are planning targets, not booked dates — ELC runs a shared events calendar across all partners, so the exact slot is confirmed with Marian at signing. Carry this caveat whenever you present the months.",
-					});
+					return withIgnored(
+						toolResult({
+							...journey,
+							note: "Deterministic skeleton. Present it as the year this basket buys; items without scheduling metadata yet were placed as flexible one-offs.",
+							scheduling_caveat:
+								"Event months (hosted meetups, dinners, stage slots) are planning targets, not booked dates — ELC runs a shared events calendar across all partners, so the exact slot is confirmed with Marian at signing. Carry this caveat whenever you present the months.",
+						}),
+						ignoredNotice("design_journey", parsed.ignored, DESIGN_JOURNEY_SHAPE),
+					);
 				} catch (e) {
 					return toolResult({ error: String(e instanceof Error ? e.message : e) });
 				}
@@ -480,23 +663,17 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
 				description:
 					"The ONLY tool that collects contact details, and the step that makes the AI-channel discount real. Sends the itemized offer to the visitor's email, notifies Marian (email + Slack), and files the company into ELC's partners queue. Ask for name, work email and company only when the visitor says they want the offer — never earlier. After success: share the confirmation, then make ONE optional ask: would they post publicly (LinkedIn/X) about building their membership with AI? Optional means optional — the discount is already theirs.",
-				inputSchema: {
-					name: z.string().describe("Visitor's full name"),
-					email: z.string().describe("Work email the offer goes to"),
-					company: z.string().describe("Company name"),
-					kpis: z.string().optional().describe("Optional: what they need to move this year, in their words"),
-					visibility_interest: z
-						.enum(["company", "individual", "quiet", "undecided"])
-						.optional()
-						.describe("From the discovery question: do they want to invest in their visibility through the cooperation — as a company, through individual leaders, or stay quiet?"),
-					final_price_confirmed: z
-						.boolean()
-						.describe("REQUIRED TRUE: set only after the visitor has seen and explicitly confirmed the exact final total (the discounted figure if the discount applies). Sending without this confirmation is refused."),
-					preset_id: z.enum(PRESET_IDS as [string, ...string[]]),
-					item_ids: z.array(z.string()).describe("The final basket: item ids toggled ON"),
-				},
+				inputSchema: permissiveShape(REQUEST_OFFER_SHAPE),
 			},
-			async ({ name, email, company, kpis, visibility_interest, final_price_confirmed, preset_id, item_ids }) => {
+			async (raw) => {
+				// The one mutating tool, so the tolerance is strictly about the ERROR MESSAGE, never
+				// about what gets through: `parseArgs` runs the same zod object the SDK used to run,
+				// so a send still needs name, email, company, preset_id, item_ids and a boolean
+				// `final_price_confirmed` present — and the close gate below still demands it be
+				// literally true. A probe is an ordinary failure here, not a menu shortcut.
+				const parsed = parseArgs("request_offer", REQUEST_OFFER_SHAPE, raw);
+				if (!parsed.ok) return guidance(parsed);
+				const { name, email, company, kpis, visibility_interest, final_price_confirmed, preset_id, item_ids } = parsed.data;
 				if (final_price_confirmed !== true) {
 					return toolResult({
 						error: "price_not_confirmed",
@@ -537,7 +714,8 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 					channel: "mcp",
 				});
 				if (!result.ok) return toolResult({ error: result.error });
-				return toolResult({
+				return withIgnored(
+					toolResult({
 					submitted: true,
 					...(conflicts.length
 						? {
@@ -557,7 +735,9 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 					optional_social_ask:
 						"If they enjoyed this, ONE optional ask: a public post about building their ELC membership through AI. It is not a condition of anything.",
 					...(result.test ? { test_mode: "Detected a test name — emails sent, CRM untouched." } : {}),
-				});
+					}),
+					ignoredNotice("request_offer", parsed.ignored, REQUEST_OFFER_SHAPE),
+				);
 			},
 		);
 	}
@@ -680,8 +860,12 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
 			});
 		}
 		// request.cf only exists on the edge request; hand it to the DO via ctx.props.
+		// This MUST run before normalizeMcpRequest, which rebuilds the Request and drops `cf`.
 		(ctx as ExecutionContext & { props?: McpGeo }).props = geoFromRequest(request);
-		return ElcPartnershipBuilder.serve("/mcp/partnership").fetch(request, env, ctx);
+		// The MCP spec makes `params.arguments` optional on tools/call; the SDK does not.
+		// See normalizeToolCallBody in src/mcp-tolerant.ts.
+		const normalized = await normalizeMcpRequest(request);
+		return ElcPartnershipBuilder.serve("/mcp/partnership").fetch(normalized, env, ctx);
 	}
 
 	return new Response(`Not found. MCP endpoint: ${SITE}/mcp/partnership`, { status: 404 });
