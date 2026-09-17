@@ -33,7 +33,7 @@ describe("price parity", () => {
 });
 
 describe("discount", () => {
-	it("is configured at 16% for chat and mcp, pilot-meetup excluded, dated not capped", () => {
+	it("is configured at 16% for chat and mcp, credit rungs excluded, dated not capped", () => {
 		// cap_deals removed 2026-08-20: the one-winner race was unverifiable by construction and
 		// contradicted the offer email, which asserts the discounted figure as the contract price.
 		expect(aiDiscount()).toEqual({
@@ -41,7 +41,8 @@ describe("discount", () => {
 			// webmcp joined 2026-08-27 (the visitor's own agent driving the configurator counts as the AI door).
 			channels: ["chat", "mcp", "webmcp"],
 			applies_to: "basket_total",
-			excluded_presets: ["pilot-meetup"],
+			// 2026-09-17: Signature Meetup and the Community Launch ladder follow the credit-not-pct rule.
+			excluded_presets: ["pilot-meetup", "signature-meetup", "launch-audit", "community-launch", "launch-run"],
 			expires: "2026-09-30",
 		});
 		expect(aiDiscount()?.cap_deals, "a deal cap reintroduces an unfalsifiable scarcity claim").toBeUndefined();

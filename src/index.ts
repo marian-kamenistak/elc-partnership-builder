@@ -21,7 +21,7 @@ import { handleChat, type ChatEnv } from "./chat";
 import { POSTHOG_KEY } from "./llm-analytics";
 import { handleReclaimHook, type ReclaimEnv } from "./reclaim";
 import { resolveSecrets } from "./lib/read-secret";
-import { aiDiscount, availableItems, discountFor, eur, journeyItemsFor, meta, ONEOFF_IDS, PRESET_IDS, presetById, quoteOneoffs, resolveBasket } from "./core/catalog";
+import { aiDiscount, availableItems, discountFor, eur, isCreditPreset, journeyItemsFor, meta, ONEOFF_IDS, PRESET_IDS, presetById, quoteOneoffs, resolveBasket } from "./core/catalog";
 import { reachOptions } from "./core/reach";
 import { approvalMemo, buildBusinessCase } from "./core/businesscase";
 import { fitToBudget } from "./core/fit";
@@ -505,9 +505,9 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 									note: `Applied automatically when the inquiry is sent through this AI channel (request_offer). Present both figures.`,
 								},
 							}
-						: preset_id === "pilot-meetup" && total > 0
+						: isCreditPreset(preset_id) && total > 0
 							? {
-									credit_note: `Pilot Meetup is 100% credited if you go bigger within 90 days. The credit is its discount — the ${aiDiscount()?.pct ?? 16}% AI-channel discount does not stack on top (it applies to every other paid preset).`,
+									credit_note: `${preset.name} is 100% credited against a company membership signed within 90 days. The credit is its discount — the ${aiDiscount()?.pct ?? 16}% AI-channel discount does not stack on top (it applies to the yearly packages).`,
 								}
 							: {}),
 					available_to_add: availableItems(preset_id, item_ids),

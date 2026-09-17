@@ -52,6 +52,10 @@ export const RECRUITER_FEE_PCT_HIGH = 25;
 const PACKAGE_TERM: Record<string, { label: string; memo: string; annual: boolean }> = {
 	"leadership-pilot": { label: "one quarter", memo: "for one quarter (90 days)", annual: false },
 	"pilot-meetup": { label: "a single meetup", memo: "as a one-off pilot meetup, not an annual commitment", annual: false },
+	"signature-meetup": { label: "a single meetup", memo: "as a one-off Signature Meetup, not an annual commitment", annual: false },
+	"launch-audit": { label: "one audit", memo: "as a one-off Launch Audit, credited against a Community Launch within 90 days", annual: false },
+	"community-launch": { label: "about four months", memo: "for the launch phase (about four months, three meetups), not an annual commitment", annual: false },
+	"launch-run": { label: "12 months", memo: "for 12 months (six meetups), with an off-ramp after the launch phase", annual: true },
 };
 const termFor = (presetId: string) =>
 	PACKAGE_TERM[presetId] ?? { label: "12 months", memo: "for 12 months", annual: true };
@@ -298,8 +302,8 @@ export function buildBusinessCase(input: BusinessCaseInput) {
 	if (ids.has("hosted-meetup")) {
 		reach.push({
 			label: "Your own stage",
-			value: "80 to 150 senior leaders in your office, your speaker on stage",
-			basis: "ELC published hosted-meetup attendance range",
+			value: "80 to 150 senior leaders registered for a meetup in your office, your speaker on stage",
+			basis: "ELC published hosted-meetup registrations range; registrations, never a head count",
 		});
 	}
 	if (ids.has("conference-tickets")) {

@@ -86,7 +86,16 @@ type Catalog = {
 const catalog = raw as unknown as Catalog;
 
 /** Same allowlist as elc-web membership.astro PRESET_IDS. Vendor Seat absent on purpose. */
-export const PRESET_IDS = ["free", "starter", "leadership-pilot", "pilot-meetup", "hiring", "education", "vital", "visibility", "story", "product"];
+export const PRESET_IDS = ["free", "starter", "leadership-pilot", "pilot-meetup", "signature-meetup", "launch-audit", "community-launch", "launch-run", "hiring", "education", "vital", "visibility", "story", "product"];
+
+/**
+ * Presets that keep the 100% credit instead of the AI-channel percentage (catalog
+ * meta.discounts.ai_channel.excluded_presets), read from the catalog so a new credit-mechanic rung
+ * cannot ship with the discount framing. Pilot Meetup, Signature Meetup and the Community Launch
+ * ladder as of 2026-09-17.
+ */
+export const creditPresetIds = (): string[] => catalog.meta.discounts?.ai_channel?.excluded_presets ?? [];
+export const isCreditPreset = (id: string): boolean => creditPresetIds().includes(id);
 const EXCLUDED_TIER_KEYS = ["vendor"];
 
 const stripExcludedTiers = (item: Item): Item => ({

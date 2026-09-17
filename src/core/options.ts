@@ -59,7 +59,7 @@ export function partnershipOptions() {
 					ai_channel_discount: {
 						pct: d.pct,
 						what: `Packages composed and sent through this AI channel get ${d.pct}% off the total, applied automatically at request_offer. This is the only discount that exists and the only channel that carries it — the web configurator has none.`,
-						exception: `Pilot Meetup keeps its 100% go-bigger credit instead of the ${d.pct}% — credit and discount never stack.`,
+						exception: `Pilot Meetup, Signature Meetup and the Community Launch ladder (Launch Audit, Community Launch, Launch + Run) keep their 100% credit against a company membership signed within 90 days instead of the ${d.pct}% — credit and discount never stack.`,
 						// 2026-08-20: was a one-winner race plus a deadline. A buyer could never check whether the seat
 						// was still open, so the claim was unfalsifiable, and two sophisticated personas read the
 						// stack as manufactured urgency. The date alone is verifiable and self-limiting.
@@ -77,10 +77,17 @@ export function partnershipOptions() {
 			members: ELC_FACTS.membersLabel,
 			seniority: `${ELC_FACTS.segmentManagerPlusPct}% Manager+ · ${ELC_FACTS.segmentSeniorIcPct}% Senior/Staff IC`,
 			cities: andJoin(ELC_FACTS.cities),
-			meetups: `${ELC_FACTS.meetupsPerYear} meetups a year, ${ELC_FACTS.meetupAttendance}+ senior leaders each`,
+			meetups: `${ELC_FACTS.meetupsPerYear} meetups a year, ${ELC_FACTS.meetupAttendance}+ registrations each`,
 			newsletter: `${ELC_FACTS.newsletterSubscribersLabel} subscribers, ${ELC_FACTS.newsletterOpenRate}% open rate`,
 			conference: `${ELC_FACTS.conferenceAttendees}+ attendees, next edition ${ELC_FACTS.nextConference}`,
 			founded: ELC_FACTS.founded,
+		},
+		// 2026-09-17 (community-os): the two done-for-you offers, so a "run a meetup for us" or "launch a
+		// community in our city" ask routes to a rung instead of being bent into a yearly package.
+		done_for_you: {
+			signature_meetup: `One night at the company's office run end to end by ELC (topic vote, up to two curated ELC speakers next to theirs, the audience launch, a three-act room with an ELC host, recap and YouTube talk, D+3 report): preset signature-meetup, ${SITE}/partner/signature-meetup/. Signature Exclusive adds the signature-city-exclusivity add-on. Registrations promised, never a head count; fewer than 100 registrations and the next one runs at delivery cost.`,
+			community_launch: `A recurring community under the company's name in a CEE city: launch-audit (in person, 90-day plan), community-launch (the audit plus three Signature-grade meetups in about four months with ELC members seeded in, channel setup, hand-over playbook), launch-run (six meetups in a year, quarterly report, city exclusivity included, off-ramp at month four). ${SITE}/for-companies/community-launch/.`,
+			terms: "All of these keep the 100% credit within 90 days instead of the AI-channel percentage. Lead time two months per meetup, max one Signature Meetup per city per month.",
 		},
 		how_membership_works:
 			"ELC is funded by company members, not member fees — membership stays free for engineering leaders, which is why the room stays senior and shows up. A company membership is assembled from priced line items: pick a package as the starting bundle, toggle items on and off, the total recalculates. The Free package is a real option and runs today.",
@@ -99,7 +106,7 @@ export function partnershipOptions() {
 			vs_own_events:
 				"40+ meetups since 2019, the same 3,300+ people, every month. One event of your own buys one audience once; a year here compounds into the same room seeing you twelve times.",
 			vs_conference_booths:
-				"No booths, no badge scanners, no paid talks. A hosted meetup puts your engineer on stage in front of 80 to 150 senior leaders in your own office — a peer in the room, not a vendor at a stand.",
+				"No booths, no badge scanners, no paid talks. A hosted meetup puts your engineer on stage in your own office with 80 to 150 senior leaders registered — a peer on a stage, not a vendor at a stand. Registrations are what ELC measures and promises, never a head count.",
 			proof:
 				"Everpure: 3 Director+ leaders hired over 2 years. Ataccama: 4 senior hires including a VP Platform. Apify: partner for 3 years running.",
 			scarcity_is_real:

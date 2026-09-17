@@ -6,7 +6,7 @@
  * Errors guide the agent to correct usage (mcp-launch agent-centric rule): bad input returns
  * the valid ids, never a guess.
  */
-import { aiDiscount, defaultBasket, discountFor, eur, presetById, resolveBasket, routing, type RoutingEntry } from "./catalog";
+import { aiDiscount, defaultBasket, discountFor, eur, isCreditPreset, presetById, resolveBasket, routing, type RoutingEntry } from "./catalog";
 
 export type Match = {
 	preset_id: string;
@@ -87,8 +87,8 @@ export function matchPackage(goal: string, budget: string): { ok: true; matches:
 			summary:
 				p.id === "free"
 					? "The free layer, running today: no invoice, no contract."
-					: p.id === "pilot-meetup"
-						? `${p.name} at ${eur(total)}, 100% credited if you go bigger within 90 days. The credit is its discount — the ${aiDiscount()?.pct ?? 16}% AI-channel discount applies to every other paid preset but does not stack here.`
+					: isCreditPreset(p.id)
+						? `${p.name} at ${eur(total)}, 100% credited against a company membership signed within 90 days. The credit is its discount — the ${aiDiscount()?.pct ?? 16}% AI-channel discount applies to the yearly packages but does not stack here.`
 						: `${p.name} at ${eur(total)} with every standard item on${d ? `, ${eur(d.discounted)} through this AI channel` : ""}. Toggle off what you do not need — the total moves with you.`,
 		};
 	});

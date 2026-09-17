@@ -61,7 +61,7 @@ describe("business case: arithmetic is the server's job", () => {
 	});
 
 	it("never calls a non-annual package a year", () => {
-		for (const p of ["leadership-pilot", "pilot-meetup"]) {
+		for (const p of ["leadership-pilot", "pilot-meetup", "signature-meetup", "launch-audit", "community-launch"]) {
 			const c = buildBusinessCase({ preset_id: p, item_ids: basket(p) });
 			if ("error" in c || "no_case_needed" in c) throw new Error(p);
 			expect(c.term.annual, p).toBe(false);
