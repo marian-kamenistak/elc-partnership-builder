@@ -379,7 +379,7 @@ function offerEmailHtml(args: {
   <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;">
     <tr><td align="center" style="padding:0 0 28px;">
       <a href="https://www.engineeringleaders.io/" style="text-decoration:none;">
-        <img src="${assetBase}/email-logo.png" width="240" alt="Engineering Leaders Community" style="display:block;width:240px;height:auto;border:0;">
+        <img src="${assetBase}/email-logo-glossy.png" width="240" alt="Engineering Leaders Community" style="display:block;width:240px;height:auto;border:0;">
       </a>
     </td></tr>
     <tr><td style="border-radius:16px 16px 0 0;overflow:hidden;">
