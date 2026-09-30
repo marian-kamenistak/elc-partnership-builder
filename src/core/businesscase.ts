@@ -296,7 +296,7 @@ export function buildBusinessCase(input: BusinessCaseInput) {
 		reach.push({
 			label: "Newsletter reach",
 			value: `~${(Math.round(readers / 100) * 100).toLocaleString("en-US")} people who open it, 12 issues a year (~${(Math.round(opens / 1000) * 1000).toLocaleString("en-US")} opened sends)`,
-			basis: `${ELC_FACTS.newsletterSubscribersLabel} subscribers at ELC's published ${ELC_FACTS.newsletterOpenRate}% open rate. Lead with the people figure, not the sends figure — they are the same audience twelve times, not a larger audience`,
+			basis: `${ELC_FACTS.newsletterSubscribersLabel} subscribers, ${ELC_FACTS.newsletterOpensPerIssueLabel} of them open every issue (${ELC_FACTS.newsletterOpenRate}% over the last 7 sends). Lead with the people figure, not the sends figure — they are the same audience twelve times, not a larger audience`,
 		});
 	}
 	if (ids.has("hosted-meetup")) {

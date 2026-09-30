@@ -20,7 +20,7 @@ export function reachOptions() {
 			"A company with one concrete thing to put in front of engineering leaders in Central Europe: a conference to announce, a senior role to fill, a product to demo, a topic to put on a dinner table. If they want two or more things across a year, a company membership is cheaper — say so and hand over to get_partnership_options.",
 		audience: {
 			members: ELC_FACTS.membersLabel,
-			newsletter: `${ELC_FACTS.newsletterSubscribersLabel} subscribers, ${ELC_FACTS.newsletterOpenRate}% open rate`,
+			newsletter: `${ELC_FACTS.newsletterSubscribersLabel} subscribers, ${ELC_FACTS.newsletterOpensPerIssueLabel} open every issue`,
 			meetups: `${ELC_FACTS.meetupsPerYear} a year, ${ELC_FACTS.meetupAttendance}+ leaders each`,
 			seniority: `${ELC_FACTS.segmentManagerPlusPct}% Manager+`,
 		},

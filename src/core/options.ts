@@ -78,7 +78,7 @@ export function partnershipOptions() {
 			seniority: `${ELC_FACTS.segmentManagerPlusPct}% Manager+ · ${ELC_FACTS.segmentSeniorIcPct}% Senior/Staff IC`,
 			cities: andJoin(ELC_FACTS.cities),
 			meetups: `${ELC_FACTS.meetupsPerYear} meetups a year, ${ELC_FACTS.meetupAttendance}+ registrations each`,
-			newsletter: `${ELC_FACTS.newsletterSubscribersLabel} subscribers, ${ELC_FACTS.newsletterOpenRate}% open rate`,
+			newsletter: `${ELC_FACTS.newsletterSubscribersLabel} subscribers, ${ELC_FACTS.newsletterOpensPerIssueLabel} open every issue`,
 			conference: `${ELC_FACTS.conferenceAttendees}+ attendees, next edition ${ELC_FACTS.nextConference}`,
 			founded: ELC_FACTS.founded,
 		},
