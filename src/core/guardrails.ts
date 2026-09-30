@@ -61,6 +61,17 @@ export function guardrailLines(scope: GuardrailScope = "membership"): string[] {
 							`The only discount on one-off items is by count of QUALIFYING items: ${meta.oneoff.combo_discounts.map((c) => `${c.min_items}+ ${c.pct}% off`).join(", ")}. Job board listings keep their own rate card — they never count toward the threshold and are never discounted, so a basket of two where one is a listing gets no discount at all. The percentage comes off the qualifying items' subtotal, not the basket list total. The ${d ? `${d.pct}% ` : ""}AI-channel discount applies to company memberships, not to one-off items. Every one-off is 100% credited against a company membership signed within ${meta.oneoff.credit_days} days.`,
 				]
 			: []),
+		// 2026-09-30 (Marian): the yearly packages are paid after the first meetup or session, so the
+		// company checks ELC's quality before the yearly invoice exists. Terms from the catalog.
+		...(meta.payment_terms && membershipOnly
+			? (() => {
+					const t = meta.payment_terms;
+					const m = t.month_one;
+					return [
+						`Payment for the yearly packages (${t.packages.join(", ")}): nothing is invoiced for the year until the first meetup or session has happened. ${t.meetup_start.join(", ")} start with a meetup and pay only its costs in month one: EUR ${m.food_drinks} food and drinks plus EUR ${m.organisation} organisation, plus EUR ${m.elc_venue} if ELC secures the venue. The others start with their first session (story: first ELC stage or video) and pay nothing in month one. ${t.credited ? `Month-one costs count toward the package price; only the ELC venue is on top. ` : ""}After the first event, if the company is convinced, ELC invoices the rest of the year${t.split.parts === 2 ? `, as one invoice or two halves with the second due in month ${t.split.second_part_month}` : ""}.${t.walk_away ? " If not convinced, the company walks away and owes nothing more." : ""}`,
+					];
+				})()
+			: []),
 		// 2026-08-20 (Marian): the boundary rides with the terms rather than as a second always-on
 		// block, so it reaches the model without adding more payload noise. It existed only inside
 		// why_elc as an objection-handling script, so a VP Sales who never objected never met it and

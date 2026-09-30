@@ -76,6 +76,14 @@ type Catalog = {
 		interest_groups: Record<string, string>;
 		discounts?: Record<string, Discount>;
 		oneoff?: OneOffMeta;
+		payment_terms?: {
+			packages: string[];
+			meetup_start: string[];
+			month_one: { food_drinks: number; organisation: number; elc_venue: number };
+			credited: boolean;
+			split: { parts: number; second_part_month: number };
+			walk_away: boolean;
+		};
 	};
 	routing: { goals: string[]; budgets: string[]; match: Record<string, Record<string, RoutingEntry[]>> };
 	presets: Preset[];
