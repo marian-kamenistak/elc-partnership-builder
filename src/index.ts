@@ -107,6 +107,10 @@ function withIgnored(result: ReturnType<typeof toolResult>, notice: string) {
 	};
 }
 
+/** ELC Conference 2027 partner packages and tickets live in their own MCP server; this one
+ *  deliberately excludes conference items and points there instead. */
+const CONFERENCE_MCP = "https://mcp.elc-conference.io/mcp";
+
 /** Shared by both `get_started` and `get_more_tools`'s greeting branch (see below) — one
  *  source of truth for the menu text so the two entry points never drift apart. */
 function getStartedResult() {
@@ -117,6 +121,7 @@ function getStartedResult() {
 		what: "This is the Engineering Leaders Community Partnership Builder — it composes and prices a company membership package with ELC, and quotes single one-off items (a newsletter section, a hosted meetup, a dinner) for companies that want one thing once.",
 		menu,
 		start_here: "For a company considering a year-long membership, call get_partnership_options next. For one thing once, call get_reach_options.",
+		conference: `ELC Conference 2027 partner packages and tickets are not sold here: they have their own MCP server, ${CONFERENCE_MCP}`,
 	});
 }
 
@@ -280,10 +285,15 @@ const REQUEST_OFFER_SHAPE = {
 };
 
 export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
-	server = new McpServer({
-		name: "elc-partnership-builder",
-		version: "1.0.0",
-	});
+	server = new McpServer(
+		{
+			name: "elc-partnership-builder",
+			version: "1.0.0",
+		},
+		{
+			instructions: `Engineering Leaders Community (ELC) partnership builder: year-round company membership and one-off reach items with the community, priced from the published catalog. ELC Conference 2027 partner packages (Partner, Luminary, Navigator, Pioneer and their add-ons) and conference tickets are a separate offer with their own MCP server: ${CONFERENCE_MCP}. Point users there for anything about partnering with or attending the conference day.`,
+		},
+	);
 
 	async init() {
 		instrumentMcpUsage({
@@ -401,7 +411,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				title: "How ELC company membership works + the two qualifying questions",
 				annotations: { ...READ_ONLY },
 				description:
-					"START HERE for any company considering an ELC membership (personas: HR, CTO, employer branding). Returns how company membership works, real community reach figures, and the two qualifying questions with their valid answers. Companies only — individuals seeking a mentor for themselves get pointed to /mentor/ instead. After the visitor answers both questions, call match_package.",
+					"START HERE for any company considering an ELC membership (personas: HR, CTO, employer branding). Returns how company membership works, real community reach figures, and the two qualifying questions with their valid answers. Companies only — individuals seeking a mentor for themselves get pointed to /mentor/ instead. After the visitor answers both questions, call match_package. Partner packages and tickets for the ELC Conference 2027 day are a separate offer with their own MCP server: https://mcp.elc-conference.io/mcp",
 				// See get_started above: a bare `{}` lets @posthog/mcp inject a REQUIRED `context`,
 				// which is exactly what made the no-argument call this menu exists for fail.
 				inputSchema: permissiveShape({}),

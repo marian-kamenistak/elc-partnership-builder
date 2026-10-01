@@ -88,7 +88,7 @@ ${rows}
 <p>The read-only tools double as GET endpoints for scripts and spreadsheets: <code>${ENDPOINT}/api/options</code>, <code>/api/match?goal=hiring&amp;budget=solid</code>, <code>/api/customize</code>, <code>/api/journey</code>. Spec: <a href="${ENDPOINT}/api/openapi.json">openapi.json</a>. Sending an offer stays on the MCP tool and <a href="https://www.engineeringleaders.io/partner/chat/?ref=mcp">the chat</a> — the doors that carry the discount.</p>
 
 <h2>Sibling server</h2>
-<p>ELC's general toolkit (leadership-ratio benchmark, membership business case, community-launch readiness) runs at <a href="https://www.engineeringleaders.io/mcp">engineeringleaders.io/mcp</a> — same pattern, complementary tools.</p>
+<p>ELC's general toolkit (leadership-ratio benchmark, membership business case, community-launch readiness) runs at <a href="https://www.engineeringleaders.io/mcp">engineeringleaders.io/mcp</a> — same pattern, complementary tools. ELC Conference 2027 partner packages and tickets have their own server: <a href="https://mcp.elc-conference.io/mcp">mcp.elc-conference.io/mcp</a>.</p>
 
 <h2>Source &amp; method</h2>
 <p>Every price comes from ELC's published offer catalog — the same generated file the website's own configurator renders, so this server cannot quote a price the site disagrees with. Community figures come from ELC's member base, no survey panels, no scraped data.</p>
