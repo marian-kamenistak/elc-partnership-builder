@@ -8,6 +8,9 @@ import { describe, expect, it } from "vitest";
 import { approvalMemo, buildBusinessCase, recruiterFeeBand, RECRUITER_FEE_HIGH, RECRUITER_FEE_LOW } from "../src/core/businesscase";
 import { defaultBasket, discountFor, PRESET_IDS, resolveBasket } from "../src/core/catalog";
 import { fitToBudget } from "../src/core/fit";
+import { pinClockInsideDiscountWindow } from "./clock";
+
+pinClockInsideDiscountWindow();
 
 const basket = (p: string) => defaultBasket(p);
 

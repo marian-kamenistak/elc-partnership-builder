@@ -20,6 +20,9 @@ import {
 import { detectBoundaryConflicts, guardrailLines } from "../src/core/guardrails";
 import { matchPackage } from "../src/core/match";
 import { partnershipOptions } from "../src/core/options";
+import { pinClockInsideDiscountWindow } from "./clock";
+
+pinClockInsideDiscountWindow();
 
 describe("price parity", () => {
 	// The load-bearing invariant: the server can never quote a number the website disagrees with.
@@ -43,17 +46,22 @@ describe("discount", () => {
 			applies_to: "basket_total",
 			// 2026-09-17: Signature Meetup and the Community Launch ladder follow the credit-not-pct rule.
 			excluded_presets: ["pilot-meetup", "signature-meetup", "launch-audit", "community-launch", "launch-run"],
-			expires: "2026-09-30",
+			// The end date is catalog data, not an invariant: Marian moves it (2026-09-30 -> 2026-12-31
+			// on 2026-10-01). Assert its shape here; the boundary is tested against it below.
+			expires: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
 		});
 		expect(aiDiscount()?.cap_deals, "a deal cap reintroduces an unfalsifiable scarcity claim").toBeUndefined();
 	});
-	it("expiry is enforced server-side: dead after 30 September 2026", () => {
-		expect(discountFor(12000, "mcp", "nebula", new Date("2026-09-30T12:00:00Z"))).toEqual({ pct: 16, discounted: 10080 });
-		expect(discountFor(12000, "mcp", "nebula", new Date("2026-10-01T00:00:00Z"))).toBeNull();
+	it("expiry is enforced server-side: live through the catalog's end date, dead the day after", () => {
+		const expires = aiDiscount()!.expires!;
+		const dayAfter = new Date(`${expires}T00:00:00Z`);
+		dayAfter.setUTCDate(dayAfter.getUTCDate() + 1);
+		expect(discountFor(12000, "mcp", "nebula", new Date(`${expires}T12:00:00Z`))).toEqual({ pct: 16, discounted: 10080 });
+		expect(discountFor(12000, "mcp", "nebula", dayAfter)).toBeNull();
 	});
 	it("guardrails state the end date and the 16-minute claim, and imply no race", () => {
 		const text = guardrailLines().join(" ");
-		expect(text).toContain("2026-09-30");
+		expect(text).toContain(aiDiscount()!.expires!);
 		expect(text).toContain("16 minutes");
 		// The scarcity wording personas read as manufactured must not come back.
 		for (const banned of ["FIRST partnership closed", "One winner", "one winner only", "Real scarcity"]) {

@@ -1,10 +1,10 @@
 {
-  "generatedAt": "[fixture \u2014 see src/data/offer-catalog.json for the real, generated file]",
-  "source": "FIXTURE \u2014 not the real catalog.yaml source",
+  "generatedAt": "[fixture — see src/data/offer-catalog.json for the real, generated file]",
+  "source": "FIXTURE — not the real catalog.yaml source",
   "meta": {
     "currency": "EUR",
     "vat": "excluded",
-    "entity": "ELC Community s.r.o. (ICO 21848343)",
+    "entity": "Engineering Leaders Community s.r.o. (IČO 21848343, VAT CZ21848343)",
     "global_caps": {
       "partners_per_year": 10,
       "nebula_slots_per_year": 8,
@@ -38,6 +38,36 @@
         ]
       }
     },
+    "payment_terms": {
+      "packages": [
+        "hiring",
+        "visibility",
+        "product",
+        "story",
+        "education",
+        "vital"
+      ],
+      "meetup_start": [
+        "hiring",
+        "visibility",
+        "product"
+      ],
+      "first_action": {
+        "hiring": "meetup",
+        "visibility": "meetup",
+        "product": "meetup",
+        "story": "stage_or_video",
+        "education": "mentoring_session",
+        "vital": "workshop"
+      },
+      "month_one": {
+        "food_drinks": 1000,
+        "organisation": 1000,
+        "elc_venue": 1500
+      },
+      "credited": true,
+      "walk_away": true
+    },
     "interest_groups": {
       "talent": "Boost your existing talent",
       "hiring": "Hire talent and build your employer brand",
@@ -54,9 +84,13 @@
         ],
         "applies_to": "basket_total",
         "excluded_presets": [
-          "pilot-meetup"
+          "pilot-meetup",
+          "signature-meetup",
+          "launch-audit",
+          "community-launch",
+          "launch-run"
         ],
-        "expires": "2026-09-30"
+        "expires": "2026-12-31"
       }
     },
     "oneoff": {
@@ -75,7 +109,9 @@
         "ai_channel"
       ],
       "excluded_from_combo": [
-        "job-listing"
+        "job-listing",
+        "meetup-signature",
+        "webinar"
       ],
       "example_combos": [
         {
@@ -147,16 +183,25 @@
         "hiring": [
           {
             "preset": "pilot-meetup"
+          },
+          {
+            "preset": "signature-meetup"
           }
         ],
         "product": [
           {
             "preset": "pilot-meetup"
+          },
+          {
+            "preset": "signature-meetup"
           }
         ],
         "newsite": [
           {
             "preset": "pilot-meetup"
+          },
+          {
+            "preset": "launch-audit"
           }
         ]
       },
@@ -188,6 +233,9 @@
           },
           {
             "preset": "visibility"
+          },
+          {
+            "preset": "community-launch"
           }
         ]
       },
@@ -222,6 +270,9 @@
             "addons": [
               "category-exclusivity"
             ]
+          },
+          {
+            "preset": "launch-run"
           }
         ]
       }
@@ -244,7 +295,7 @@
         "free-talks",
         "free-team-feed"
       ],
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "starter",
@@ -258,7 +309,7 @@
         "starter-meetup-seats",
         "starter-edu-access"
       ],
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "vendor",
@@ -269,8 +320,7 @@
       "items": [
         "vendor-seat"
       ],
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]",
-      "cta_url": "https://example.com/redacted"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "leadership-pilot",
@@ -282,7 +332,7 @@
       "items": [
         "leadership-pilot"
       ],
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "pilot-meetup",
@@ -298,7 +348,58 @@
       "items": [
         "hosted-meetup"
       ],
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
+    },
+    {
+      "id": "signature-meetup",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 2,
+        "heavy": true
+      },
+      "row": "start",
+      "name": "Signature Meetup",
+      "question_band": "Low: one night, run by ELC end to end",
+      "price": 8900,
+      "interest": "hiring",
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
+    },
+    {
+      "id": "launch-audit",
+      "row": "launch",
+      "name": "Launch Audit",
+      "question_band": "Low: find out if your city is ready",
+      "price": 3900,
+      "interest": "newsite",
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
+    },
+    {
+      "id": "community-launch",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 2,
+        "heavy": true
+      },
+      "row": "launch",
+      "name": "Community Launch",
+      "question_band": "Solid: a community under your name, three meetups in",
+      "price": 25900,
+      "interest": "newsite",
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
+    },
+    {
+      "id": "launch-run",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 2,
+        "heavy": true
+      },
+      "row": "launch",
+      "name": "Launch + Run",
+      "question_band": "Solid: six meetups under your name in a year",
+      "price": 46900,
+      "interest": "newsite",
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "hiring",
@@ -307,7 +408,7 @@
       "question_band": "Hire senior leaders without paying recruiters",
       "price": 12000,
       "interest": "hiring",
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "education",
@@ -316,7 +417,7 @@
       "question_band": "Grow the leaders you already have",
       "price": 15000,
       "interest": "talent",
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "vital",
@@ -341,7 +442,7 @@
       "question_band": "A year of LinkedIn, video and stages, produced for you",
       "price": 25000,
       "interest": "product",
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "product",
@@ -350,7 +451,7 @@
       "question_band": "Put your product in front of decision-makers",
       "price": 20000,
       "interest": "product",
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     }
   ],
   "items": [
@@ -359,8 +460,8 @@
       "journey": {
         "cadence": "monthly"
       },
-      "name": "Be in the room with CTOs and VPs, every month",
-      "value": "4 priority seats at every monthly meetup. 12 meetups per year. No booth, no badge scanner.",
+      "name": "4 seats at every monthly meetup",
+      "value": "Your team meets CTOs and VPs in person, 12 times a year.",
       "category": "community-access",
       "interests": [
         "hiring",
@@ -376,8 +477,7 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 1000,
-          "foundation": true
+          "price": 1000
         },
         "product": {
           "role": "standard",
@@ -395,8 +495,8 @@
       "journey": {
         "cadence": "monthly"
       },
-      "name": "Know who's in the room before you walk in",
-      "value": "Guest list before each meetup, attendee list after. Names and companies, so you know who to look for on the night. Not an outbound list: members never opted in to vendor email, and ELC does not sell that.",
+      "name": "Attendee lists for every meetup",
+      "value": "Guest list before, attendee list after: names and companies. Not an outbound list; members never opted in to vendor email.",
       "category": "community-access",
       "interests": [
         "hiring",
@@ -420,8 +520,8 @@
       "journey": {
         "cadence": "monthly"
       },
-      "name": "Tap ELC's monthly learning digest for your team channel",
-      "value": "Curated monthly digest of top engineering-leader articles and events, ready for your team Slack, Notion or internal newsletter.",
+      "name": "Monthly learning digest for your team",
+      "value": "Top engineering-leader articles and events, ready for your team Slack, Notion or internal newsletter.",
       "category": "community-access",
       "interests": [
         "talent"
@@ -448,8 +548,8 @@
         "cadence": "quarterly",
         "spacing_months": 3
       },
-      "name": "Reach 8,000+ product builder and leader feeds 4x a year",
-      "value": "4 high-ranked LinkedIn posts from the ELC company profile announcing and reinforcing the partnership.",
+      "name": "4 ELC LinkedIn posts about you",
+      "value": "Posted from the ELC company page and shared from Marian's profile.",
       "category": "visibility",
       "interests": [
         "hiring",
@@ -477,17 +577,17 @@
         "cadence": "one-off",
         "lead_time_months": 1
       },
-      "name": "Get your story on video, distributed by ELC",
-      "value": "1 co-created partnership video. Short LinkedIn format. Your team plus ours, distributed across ELC channels.",
+      "name": "1 short partnership video",
+      "value": "Your team on camera, shared across ELC channels.",
       "category": "visibility",
       "interests": [
         "hiring",
         "product",
         "newsite"
       ],
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]",
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]",
       "name_by_tier": {
-        "product": "Get your product story on video, distributed by ELC"
+        "product": "1 short product video"
       },
       "tiers": {
         "hiring": {
@@ -510,8 +610,8 @@
         "cadence": "one-off",
         "anchor": "start"
       },
-      "name": "Stand alongside the ELC brand on every channel",
-      "value": "Listed as Partner on engineeringleaders.io/partners, every event slide, every deck, every recap. You feature ELC's Community Partner badge on your careers or about page.",
+      "name": "Partner listing and badge",
+      "value": "Your name next to ELC on the website, event slides and recaps. A badge for your careers page. Your CTO's photo and quote on the ELC partner page, at no extra cost.",
       "category": "visibility",
       "interests": [
         "hiring",
@@ -526,8 +626,7 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 100,
-          "foundation": true
+          "price": 100
         },
         "product": {
           "role": "standard",
@@ -546,8 +645,8 @@
       "journey": {
         "cadence": "monthly"
       },
-      "name": "Get real engagement from CTOs and VPs on your posts. No bots.",
-      "value": "Active LinkedIn amplification from the community. Real likes, comments and reshares from CTOs and VPs. Not paid reach.",
+      "name": "Community engagement on your posts",
+      "value": "CTOs and VPs from ELC like, comment and reshare. Real people, not paid reach.",
       "category": "visibility",
       "interests": [
         "hiring",
@@ -577,8 +676,8 @@
       "journey": {
         "cadence": "monthly"
       },
-      "name": "Land in 2,800+ product builder and leader inboxes every month",
-      "value": "Your logo in every monthly newsletter, 12x per year. Partner visibility to 2,800+ subscribers with a 74% open rate.",
+      "name": "Your logo in the monthly newsletter",
+      "value": "12 issues a year, in 3,000+ engineering leaders' inboxes.",
       "category": "visibility",
       "interests": [
         "hiring",
@@ -592,8 +691,7 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 200,
-          "foundation": true
+          "price": 200
         },
         "product": {
           "role": "standard",
@@ -613,15 +711,15 @@
         "cadence": "one-off",
         "lead_time_months": 3
       },
-      "name": "Turn one meetup talk into 12 months of SEO and brand",
-      "value": "Co-published blog post on ELC and your site. Your speaker's session becomes a post on ELC, then republished on your company site.",
+      "name": "1 co-published blog post",
+      "value": "Your speaker's talk becomes an article on ELC and on your own site.",
       "category": "visibility",
       "interests": [
         "hiring",
         "product"
       ],
       "name_by_tier": {
-        "product": "Become the case study CTOs cite, in text"
+        "product": "1 co-published case study"
       },
       "tiers": {
         "hiring": {
@@ -645,8 +743,8 @@
         "lead_time_months": 2,
         "spacing_months": 5
       },
-      "name": "Tap ELC's media partner network to amplify your brand and mission",
-      "value": "ELC's media partners cross-promote your meetups, talks and announcements to their own audiences. Reach beyond the ELC community.",
+      "name": "Promotion by ELC media partners",
+      "value": "They share your meetups, talks and news with their own audiences.",
       "category": "visibility",
       "interests": [
         "product",
@@ -678,8 +776,8 @@
         "cadence": "one-off",
         "anchor": "2027-04"
       },
-      "name": "Bring your team to CEE's biggest stage for product builders and leaders",
-      "value": "4 ELC Conference tickets for your team. 500+ product builders and leaders, April every year.",
+      "name": "4 ELC Conference tickets",
+      "value": "Your team joins 350+ engineering leaders in April.",
       "category": "conference-access",
       "interests": [
         "talent",
@@ -694,44 +792,11 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 700,
-          "foundation": true
+          "price": 700
         },
         "product": {
           "role": "standard",
           "price": 1200,
-          "foundation": true
-        }
-      }
-    },
-    {
-      "id": "mainstage-discount",
-      "journey": {
-        "cadence": "one-off",
-        "anchor": "2027-04"
-      },
-      "name": "Get on the main stage at partner rates",
-      "value": "16% discount on main stage access, applied to main-stage partnership or speaking placement if you add it.",
-      "category": "conference-access",
-      "interests": [
-        "product",
-        "hiring"
-      ],
-      "price_display": "included",
-      "tiers": {
-        "hiring": {
-          "role": "standard",
-          "price": 0,
-          "foundation": true
-        },
-        "visibility": {
-          "role": "standard",
-          "price": 0,
-          "foundation": true
-        },
-        "product": {
-          "role": "standard",
-          "price": 0,
           "foundation": true
         }
       }
@@ -743,21 +808,26 @@
         "lead_time_months": 2,
         "heavy": true
       },
-      "name": "Open your office to 80 to 150 product builders and leaders with your speaker",
-      "value": "1 large meetup at your venue with your speaker on stage. Pro video and photo. Community walks through your office. Your engineer tells a real story, the same filter every ELC speaker passes.",
+      "name": "1 ELC meetup at your office",
+      "value": "80 to 150 registrations. Your engineer tells a real story on stage, with pro video and photos.",
       "category": "events-access",
       "interests": [
         "hiring",
         "product",
         "newsite"
       ],
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]",
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]",
       "name_by_tier": {
-        "pilot-meetup": "Turn your office into a magnet for 80 to 150 senior engineering leaders with your speaker",
-        "hiring": "Turn your office into a magnet for 80 to 150 senior engineering leaders with your speaker"
+        "pilot-meetup": "Turn your office into a magnet for senior engineering leaders: 80 to 150 registrations, your speaker on stage",
+        "signature-meetup": "Turn your office into a magnet for senior engineering leaders: 80 to 150 registrations, your speaker on stage"
       },
       "tiers": {
         "pilot-meetup": {
+          "role": "standard",
+          "price": 4000,
+          "foundation": true
+        },
+        "signature-meetup": {
           "role": "standard",
           "price": 4000,
           "foundation": true
@@ -784,8 +854,8 @@
       "journey": {
         "cadence": "monthly"
       },
-      "name": "Hire your next senior leader or product builder without paying a recruiter",
-      "value": "Access to Marian's List for 12 months. Direct candidate intros from Marian on request. Staff engineers, architects, directors, VPs, CTOs.",
+      "name": "12 months of Marian's List",
+      "value": "Direct candidate intros from Marian on request: staff engineers, architects, directors, VPs, CTOs. No recruiter fee.",
       "category": "hiring-funnel",
       "interests": [
         "hiring",
@@ -805,8 +875,8 @@
         "cadence": "one-off",
         "lead_time_months": 1
       },
-      "name": "Sharpen what makes your engineering org different",
-      "value": "90-minute differentiator session with ELC experts. Output: 2 to 3 message pillars amplified across channels.",
+      "name": "90-minute differentiator session",
+      "value": "ELC experts help you name what makes your engineering org different: 2 to 3 message pillars, amplified across channels.",
       "category": "hiring-funnel",
       "interests": [
         "hiring",
@@ -825,8 +895,8 @@
         "cadence": "one-off",
         "anchor": "start"
       },
-      "name": "Turn your product engineering leaders into community ambassadors",
-      "value": "Your chosen leaders made visible at meetups, podcasts, videos and conferences to broadcast your success stories.",
+      "name": "Ambassador program for your leaders",
+      "value": "Your chosen leaders show up at meetups, podcasts, videos and conferences, telling your success stories.",
       "category": "hiring-funnel",
       "interests": [
         "hiring",
@@ -844,8 +914,8 @@
       "journey": {
         "cadence": "monthly"
       },
-      "name": "Put your hardest open roles in front of 2,800+ product builders and leaders",
-      "value": "2 open roles featured in the ELC job board and newsletter. Editorial placement, click-through to your careers page.",
+      "name": "2 featured roles on the ELC job board",
+      "value": "On the job board and in the newsletter to 3,000+ engineering leaders, linking to your careers page.",
       "category": "hiring-funnel",
       "interests": [
         "hiring"
@@ -864,8 +934,8 @@
         "lead_time_months": 2,
         "spacing_months": 6
       },
-      "name": "Be the engineering culture that gets noticed, twice a year",
-      "value": "Half-yearly company spotlight. Full-section editorial on your engineering culture, team profiles and why it is a great place to work.",
+      "name": "2 company spotlights a year",
+      "value": "A full newsletter section on your engineering culture, your team and why it is a great place to work.",
       "category": "hiring-funnel",
       "interests": [
         "hiring",
@@ -883,8 +953,8 @@
       "journey": {
         "cadence": "monthly"
       },
-      "name": "Turn every milestone into a community moment",
-      "value": "ELC reshares your meetups, talks, launches and hiring milestones on LinkedIn from the official company page.",
+      "name": "Reshares of your news",
+      "value": "Launches, talks and hiring milestones, reshared from the ELC LinkedIn page.",
       "category": "visibility",
       "interests": [
         "hiring",
@@ -907,8 +977,8 @@
         "cadence": "one-off",
         "lead_time_months": 1
       },
-      "name": "Mentoring: Level up 3 of your engineering leaders with senior mentors",
-      "value": "3 nominated leaders each paired with a senior mentor for a 3-month engagement, 6 x 60-minute sessions. Matching by Marian. Any session below 7 of 10 is free. Retail value EUR 5,925.",
+      "name": "Senior mentors for 3 of your leaders",
+      "value": "3 months each, 6 sessions of 60 minutes, matched by Marian. Any session rated below 7 of 10 is free. Retail value EUR 5,925.",
       "category": "leadership-development",
       "interests": [
         "talent"
@@ -927,8 +997,8 @@
         "cadence": "one-off",
         "lead_time_months": 2
       },
-      "name": "Academy: Give 3 of your leaders a structured leadership curriculum",
-      "value": "Structured leadership curriculum for the same 3 nominated leaders. Academy plus mentor equals a complete 3-month program per leader.",
+      "name": "3 Academy seats",
+      "value": "A structured leadership curriculum for the same 3 leaders. With the mentor, a complete 3-month program each.",
       "category": "leadership-development",
       "interests": [
         "talent"
@@ -946,8 +1016,8 @@
       "journey": {
         "cadence": "monthly"
       },
-      "name": "Tap a 24/7 peer network of senior leaders",
-      "value": "Members-only Slack and knowledge base. Peer conversations with senior leaders plus a leadership content library.",
+      "name": "Members-only Slack and knowledge base",
+      "value": "A 24/7 peer network of senior leaders, plus a leadership content library.",
       "category": "leadership-development",
       "interests": [
         "talent"
@@ -966,8 +1036,8 @@
         "lead_time_months": 2,
         "heavy": true
       },
-      "name": "Dinner: Sit down with 8+ engineering and product decision-makers",
-      "value": "Private dinner, 1 per year. ELC curates the table: CTOs and VPs from your category. Your engineering lead, not your sales lead.",
+      "name": "1 private dinner with 8+ decision-makers",
+      "value": "ELC curates the table: CTOs and VPs from your category. Bring your engineering lead, not your sales lead.",
       "category": "events-access",
       "interests": [
         "product"
@@ -987,8 +1057,8 @@
         "lead_time_months": 2,
         "spacing_months": 4
       },
-      "name": "Get your team on stage at our events, twice a year",
-      "value": "2 speaker placements at ELC events. Same real-stories filter every speaker passes.",
+      "name": "2 speaker slots at ELC events",
+      "value": "Your team on stage twice a year. Your talks pass the same bar as every ELC speaker.",
       "category": "events-access",
       "interests": [
         "product",
@@ -1006,8 +1076,8 @@
       "journey": {
         "cadence": "monthly"
       },
-      "name": "First seat at curated dinners, roundtables, partner-only sessions",
-      "value": "Priority access to community meetups and events before public RSVP opens.",
+      "name": "Priority access to ELC events",
+      "value": "First seat at meetups, curated dinners, roundtables and partner-only sessions, before public RSVP opens.",
       "category": "community-access",
       "interests": [
         "product"
@@ -1022,8 +1092,8 @@
     },
     {
       "id": "recruiting-sprint",
-      "name": "Close 1 senior hire in 2 weeks, no recruiter fees",
-      "value": "Custom recruiting sprint. Marian's List intensive, 2 weeks, around 20 vetted candidate intros. Recruiter fee per senior hire runs EUR 15 to 25K.",
+      "name": "2-week recruiting sprint",
+      "value": "Marian's List intensive: around 20 vetted candidate intros, aimed at closing 1 senior hire. A recruiter charges EUR 15 to 25K per senior hire.",
       "category": "addon-hiring",
       "interests": [
         "hiring",
@@ -1043,8 +1113,8 @@
         "lead_time_months": 2,
         "heavy": true
       },
-      "name": "Run a second hiring meetup in your office",
-      "value": "Additional large meetup at your venue, 80 to 150 attendees, with your speaker. Cold production at this scale costs EUR 5 to 8K.",
+      "name": "A second meetup at your office",
+      "value": "80 to 150 registrations, with your speaker. Producing one at this scale yourself costs EUR 5 to 8K.",
       "category": "addon-hiring",
       "interests": [
         "hiring",
@@ -1059,8 +1129,8 @@
     },
     {
       "id": "podcast-guest",
-      "name": "Put your speaker on the ELC podcast",
-      "value": "ELC podcast guest spot. Pre-recorded episode published to the podcast feed and YouTube.",
+      "name": "ELC podcast episode",
+      "value": "Your speaker as guest. Published on YouTube, cut into 3 short clips for LinkedIn and featured in one Leaders' Brief issue.",
       "category": "addon-content",
       "interests": [
         "hiring",
@@ -1095,8 +1165,8 @@
         "cadence": "one-off",
         "anchor": "2027-04"
       },
-      "name": "Put your engineering leader, VP or CTO on stage at the April conference",
-      "value": "Priority ELC Conference speaker slot. Stage time in front of 500+ product builders and leaders.",
+      "name": "Speaker slot at ELC Conference",
+      "value": "Your CTO or VP gets a priority talk slot in April, with 350+ engineering leaders attending.",
       "category": "addon-stage",
       "interests": [
         "hiring",
@@ -1124,8 +1194,8 @@
     },
     {
       "id": "speaking-coach",
-      "name": "Make your speaker shine on stage with 1:1 prep",
-      "value": "ELC public speaking coach session. Pre-talk 1:1 prep for your speaker's meetup, podcast or conference talk.",
+      "name": "1:1 speaking coach session",
+      "value": "Your speaker preps the talk with a coach before going on stage.",
       "category": "addon-stage",
       "interests": [
         "talent"
@@ -1151,8 +1221,8 @@
     },
     {
       "id": "company-page",
-      "name": "Get your full company page on engineeringleaders.io",
-      "value": "Dedicated page: your product, talent, photos, video, copy. SEO-indexed, backlinks to your careers and product pages.",
+      "name": "Your company page on engineeringleaders.io",
+      "value": "Product, jobs, photos and video on one indexed page, linking to your careers and product pages.",
       "category": "addon-content",
       "interests": [
         "hiring",
@@ -1184,8 +1254,8 @@
     },
     {
       "id": "community-survey",
-      "name": "Ask the community your exact questions",
-      "value": "Community survey with your questions, fielded across 2,000+ CEE product builders and leaders. Results plus a short readout.",
+      "name": "Custom community survey",
+      "value": "Your questions in front of 2,900+ engineering leaders in CEE. Results plus a short readout.",
       "category": "addon-research",
       "interests": [
         "product",
@@ -1217,8 +1287,8 @@
     },
     {
       "id": "research-report",
-      "name": "Own the CEE product builder and leader narrative",
-      "value": "Custom co-branded community research report, for example State of CEE Product and Engineering Leadership. Survey of 2,000+ leaders plus named-leader interviews, distributed across all ELC channels.",
+      "name": "Co-branded research report",
+      "value": "For example State of CEE Product and Engineering Leadership: a survey across 2,900+ leaders plus named interviews, shared across all ELC channels.",
       "category": "addon-research",
       "interests": [
         "product",
@@ -1242,12 +1312,12 @@
           "price": 20000
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "extra-mentoring",
-      "name": "Develop one more leader with a dedicated mentor",
-      "value": "6 sessions for one more leader, 3-month engagement, matching by Marian. Partner rate EUR 292 per session. Retail EUR 395.",
+      "name": "A mentor for 1 more leader",
+      "value": "6 sessions over 3 months, matched by Marian. EUR 292 a session instead of the EUR 395 retail.",
       "category": "addon-development",
       "interests": [
         "talent"
@@ -1261,8 +1331,8 @@
     },
     {
       "id": "adhoc-mentoring-rate",
-      "name": "Unlock ad-hoc mentoring at partner rates for 12 months",
-      "value": "Partner rate locked for 12 months. EUR 292 per session, no package commitment. Retail EUR 395.",
+      "name": "Partner mentoring rate for 12 months",
+      "value": "EUR 292 a session instead of EUR 395, with no package commitment.",
       "category": "addon-development",
       "interests": [
         "talent"
@@ -1274,12 +1344,12 @@
           "price": 0
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "extra-academy-seat",
-      "name": "Send one more leader through the leadership curriculum",
-      "value": "Structured curriculum for one more nominated leader.",
+      "name": "1 more Academy seat",
+      "value": "The same leadership curriculum for one more leader you nominate.",
       "category": "addon-development",
       "interests": [
         "talent"
@@ -1293,8 +1363,8 @@
     },
     {
       "id": "private-cohort",
-      "name": "Build a private leadership cohort around your scaling challenge",
-      "value": "5 seats designed around your scaling challenge. Bespoke external programs start at EUR 15 to 30K.",
+      "name": "Private leadership cohort, 5 seats",
+      "value": "A program built around your scaling challenge. Bespoke external programs start at EUR 15 to 30K.",
       "category": "addon-development",
       "interests": [
         "talent"
@@ -1308,8 +1378,8 @@
     },
     {
       "id": "ai-bootcamp-seat",
-      "name": "Send 1 leader through the AI bootcamp every CTO is paying for",
-      "value": "Topical bootcamp for engineering leaders adopting AI in their orgs.",
+      "name": "1 AI bootcamp seat",
+      "value": "A bootcamp for engineering leaders adopting AI in their orgs.",
       "category": "addon-development",
       "interests": [
         "talent"
@@ -1328,8 +1398,8 @@
         "lead_time_months": 2,
         "heavy": true
       },
-      "name": "Sit down with 5 to 8 peer leaders from non-competing scaleups",
-      "value": "1 curated dinner with 5 to 8 peer leaders from non-competing scaleups.",
+      "name": "1 curated peer dinner",
+      "value": "5 to 8 peer leaders from non-competing scaleups around one table.",
       "category": "addon-development",
       "interests": [
         "talent"
@@ -1343,8 +1413,8 @@
     },
     {
       "id": "category-exclusivity",
-      "name": "Lock the category: no competing partners for 12 months",
-      "value": "ELC will not partner with another product builder in your category for the term. One per category, per year.",
+      "name": "Category exclusivity for 12 months",
+      "value": "ELC takes no competitor from your category for the term. One company per category.",
       "category": "addon-exclusivity",
       "interests": [
         "product"
@@ -1367,12 +1437,12 @@
           "price": 12000
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "joint-content-series",
-      "name": "Become the reference series CTOs cite for 12+ months",
-      "value": "Joint content series with the community. Deep-dive, panel or short series, shared with the full network. Lives as a buying-room reference.",
+      "name": "Joint content series",
+      "value": "A deep-dive, panel or short series made with the community and shared with the full network. It stays online as a reference.",
       "category": "addon-content",
       "interests": [
         "product"
@@ -1386,27 +1456,45 @@
     },
     {
       "id": "prime-conference-stage",
-      "name": "Take the prime conference stage in front of 500+ decision-makers",
-      "value": "Priority speaker slot at ELC Conference. Prime slot, your team in front. Stage time you cannot buy a la carte.",
+      "name": "Main-stage priority at ELC Conference",
+      "value": "Your talk is reviewed first for the April main stage. It still has to pass the same bar as every ELC speaker.",
       "category": "addon-stage",
       "journey": {
         "cadence": "one-off",
         "anchor": "2027-04"
       },
       "interests": [
-        "product"
+        "product",
+        "hiring",
+        "talent"
       ],
       "tiers": {
+        "hiring": {
+          "role": "addon",
+          "price": 6500
+        },
+        "education": {
+          "role": "addon",
+          "price": 6500
+        },
+        "visibility": {
+          "role": "addon",
+          "price": 6500
+        },
+        "story": {
+          "role": "addon",
+          "price": 6500
+        },
         "product": {
           "role": "exclusive",
-          "price": 4000
+          "price": 6500
         }
       }
     },
     {
       "id": "extra-conference-tickets",
-      "name": "Bring your full GTM and product team to the conference, 8 tickets",
-      "value": "4 additional ELC Conference tickets, 8 total. Doubles the Standard allocation.",
+      "name": "4 more conference tickets",
+      "value": "8 in total, so your full GTM and product team can come.",
       "category": "conference-access",
       "interests": [
         "product",
@@ -1572,7 +1660,7 @@
           "price": 500
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "job-premium",
@@ -1589,7 +1677,7 @@
           "price": 900
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "ref-media-partnership",
@@ -1686,7 +1774,7 @@
           "price": 4000
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "cand-social-moment",
@@ -1704,7 +1792,7 @@
           "price": 2500
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "cand-circle-seat",
@@ -1722,7 +1810,7 @@
           "price": 3000
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "cand-topic-table",
@@ -1739,7 +1827,7 @@
           "price": 2500
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "cand-member-deals",
@@ -1756,7 +1844,7 @@
           "price": 1500
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "cand-sponsored-slack-channel",
@@ -1773,7 +1861,7 @@
           "price": 3000
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "cand-podcast-season",
@@ -1791,7 +1879,7 @@
           "price": 9000
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "cand-eb-content-studio",
@@ -1809,7 +1897,7 @@
           "price": 4500
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "cand-teams-membership",
@@ -1826,7 +1914,7 @@
           "price": 1200
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "cand-sponsored-cohort",
@@ -1844,7 +1932,7 @@
           "price": 12000
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "cand-workplaces-ranking",
@@ -1866,7 +1954,7 @@
           "price": 15000
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "cand-topic-track",
@@ -1883,7 +1971,7 @@
           "price": 8000
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "cand-standalone-dinner",
@@ -1901,7 +1989,7 @@
           "price": 4000
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "free-meetups",
@@ -1909,7 +1997,7 @@
         "cadence": "monthly"
       },
       "name": "Seats at 12 monthly meetups",
-      "value": "120+ engineering leaders in the room, 12 times a year, across Prague, Brno, Bratislava and Krak\u00f3w. Your managers can walk in this month.",
+      "value": "120+ registrations per meetup, 12 times a year, monthly in Prague plus Brno, Bratislava and Kraków editions. Your managers can walk in this month.",
       "category": "community-access",
       "interests": [
         "talent",
@@ -1932,7 +2020,7 @@
         "cadence": "monthly"
       },
       "name": "Leaders' Brief newsletter",
-      "value": "Once a month: one framework you can run on Monday, plus the best writing and talks from the field. 2,800+ subscribers at a 74% open rate.",
+      "value": "Once a month: one framework you can run on Monday, plus the best writing and talks from the field. 3,000+ subscribers, 1,500+ open every issue.",
       "category": "visibility",
       "interests": [
         "talent"
@@ -2027,8 +2115,8 @@
       "journey": {
         "cadence": "monthly"
       },
-      "name": "Peer circle seats for 3 of your managers, 12 months",
-      "value": "Three of your managers each hold a seat in a facilitated peer circle for a full year. Five circles run today, meeting every two weeks.",
+      "name": "3 peer circle seats for a year",
+      "value": "Three of your managers each join a facilitated circle. Five circles run today, meeting every two weeks.",
       "category": "leadership-development",
       "interests": [
         "talent"
@@ -2047,7 +2135,7 @@
         "anchor": "2027-04"
       },
       "name": "3 priority conference seats",
-      "value": "Three seats at the annual ELC Conference, reserved before public release. 500+ leaders, speakers from Netflix and Stripe.",
+      "value": "Three seats at the annual ELC Conference, reserved before public release. 350+ leaders, speakers from Netflix and Stripe.",
       "category": "conference-access",
       "interests": [
         "talent",
@@ -2075,7 +2163,7 @@
           "price": 2500
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "vendor-seat",
@@ -2094,7 +2182,7 @@
           "price": 0
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "cand-bundle-ladder",
@@ -2114,12 +2202,12 @@
         }
       },
       "price_display": "included",
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "cand-performance-floors",
       "name": "Published performance floors on select items",
-      "value": "Guaranteed numbers on items where delivery risk is near zero, for example a newsletter feature floor backed by 2,800+ subscribers at 74% open rate.",
+      "value": "Guaranteed numbers on items where delivery risk is near zero, for example a newsletter feature floor backed by 3,000+ subscribers, 1,500+ of them opening every issue.",
       "category": "tier-proposal",
       "interests": [
         "hiring",
@@ -2133,7 +2221,7 @@
         }
       },
       "price_display": "included",
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "cand-partner-report",
@@ -2153,7 +2241,7 @@
         }
       },
       "price_display": "included",
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "cand-talk-afterlife",
@@ -2171,15 +2259,15 @@
           "price": 2000
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "story-linkedin-program",
       "journey": {
         "cadence": "monthly"
       },
-      "name": "Your leaders in 8,000+ feeds, 3 posts a week",
-      "value": "ELC co-writes and publishes 3 LinkedIn posts a week from your leaders and your company, all year. You bring the raw stories, we shape and publish them.",
+      "name": "3 LinkedIn posts a week, all year",
+      "value": "ELC co-writes and publishes posts from your leaders and your company, shared from the ELC page and Marian's profile. You bring the raw stories.",
       "category": "visibility",
       "interests": [
         "hiring",
@@ -2198,8 +2286,8 @@
       "journey": {
         "cadence": "monthly"
       },
-      "name": "One produced video a month, on LinkedIn and YouTube",
-      "value": "12 short videos a year: your people, your milestones, your engineering culture. Shot, edited and distributed by ELC.",
+      "name": "1 produced video a month",
+      "value": "Your people, milestones and engineering culture, shot, edited and shared by ELC on LinkedIn and YouTube.",
       "category": "visibility",
       "interests": [
         "hiring",
@@ -2219,8 +2307,8 @@
         "cadence": "quarterly",
         "spacing_months": 3
       },
-      "name": "Your leaders on stage at 4 meetups a year",
-      "value": "4 speaker placements across ELC meetups in Prague, Brno, Bratislava and Krak\u00f3w, 120+ leaders in the room each time. Same real-stories filter every speaker passes.",
+      "name": "4 speaker slots at ELC meetups",
+      "value": "Monthly in Prague plus Brno, Bratislava and Kraków editions, 120+ registrations each time. Your talks pass the same bar as every ELC speaker.",
       "category": "events-access",
       "interests": [
         "hiring",
@@ -2241,8 +2329,8 @@
         "lead_time_months": 2,
         "spacing_months": 5
       },
-      "name": "2 podcast episodes a year with your leaders",
-      "value": "Two ELC podcast guest spots a year, published to the podcast feed and YouTube.",
+      "name": "2 ELC podcast episodes a year",
+      "value": "Your leaders as guests. Published on YouTube, with clips for LinkedIn and a feature in the Leaders' Brief.",
       "category": "visibility",
       "interests": [
         "hiring",
@@ -2258,7 +2346,7 @@
           "foundation": true
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "story-instagram",
@@ -2287,8 +2375,8 @@
         "lead_time_months": 2,
         "spacing_months": 3
       },
-      "name": "3 of your speakers on ELC stages a year",
-      "value": "3 meetup speaker placements a year across the region, 120+ leaders in the room each time. Same real-stories filter every speaker passes.",
+      "name": "3 speaker slots at ELC meetups",
+      "value": "120+ registrations each time. Your talks pass the same bar as every ELC speaker.",
       "category": "events-access",
       "interests": [
         "hiring",
@@ -2301,7 +2389,7 @@
           "foundation": true
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "speaker-alumni-circle",
@@ -2309,8 +2397,8 @@
         "cadence": "one-off",
         "anchor": "start"
       },
-      "name": "Your speakers join the ELC speaker alumni group",
-      "value": "Every speaker you field becomes an ELC alumni speaker: invite to the yearly speaker boat party, the alumni network, priority for future stages.",
+      "name": "Speaker alumni membership",
+      "value": "Your speakers join the alumni network and the yearly speaker boat party, with priority for future stages.",
       "category": "community-access",
       "interests": [
         "hiring",
@@ -2330,8 +2418,8 @@
     },
     {
       "id": "media-features",
-      "name": "Your stories in the media, from Wired to Forbes",
-      "value": "ELC places your story with media partners: Wired, Forbes, Husta or The Recursive. Scoped and priced per placement.",
+      "name": "Stories in partner media",
+      "value": "Your story placed with Wired, Forbes, Husta or The Recursive. Priced per placement.",
       "category": "addon-content",
       "interests": [
         "hiring",
@@ -2348,7 +2436,7 @@
           "price": 0
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "starter-circle-seats",
@@ -2368,7 +2456,7 @@
           "foundation": true
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "starter-meetup-seats",
@@ -2376,7 +2464,7 @@
         "cadence": "monthly"
       },
       "name": "A secured meetup seat for every person you enrol",
-      "value": "Reserved seats at all 12 monthly meetups, held for your people instead of competing for public RSVPs. 120+ leaders in the room each time.",
+      "value": "Reserved seats at all 12 monthly meetups, held for your people instead of competing for public RSVPs. 120+ registrations each time.",
       "category": "community-access",
       "interests": [
         "talent",
@@ -2389,7 +2477,7 @@
           "foundation": true
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "starter-edu-access",
@@ -2427,7 +2515,7 @@
           "price": 900
         }
       },
-      "notes": "[redacted for the public repo \u2014 internal pricing rationale, not published]"
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "edu-internal-speaker",
@@ -2436,8 +2524,8 @@
         "lead_time_months": 2,
         "spacing_months": 6
       },
-      "name": "An ELC thought leader at your all-hands, twice a year",
-      "value": "Marian or a senior ELC speaker delivers a session at your internal event or learning all-hands, twice a year. Topics picked with you.",
+      "name": "An ELC speaker at your all-hands, twice a year",
+      "value": "Marian or a senior ELC speaker runs a session at your internal event. Topics picked with you.",
       "category": "leadership-development",
       "interests": [
         "talent"
@@ -2452,8 +2540,8 @@
     },
     {
       "id": "edu-mentor-in-residence",
-      "name": "A mentor in residence embedded with your leadership team",
-      "value": "A senior mentor works with your leadership team on a recurring cadence for a full year. The mentor-in-residence model from marian.coach, brought in-house.",
+      "name": "Mentor in residence for a year",
+      "value": "A senior mentor works with your leadership team on a regular cadence, the marian.coach model brought in-house.",
       "category": "addon-development",
       "interests": [
         "talent"
@@ -2471,8 +2559,8 @@
         "cadence": "one-off",
         "lead_time_months": 2
       },
-      "name": "Demo your product to leaders who chose to be there",
-      "value": "A hands-on session for engineering leaders who opt in to it separately from the meetup. The registrant list is yours. It runs as a working session with your engineer, not a sales pitch, and we agree the content with you first.",
+      "name": "1 hands-on product demo session",
+      "value": "For leaders who opt in separately from the meetup, and the registrant list is yours. A working session with your engineer, not a sales pitch; content agreed with you first.",
       "category": "addon-content",
       "interests": [
         "product"
@@ -2490,8 +2578,8 @@
         "cadence": "quarterly",
         "spacing_months": 3
       },
-      "name": "4 workshops on longevity, balance and self-management",
-      "value": "Four sessions a year for your leaders: longevity, work-life balance, self-management, communication.",
+      "name": "4 workshops a year",
+      "value": "Longevity, work-life balance, self-management and communication, for your leaders.",
       "category": "leadership-development",
       "interests": [
         "talent"
@@ -2510,8 +2598,8 @@
         "cadence": "quarterly",
         "spacing_months": 3
       },
-      "name": "8 coaching sessions a year, 2 every quarter",
-      "value": "A pooled allowance of 8 vitality coaching sessions per year for your nominated leaders, drawn 2 per quarter.",
+      "name": "8 coaching sessions a year",
+      "value": "A shared pool for your nominated leaders, drawn 2 per quarter.",
       "category": "leadership-development",
       "interests": [
         "talent"
@@ -2550,8 +2638,8 @@
       "journey": {
         "cadence": "monthly"
       },
-      "name": "A sustainable-leadership peer circle, 3 seats",
-      "value": "Three of your leaders hold seats in a facilitated circle on energy, health and sustainable pace, for a full year.",
+      "name": "Sustainable-leadership peer circle, 3 seats",
+      "value": "Three of your leaders in a facilitated circle on energy, health and sustainable pace, for a full year.",
       "category": "leadership-development",
       "interests": [
         "talent"
@@ -2569,8 +2657,8 @@
         "cadence": "half-yearly",
         "spacing_months": 5
       },
-      "name": "Managing agents and people, 2 hands-on sessions",
-      "value": "Two working sessions a year on leading hybrid teams of people and AI agents without burning either out.",
+      "name": "2 sessions on leading people and agents",
+      "value": "Hands-on sessions on leading hybrid teams of people and AI agents without burning either out.",
       "category": "leadership-development",
       "interests": [
         "talent"
@@ -2600,9 +2688,374 @@
           "price": 0
         }
       }
+    },
+    {
+      "id": "signature-topic-vote",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 1
+      },
+      "name": "The topic picked with the community, not guessed",
+      "value": "The theme comes out of the community vote and the ELC topic guide, so the room signs up for the subject, not only for your address.",
+      "category": "events-access",
+      "interests": [
+        "hiring",
+        "product",
+        "newsite"
+      ],
+      "tiers": {
+        "signature-meetup": {
+          "role": "standard",
+          "price": 500,
+          "foundation": true
+        }
+      }
+    },
+    {
+      "id": "signature-speakers",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 1
+      },
+      "name": "Up to 2 curated ELC speakers next to yours, all of them coached",
+      "value": "ELC brings up to two speakers from its own pipeline to stand next to your engineer. Every speaker, yours included, passes the ELC talk filter and gets the pre-talk coaching every ELC speaker gets.",
+      "category": "events-access",
+      "interests": [
+        "hiring",
+        "product",
+        "newsite"
+      ],
+      "tiers": {
+        "signature-meetup": {
+          "role": "standard",
+          "price": 1500,
+          "foundation": true
+        }
+      }
+    },
+    {
+      "id": "signature-audience-launch",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 1
+      },
+      "name": "The full ELC audience launch, members first",
+      "value": "The launch ELC runs for its own meetups: members first, public four days later, the invites, the reminders, the People to Meet email. You promote to your own network; the ELC audience is ours to bring.",
+      "category": "events-access",
+      "interests": [
+        "hiring",
+        "product",
+        "newsite"
+      ],
+      "tiers": {
+        "signature-meetup": {
+          "role": "standard",
+          "price": 1000,
+          "foundation": true
+        }
+      }
+    },
+    {
+      "id": "signature-room-design",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 2
+      },
+      "name": "The three-act night, run by an ELC host",
+      "value": "The week before, the three-hour night and the artifact after, designed as three acts. ELC Mate matching and human bingo get strangers from different companies talking in the first ten minutes. An ELC host runs the stage, so your people talk to guests instead of running a clock.",
+      "category": "events-access",
+      "interests": [
+        "hiring",
+        "product",
+        "newsite"
+      ],
+      "tiers": {
+        "signature-meetup": {
+          "role": "standard",
+          "price": 900,
+          "foundation": true
+        }
+      }
+    },
+    {
+      "id": "signature-recap",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 2
+      },
+      "name": "A recap page, the talk on YouTube, banners for your speakers",
+      "value": "A recap page on engineeringleaders.io with real photos, your speaker's talk cut and published on the ELC YouTube channel, and LinkedIn banners for every speaker to post.",
+      "category": "visibility",
+      "interests": [
+        "hiring",
+        "product",
+        "newsite"
+      ],
+      "tiers": {
+        "signature-meetup": {
+          "role": "standard",
+          "price": 600,
+          "foundation": true
+        }
+      }
+    },
+    {
+      "id": "signature-report",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 2
+      },
+      "name": "The D+3 report and the hand-over checklist",
+      "value": "Three days after the night: registrations, check-ins, titles and companies of who came. Titles and companies only, no contact export. Plus the checklist ELC ran the night from, so your team sees how it was done.",
+      "category": "community-access",
+      "interests": [
+        "hiring",
+        "product",
+        "newsite"
+      ],
+      "tiers": {
+        "signature-meetup": {
+          "role": "standard",
+          "price": 400
+        }
+      }
+    },
+    {
+      "id": "signature-city-exclusivity",
+      "name": "Lock your category in your city for 6 months",
+      "value": "No company from your category gets a Signature Meetup in your city for six months after yours. One per category, per city.",
+      "category": "addon-exclusivity",
+      "interests": [
+        "hiring",
+        "product"
+      ],
+      "cap": {
+        "per_category_per_city_per_half_year": 1
+      },
+      "tiers": {
+        "signature-meetup": {
+          "role": "exclusive",
+          "price": 3000
+        }
+      },
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
+    },
+    {
+      "id": "launch-audit",
+      "journey": {
+        "cadence": "one-off",
+        "anchor": "start"
+      },
+      "name": "Launch Audit: where your community stands before a date goes on a calendar",
+      "value": "The five readiness dimensions from the free check, done in person over your real city, speaker list and calendar. You get an audience map, a first topic shortlist and a 90-day plan.",
+      "category": "community-access",
+      "interests": [
+        "newsite",
+        "hiring"
+      ],
+      "tiers": {
+        "launch-audit": {
+          "role": "standard",
+          "price": 3900,
+          "foundation": true
+        },
+        "community-launch": {
+          "role": "standard",
+          "price": 3900,
+          "foundation": true
+        },
+        "launch-run": {
+          "role": "standard",
+          "price": 3900,
+          "foundation": true
+        }
+      }
+    },
+    {
+      "id": "launch-meetups-three",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 2,
+        "heavy": true
+      },
+      "name": "Three Signature-grade meetups under your name in about four months",
+      "value": "Three meetups run the Signature Meetup way, under your company's name, one every four to six weeks. Topic, speakers, launch, host, recap and report, every time.",
+      "category": "events-access",
+      "interests": [
+        "newsite",
+        "hiring"
+      ],
+      "tiers": {
+        "community-launch": {
+          "role": "standard",
+          "price": 19500,
+          "foundation": true
+        },
+        "launch-run": {
+          "role": "standard",
+          "price": 19500,
+          "foundation": true
+        }
+      },
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
+    },
+    {
+      "id": "launch-audience-seeding",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 2
+      },
+      "name": "ELC members seeded into your first rooms",
+      "value": "ELC invites its own members in your city to your first meetups, lists them on the ELC Luma calendar and in the newsletter, so you do not start from an empty list.",
+      "category": "community-access",
+      "interests": [
+        "newsite",
+        "hiring"
+      ],
+      "tiers": {
+        "community-launch": {
+          "role": "standard",
+          "price": 1500,
+          "foundation": true
+        },
+        "launch-run": {
+          "role": "standard",
+          "price": 1500,
+          "foundation": true
+        }
+      }
+    },
+    {
+      "id": "launch-channel-setup",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 1
+      },
+      "name": "Your community channel, set up and seeded",
+      "value": "A Slack or Luma home for your community, set up by ELC and seeded with the people who came, ready to hand over.",
+      "category": "community-access",
+      "interests": [
+        "newsite"
+      ],
+      "tiers": {
+        "community-launch": {
+          "role": "standard",
+          "price": 500
+        },
+        "launch-run": {
+          "role": "standard",
+          "price": 500
+        }
+      }
+    },
+    {
+      "id": "launch-handover-playbook",
+      "journey": {
+        "cadence": "one-off",
+        "anchor": "end"
+      },
+      "name": "The hand-over playbook, written for your team",
+      "value": "The Meetup OS adapted to your city, your venue and your people: who does what from D-30 to D+90. Written so your team can run meetup four without ELC.",
+      "category": "leadership-development",
+      "interests": [
+        "newsite"
+      ],
+      "tiers": {
+        "community-launch": {
+          "role": "standard",
+          "price": 500
+        },
+        "launch-run": {
+          "role": "standard",
+          "price": 500
+        }
+      }
+    },
+    {
+      "id": "launch-run-meetups",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 6,
+        "heavy": true
+      },
+      "name": "Three more meetups across the rest of the year",
+      "value": "Meetups four to six, run the same way and spaced across the rest of the year. Six meetups under your name in twelve months.",
+      "category": "events-access",
+      "interests": [
+        "newsite",
+        "hiring"
+      ],
+      "tiers": {
+        "launch-run": {
+          "role": "standard",
+          "price": 19500,
+          "foundation": true
+        }
+      }
+    },
+    {
+      "id": "launch-quarterly-report",
+      "journey": {
+        "cadence": "quarterly",
+        "spacing_months": 3
+      },
+      "name": "A quarterly community report",
+      "value": "Every quarter: registrations, check-ins, titles and companies across your meetups, who came back, and what to change next quarter. Titles and companies only, no contact export.",
+      "category": "community-access",
+      "interests": [
+        "newsite",
+        "hiring"
+      ],
+      "tiers": {
+        "launch-run": {
+          "role": "standard",
+          "price": 1500
+        }
+      }
+    },
+    {
+      "id": "launch-city-exclusivity",
+      "name": "One company from your category per city while the contract runs",
+      "value": "ELC runs no other community launch for a company in your category in your city while your contract runs. Included with Launch + Run, an add-on with Community Launch.",
+      "category": "addon-exclusivity",
+      "interests": [
+        "newsite",
+        "hiring"
+      ],
+      "cap": {
+        "per_category_per_city": 1
+      },
+      "tiers": {
+        "community-launch": {
+          "role": "exclusive",
+          "price": 7770
+        },
+        "launch-run": {
+          "role": "standard",
+          "price": 0
+        }
+      },
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     }
   ],
   "oneoffs": [
+    {
+      "id": "meetup-presence",
+      "name": "Your name on three meetup evenings",
+      "value": "Your logo on the event page and on the partner slide, your name from the stage, one LinkedIn post per evening. Three meetups. What you pay goes into the catering, the venue and the evening itself.",
+      "examples": [
+        "Stay in the room for a quarter without hosting anything",
+        "Warm up a city before you open an office there",
+        "Keep your name in front of leaders between two hiring rounds"
+      ],
+      "outcomes": [
+        "120+ registrations per meetup, three evenings running",
+        "40+ meetups since 2019, and you organise none of it"
+      ],
+      "price": 1500,
+      "lead_time": "1 month",
+      "included_in": []
+    },
     {
       "id": "newsletter-section",
       "name": "A section in the Leaders' Brief",
@@ -2613,8 +3066,8 @@
         "Launch a product built for engineering teams"
       ],
       "outcomes": [
-        "2,800+ subscribers, engineering leaders in Central Europe",
-        "74% open rate, so most of them will see it"
+        "3,000+ subscribers, engineering leaders in Central Europe",
+        "1,500+ of them open every issue"
       ],
       "price": 2500,
       "lead_time": "Next monthly issue",
@@ -2630,7 +3083,7 @@
         "A launch that needs a date in people's calendars"
       ],
       "outcomes": [
-        "2,800+ subscribers, 74% open rate",
+        "3,000+ subscribers, 1,500+ open every issue",
         "Max 6 a year across all companies, so the list stays a list people open"
       ],
       "price": 5000,
@@ -2651,7 +3104,7 @@
         "Open a new CEE office and meet the local leaders in one evening"
       ],
       "outcomes": [
-        "120+ leaders in the room, 80 to 150 depending on your venue",
+        "120+ registrations at a typical meetup, 80 to 150 depending on your venue. Registrations, not a head count.",
         "40+ meetups since 2019, the format is proven"
       ],
       "price": 4000,
@@ -2663,17 +3116,35 @@
       ]
     },
     {
+      "id": "meetup-signature",
+      "name": "A meetup in your office, run by ELC end to end",
+      "value": "One night at your venue, and ELC runs all of it: the topic picked with the community, up to two curated ELC speakers next to your engineer, the full audience launch, a three-act room with ELC Mate and an ELC host, recap page, YouTube talk, speaker banners, a D+3 report and the hand-over checklist.",
+      "examples": [
+        "Put your engineering team in front of senior engineering leaders without building an event from zero",
+        "Open a new CEE office with a full room on the first night",
+        "Turn one engineer's real story into a talk on the ELC YouTube channel"
+      ],
+      "outcomes": [
+        "120+ registrations at a typical meetup, 80 to 150 depending on your venue. Registrations, not a head count.",
+        "40+ meetups since 2019, the same runner every time. Fewer than 100 registrations and the next one runs at delivery cost."
+      ],
+      "price": 8900,
+      "lead_time": "2 months",
+      "included_in": []
+    },
+    {
       "id": "podcast-episode",
       "item": "podcast-guest",
       "name": "An episode of the ELC podcast with your leader",
-      "value": "One pre-recorded episode with your CTO, VP or founder. Published to the ELC podcast feed and YouTube, promoted to the community.",
+      "value": "One pre-recorded episode with your CTO, VP or founder. Published on the ELC YouTube channel, cut into 3 short clips posted from Marian's LinkedIn and the ELC page, and featured in one Leaders' Brief issue.",
       "examples": [
         "A CTO explaining one hard technical decision",
         "A founder on how the engineering org scaled",
         "A product leader with a story other leaders will steal"
       ],
       "outcomes": [
-        "Published on the ELC podcast feed and the ELC YouTube channel"
+        "3 clips on LinkedIn, where a typical post gets 2,100 impressions",
+        "One feature in the Leaders' Brief, opened by 1,500+ engineering leaders every issue"
       ],
       "price": 3000,
       "lead_time": "1 month",
@@ -2714,7 +3185,7 @@
         "Which platforms teams plan to leave"
       ],
       "outcomes": [
-        "3,200+ members in the pool, 69% Manager+ \u00b7 21% Senior/Staff IC"
+        "3,300+ members in the pool, 69% Manager+ · 21% Senior/Staff IC"
       ],
       "price": 4000,
       "lead_time": "1 month",
@@ -2745,17 +3216,36 @@
       ]
     },
     {
+      "id": "webinar",
+      "name": "A webinar for leaders who sign up for it",
+      "value": "One online session with your engineer, 45 to 60 minutes, teaching something real. ELC builds the Luma page, sends one dedicated newsletter about it, hosts the call, runs a feedback form after it and hands you the recording. We agree the content first. It is not a pitch.",
+      "examples": [
+        "Teach the AI workflow your team runs in production",
+        "Walk leaders through a migration you finished",
+        "Show your platform through the engineer who built it"
+      ],
+      "outcomes": [
+        "2,900+ subscribers get one email about your session and nothing else",
+        "The name and company of every registrant, plus the email of each one who ticks the box to share it with you",
+        "The recording and the feedback form results"
+      ],
+      "price": 6400,
+      "lead_time": "1 month",
+      "included_in": []
+    },
+    {
       "id": "linkedin-post",
       "item": "linkedin-posts",
       "name": "A post from the ELC company profile",
-      "value": "One LinkedIn post from the ELC company page, written with you and amplified by the community. Real likes and comments from CTOs and VPs, no paid reach.",
+      "value": "One LinkedIn post from the ELC company page, written with you, shared from Marian's profile and amplified by the community. Real likes and comments from CTOs and VPs, no paid reach.",
       "examples": [
         "Your conference announcement",
         "A new office or a new CEE team",
         "A talk recording worth resharing"
       ],
       "outcomes": [
-        "Shared from the ELC company page and reshared by members"
+        "28,000+ followers across Marian's profile and the ELC page",
+        "A typical post gets 2,100 impressions"
       ],
       "price": 500,
       "lead_time": "1 week",
@@ -2781,6 +3271,23 @@
       "premium_price": 900,
       "lead_time": "Live in 2 days",
       "cta_url": "https://job.engineeringleaders.io",
+      "included_in": []
+    },
+    {
+      "id": "speaker-development",
+      "name": "Turn your engineer into a placed public speaker",
+      "value": "A working session to shape two or three topics from your engineer's real work, narrative coaching to build the story, 1:1 delivery prep with an ELC speaking coach, one practice placement on an ELC meetup stage, and ELC packages and submits the pitch to two outside conferences on your engineer's behalf. The ELC placement and the coaching are guaranteed. An outside conference is not, since ELC does not control another organiser's selection committee.",
+      "examples": [
+        "A senior engineer building a public profile ahead of a promotion case",
+        "A team's first employer branding speaker, before committing to a full year",
+        "An engineer with one strong story who has never pitched a conference"
+      ],
+      "outcomes": [
+        "One ELC meetup placement, 120+ registrations at a typical meetup",
+        "Two outside conference submissions, packaged and sent, placement not guaranteed"
+      ],
+      "price": 4900,
+      "lead_time": "2 months",
       "included_in": []
     }
   ]
