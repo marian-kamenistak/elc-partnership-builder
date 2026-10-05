@@ -471,7 +471,7 @@
       "journey": {
         "cadence": "monthly"
       },
-      "name": "4 seats at every monthly meetup",
+      "name": "4 priority seats at every monthly meetup",
       "value": "Your team meets CTOs and VPs in person, 12 times a year.",
       "category": "community-access",
       "interests": [
@@ -488,7 +488,8 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 1000
+          "price": 1000,
+          "foundation": true
         },
         "product": {
           "role": "standard",
@@ -570,15 +571,15 @@
       "tiers": {
         "hiring": {
           "role": "standard",
-          "price": 400
+          "price": 250
         },
         "visibility": {
           "role": "standard",
-          "price": 400
+          "price": 1500
         },
         "product": {
           "role": "standard",
-          "price": 1000
+          "price": 1400
         }
       }
     },
@@ -603,15 +604,15 @@
       "tiers": {
         "hiring": {
           "role": "standard",
-          "price": 400
+          "price": 250
         },
         "visibility": {
           "role": "standard",
-          "price": 400
+          "price": 1500
         },
         "product": {
           "role": "standard",
-          "price": 1000
+          "price": 1400
         }
       }
     },
@@ -637,11 +638,11 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 100
+          "price": 500
         },
         "product": {
           "role": "standard",
-          "price": 500,
+          "price": 600,
           "foundation": true
         },
         "story": {
@@ -666,15 +667,15 @@
       "tiers": {
         "hiring": {
           "role": "standard",
-          "price": 300
+          "price": 200
         },
         "visibility": {
           "role": "standard",
-          "price": 300
+          "price": 700
         },
         "product": {
           "role": "standard",
-          "price": 700
+          "price": 900
         },
         "story": {
           "role": "standard",
@@ -697,16 +698,16 @@
       "tiers": {
         "hiring": {
           "role": "standard",
-          "price": 200,
+          "price": 100,
           "foundation": true
         },
         "visibility": {
           "role": "standard",
-          "price": 200
+          "price": 1000
         },
         "product": {
           "role": "standard",
-          "price": 1000,
+          "price": 1300,
           "foundation": true
         },
         "story": {
@@ -734,16 +735,16 @@
       },
       "tiers": {
         "hiring": {
-          "role": "standard",
-          "price": 200
+          "role": "addon",
+          "price": 800
         },
         "visibility": {
-          "role": "standard",
-          "price": 200
+          "role": "addon",
+          "price": 800
         },
         "product": {
-          "role": "standard",
-          "price": 700
+          "role": "addon",
+          "price": 800
         }
       }
     },
@@ -788,7 +789,7 @@
         "anchor": "2027-04"
       },
       "name": "4 ELC Conference tickets",
-      "value": "Your team joins 350+ engineering leaders in April.",
+      "value": "Your team joins 500+ engineering leaders in April.",
       "category": "conference-access",
       "interests": [
         "talent",
@@ -798,16 +799,16 @@
       "tiers": {
         "hiring": {
           "role": "standard",
-          "price": 700,
+          "price": 1000,
           "foundation": true
         },
         "visibility": {
           "role": "standard",
-          "price": 700
+          "price": 1000
         },
         "product": {
           "role": "standard",
-          "price": 1200,
+          "price": 1000,
           "foundation": true
         }
       }
@@ -819,8 +820,8 @@
         "lead_time_months": 2,
         "heavy": true
       },
-      "name": "1 ELC meetup at your office",
-      "value": "80 to 150 registrations. Your engineer tells a real story on stage, with pro video and photos.",
+      "name": "1 ELC meetup with your speaker",
+      "value": "80 to 150 registrations. Your engineer tells a real story on stage, with pro video and photos. At your office, or at a venue ELC secures.",
       "category": "events-access",
       "interests": [
         "hiring",
@@ -845,17 +846,17 @@
         },
         "hiring": {
           "role": "standard",
-          "price": 3500,
+          "price": 4000,
           "foundation": true
         },
         "visibility": {
           "role": "standard",
-          "price": 3500,
+          "price": 4000,
           "foundation": true
         },
         "product": {
           "role": "standard",
-          "price": 4500,
+          "price": 4000,
           "foundation": true
         }
       }
@@ -974,11 +975,11 @@
       "tiers": {
         "hiring": {
           "role": "standard",
-          "price": 200
+          "price": 100
         },
         "visibility": {
           "role": "standard",
-          "price": 200
+          "price": 300
         }
       }
     },
@@ -1069,16 +1070,25 @@
         "spacing_months": 4
       },
       "name": "2 speaker slots at ELC events",
+      "name_by_tier": {
+        "visibility": "2 more speaker slots at ELC events"
+      },
       "value": "Your team on stage twice a year. Your talks pass the same bar as every ELC speaker.",
       "category": "events-access",
       "interests": [
         "product",
-        "hiring"
+        "hiring",
+        "talent"
       ],
       "tiers": {
         "product": {
           "role": "standard",
           "price": 2000
+        },
+        "visibility": {
+          "role": "standard",
+          "price": 2000,
+          "foundation": true
         }
       }
     },
@@ -1124,7 +1134,7 @@
         "lead_time_months": 2,
         "heavy": true
       },
-      "name": "A second meetup at your office",
+      "name": "One more meetup at your venue",
       "value": "80 to 150 registrations, with your speaker. Producing one at this scale yourself costs EUR 5 to 8K.",
       "category": "addon-hiring",
       "interests": [
@@ -1135,8 +1145,46 @@
         "hiring": {
           "role": "addon",
           "price": 4000
+        },
+        "visibility": {
+          "role": "addon",
+          "price": 4000
+        },
+        "product": {
+          "role": "addon",
+          "price": 4000
         }
       }
+    },
+    {
+      "id": "meetup-venue",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 2
+      },
+      "name": "A coworking venue for 100+ people",
+      "value": "When your office cannot fit the room, ELC books a coworking venue for 100+ people. We get strong discounts at several coworking spaces.",
+      "category": "addon-hiring",
+      "interests": [
+        "hiring",
+        "product",
+        "newsite"
+      ],
+      "tiers": {
+        "hiring": {
+          "role": "addon",
+          "price": 2000
+        },
+        "visibility": {
+          "role": "addon",
+          "price": 2000
+        },
+        "product": {
+          "role": "addon",
+          "price": 2000
+        }
+      },
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "podcast-guest",
@@ -1177,7 +1225,7 @@
         "anchor": "2027-04"
       },
       "name": "Speaker slot at ELC Conference",
-      "value": "Your CTO or VP gets a priority talk slot in April, with 350+ engineering leaders attending.",
+      "value": "Your CTO or VP gets a priority talk slot in April, with 500+ engineering leaders attending.",
       "category": "addon-stage",
       "interests": [
         "hiring",
@@ -1191,11 +1239,6 @@
         "education": {
           "role": "addon",
           "price": 3500
-        },
-        "visibility": {
-          "role": "standard",
-          "price": 3500,
-          "foundation": true
         },
         "story": {
           "role": "standard",
@@ -1242,10 +1285,6 @@
       ],
       "tiers": {
         "hiring": {
-          "role": "addon",
-          "price": 2000
-        },
-        "visibility": {
           "role": "addon",
           "price": 2000
         },
@@ -1456,7 +1495,7 @@
     {
       "id": "prime-conference-stage",
       "name": "Main-stage priority at ELC Conference",
-      "value": "Your talk is reviewed first for the April main stage. It still has to pass the same bar as every ELC speaker.",
+      "value": "We help you pick the right topic, assign you a public speaking coach and make you shine in front of 500+ people, with photos and a public video on YouTube. Your talk still passes the same bar as every ELC speaker.",
       "category": "addon-stage",
       "journey": {
         "cadence": "one-off",
@@ -1502,7 +1541,7 @@
       "tiers": {
         "product": {
           "role": "exclusive",
-          "price": 1500
+          "price": 1000
         }
       }
     },
@@ -2385,29 +2424,6 @@
           "price": 0
         }
       }
-    },
-    {
-      "id": "meetup-speaker-trio",
-      "journey": {
-        "cadence": "quarterly",
-        "lead_time_months": 2,
-        "spacing_months": 3
-      },
-      "name": "3 speaker slots at ELC meetups",
-      "value": "120+ registrations each time. Your talks pass the same bar as every ELC speaker.",
-      "category": "events-access",
-      "interests": [
-        "hiring",
-        "talent"
-      ],
-      "tiers": {
-        "visibility": {
-          "role": "standard",
-          "price": 3000,
-          "foundation": true
-        }
-      },
-      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "speaker-alumni-circle",
