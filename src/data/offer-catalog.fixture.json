@@ -61,12 +61,24 @@
         "vital": "workshop"
       },
       "month_one": {
-        "food_drinks": 1000,
-        "organisation": 1000,
-        "elc_venue": 1500
+        "food_drinks": 1500,
+        "organisation": 2500,
+        "elc_venue": 2000
       },
       "credited": true,
       "walk_away": true
+    },
+    "conference": {
+      "source": "business/elcc/data/conference-offer-2027.json",
+      "addons_require_package": true,
+      "second_addon_discount": {
+        "pct": 25
+      },
+      "early_sign_discount": {
+        "pct": 10,
+        "deadline": "2026-12-31"
+      },
+      "renewal": "on_call"
     },
     "interest_groups": {
       "talent": "Boost your existing talent",
@@ -1230,10 +1242,6 @@
         "newsite"
       ],
       "tiers": {
-        "conference": {
-          "role": "addon",
-          "price": 2000
-        },
         "hiring": {
           "role": "addon",
           "price": 2000
@@ -1263,10 +1271,6 @@
         "newsite"
       ],
       "tiers": {
-        "conference": {
-          "role": "addon",
-          "price": 4000
-        },
         "hiring": {
           "role": "addon",
           "price": 4000
@@ -1299,10 +1303,6 @@
         "total_per_year": 2
       },
       "tiers": {
-        "conference": {
-          "role": "addon",
-          "price": 20000
-        },
         "hiring": {
           "role": "addon",
           "price": 20000
@@ -1508,13 +1508,73 @@
       }
     },
     {
-      "id": "conf-pioneer",
-      "name": "Conference Pioneer partnership",
-      "value": "Logo on elc-conference.io and on-site boards, 2 tickets, newsletter partner spotlight, full conference access.",
+      "id": "conf-partner",
+      "name": "Conference Partner partnership",
+      "value": "The first to sign is the main partner of the day. A workshop or mentor slot for your leader, 14 tickets, 10 mentoring sessions with Marian, an ELC meetup for 100+ leaders in your office in February 2027, 3 months of social posts and videos, a podcast episode, booth in the Experience Zone, listed on the website and partner boards.",
+      "category": "conference-tier",
+      "interests": [
+        "hiring",
+        "talent",
+        "product"
+      ],
+      "scope": "conference",
+      "cap": {
+        "per_conference": 2
+      },
+      "tiers": {
+        "conference": {
+          "role": "standard",
+          "price": 38000
+        }
+      }
+    },
+    {
+      "id": "conf-luminary",
+      "name": "Conference Luminary partnership",
+      "value": "For visibility among engineering leaders. 10 tickets, booth in the Experience Zone, dedicated newsletter to 2,900+ subscribers, 2 seats at the speakers' dinner, listed on the website and partner boards.",
       "category": "conference-tier",
       "interests": [
         "product",
         "hiring"
+      ],
+      "scope": "conference",
+      "cap": {
+        "per_conference": 3
+      },
+      "tiers": {
+        "conference": {
+          "role": "standard",
+          "price": 20000
+        }
+      }
+    },
+    {
+      "id": "conf-navigator",
+      "name": "Conference Navigator partnership",
+      "value": "For hiring and employer brand. 5 tickets, booth in the Experience Zone, 1 month on the ELC Jobs platform, 1 seat at the speakers' dinner, listed on the website and partner boards.",
+      "category": "conference-tier",
+      "interests": [
+        "hiring",
+        "product"
+      ],
+      "scope": "conference",
+      "cap": {
+        "per_conference": 6
+      },
+      "tiers": {
+        "conference": {
+          "role": "standard",
+          "price": 12000
+        }
+      }
+    },
+    {
+      "id": "conf-pioneer",
+      "name": "Conference Pioneer partnership",
+      "value": "For startups meeting early adopters. 2 tickets, partner spotlight in the newsletter, listed on the website and partner boards.",
+      "category": "conference-tier",
+      "interests": [
+        "product"
       ],
       "scope": "conference",
       "tiers": {
@@ -1525,43 +1585,49 @@
       }
     },
     {
-      "id": "conf-navigator",
-      "name": "Conference Navigator partnership",
-      "value": "Experience Zone booth, 5 tickets, 5 curated 1:1 meetings, speakers dinner seat, stage mention, 1 month ELC Jobs access.",
-      "category": "conference-tier",
+      "id": "conf-speakers-dinner",
+      "name": "Speakers' dinner",
+      "value": "Host the evening with the speakers and partners: your welcome word at the dinner, your name on the invitation and in the programme.",
+      "category": "conference-addon",
       "interests": [
         "product",
         "hiring"
       ],
       "scope": "conference",
+      "cap": {
+        "per_conference": 1
+      },
       "tiers": {
         "conference": {
-          "role": "standard",
-          "price": 12000
+          "role": "addon",
+          "price": 5000
         }
       }
     },
     {
-      "id": "conf-luminary",
-      "name": "Conference Luminary partnership",
-      "value": "Premium booth near main stage, 10 tickets, 15 curated 1:1 meetings, 2 speakers dinner seats, main-partner shoutout, dedicated newsletter blast, aftermovie segment, 3 months ELC Jobs access.",
-      "category": "conference-tier",
+      "id": "conf-afterparty",
+      "name": "Afterparty",
+      "value": "Your name on the party after the last talk: your welcome word at the party, your name in the programme and on site.",
+      "category": "conference-addon",
       "interests": [
-        "product",
-        "hiring"
+        "hiring",
+        "product"
       ],
       "scope": "conference",
+      "cap": {
+        "per_conference": 1
+      },
       "tiers": {
         "conference": {
-          "role": "standard",
-          "price": 20000
+          "role": "addon",
+          "price": 6000
         }
       }
     },
     {
-      "id": "conf-workshop-slot",
-      "name": "60-minute hands-on workshop in the workshops track",
-      "value": "By application, around 6 slots per conference.",
+      "id": "conf-roundtable",
+      "name": "Leadership roundtable",
+      "value": "A closed table of engineering leaders on your topic. We invite the leaders and host the table; a room and a listing in the programme.",
       "category": "conference-addon",
       "interests": [
         "product",
@@ -1569,79 +1635,32 @@
       ],
       "scope": "conference",
       "cap": {
-        "per_conference": 6
+        "per_conference": 1
+      },
+      "tiers": {
+        "conference": {
+          "role": "addon",
+          "price": 6000
+        }
+      }
+    },
+    {
+      "id": "conf-partner-workshop",
+      "name": "Partner workshop",
+      "value": "Your workshop, labelled as a partner session, off the main stage. Room and AV, promotion on the web and in the programme, registration, and the contacts of attendees who opt in.",
+      "category": "conference-addon",
+      "interests": [
+        "product",
+        "talent"
+      ],
+      "scope": "conference",
+      "cap": {
+        "per_conference": 1
       },
       "tiers": {
         "conference": {
           "role": "addon",
           "price": 4000
-        }
-      }
-    },
-    {
-      "id": "conf-curated-meetings",
-      "name": "Pre-booked curated 1:1 meetings in the Connect Lounge",
-      "value": "5-pack of 15 to 30 minute role-matched meetings, opt-in list 3 weeks before the event.",
-      "category": "conference-addon",
-      "interests": [
-        "product"
-      ],
-      "scope": "conference",
-      "tiers": {
-        "conference": {
-          "role": "addon",
-          "price": 2500
-        }
-      }
-    },
-    {
-      "id": "conf-aftermovie-segment",
-      "name": "Branded segment in the official aftermovie",
-      "value": "Dedicated 30-second employer-brand or product segment, permanent post-event.",
-      "category": "conference-addon",
-      "interests": [
-        "hiring",
-        "product"
-      ],
-      "scope": "conference",
-      "tiers": {
-        "conference": {
-          "role": "addon",
-          "price": 2500
-        }
-      }
-    },
-    {
-      "id": "conf-tshirt-logo",
-      "name": "Logo on the official conference t-shirts",
-      "value": "Around 200 shirts distributed at the event.",
-      "category": "conference-addon",
-      "interests": [
-        "hiring",
-        "product"
-      ],
-      "scope": "conference",
-      "tiers": {
-        "conference": {
-          "role": "addon",
-          "price": 1500
-        }
-      }
-    },
-    {
-      "id": "conf-podcast-episode",
-      "name": "Conference podcast episode",
-      "value": "Dedicated episode around the conference. Aspirational, pending podcast launch.",
-      "category": "conference-addon",
-      "interests": [
-        "product",
-        "hiring"
-      ],
-      "scope": "conference",
-      "tiers": {
-        "conference": {
-          "role": "addon",
-          "price": 2000
         }
       }
     },
