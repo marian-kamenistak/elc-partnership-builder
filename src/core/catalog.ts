@@ -182,9 +182,14 @@ export function availableItems(presetId: string, currentIds: string[]) {
 		}));
 }
 
-/** The AI-channel discount from catalog meta. Null when unconfigured (fail closed: no discount). */
+/**
+ * The AI-channel discount from catalog meta. Null when unconfigured or at 0% (fail closed: no
+ * discount). 0% since 2026-10-05 (Marian): the AI channel is an option, not a discount, so every
+ * caller falls back to list price and no copy may mention a percentage.
+ */
 export function aiDiscount(): Discount | null {
-	return meta.discounts?.ai_channel ?? null;
+	const d = meta.discounts?.ai_channel;
+	return d && d.pct > 0 ? d : null;
 }
 
 /**
@@ -203,7 +208,7 @@ export function discountFor(
 	if (!d || total <= 0 || !d.channels.includes(channel)) return null;
 	if (presetId && (d.excluded_presets ?? []).includes(presetId)) return null;
 	// Scarcity expiry (Marian 2026-08-09): after the stated end date the discount simply stops
-	// existing server-side — no stale 16% can reach an email or the CRM. The first-4 cap is a
+	// existing server-side — no stale percentage can reach an email or the CRM. The first-4 cap is a
 	// stated term enforced at Marian's confirmation call, not a server counter.
 	if (d.expires && now.toISOString().slice(0, 10) > d.expires) return null;
 	return { pct: d.pct, discounted: Math.round(total * (1 - d.pct / 100)) };

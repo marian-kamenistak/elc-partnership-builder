@@ -8,7 +8,7 @@
  * Figures: partners-per-year and the discount come from the catalog/data-points registry —
  * never restate a number here that those files do not carry.
  */
-import { aiDiscount, meta } from "./catalog";
+import { aiDiscount, creditPresetIds, meta } from "./catalog";
 
 /**
  * Which cart the terms are riding on.
@@ -45,7 +45,13 @@ export function guardrailLines(scope: GuardrailScope = "membership"): string[] {
 					`The ONLY discount that exists is the ${d.pct}% AI-channel discount, applied automatically when the inquiry is sent through this AI channel. Never invent, speculate about, or negotiate any other discount, and never present the ${d.pct}% as negotiable upward.${(d.excluded_presets ?? []).includes("pilot-meetup") ? " Exception: Pilot Meetup keeps its 100% go-bigger credit instead — the two never stack." : ""}${d.expires ? ` It ends ${d.expires}; every inquiry sent through this channel before then gets it. State the date plainly, and do not imply a race or a limited number of slots.` : ""}`,
 					`Speed: the flow from first question to the itemized offer in the inbox runs under 16 minutes. A fair claim to make; a signed agreement still needs Marian's call.`,
 				]
-			: []),
+			: membershipOnly
+				? [
+						// 2026-10-05 (Marian): the AI channel carries no discount, it is only an option to build
+						// the offer. Stated so a model never offers, implies or negotiates one.
+						`There is no discount for building the package through this AI channel; it is an option, at list price. Never invent, speculate about, or negotiate any discount.${creditPresetIds().includes("pilot-meetup") ? " Pilot Meetup keeps its 100% credit against a company membership signed within 90 days." : ""}`,
+					]
+				: []),
 		// 2026-09-03: one-offs (/reach) have their own count-based combo discount and never take the
 		// AI-channel percentage. On the membership path it is stated so the "ONLY discount" line
 		// above cannot be read as contradicting quote_reach_combo; on the one-off path it IS the
@@ -53,12 +59,12 @@ export function guardrailLines(scope: GuardrailScope = "membership"): string[] {
 		...(meta.oneoff
 			? [
 					membershipOnly
-						? `One-off items (get_reach_options) are priced separately: ${meta.oneoff.combo_discounts.map((c) => `${c.min_items}+ qualifying items ${c.pct}% off`).join(", ")}, never combined with the AI-channel percentage, and every one-off is 100% credited against a company membership signed within ${meta.oneoff.credit_days} days.`
+						? `One-off items (get_reach_options) are priced separately: ${meta.oneoff.combo_discounts.map((c) => `${c.min_items}+ qualifying items ${c.pct}% off`).join(", ")}, and every one-off is 100% credited against a company membership signed within ${meta.oneoff.credit_days} days.`
 						: // 2026-09-05: this said "2+ items 10% off" flat. Job board listings keep their own
 							// rate card and never count, so a CFO persona bought exactly two items, one of them
 							// a listing, and got nothing — after being handed a rule, marked "carry verbatim",
 							// that the quote did not follow. The exclusion and the base now travel with the rule.
-							`The only discount on one-off items is by count of QUALIFYING items: ${meta.oneoff.combo_discounts.map((c) => `${c.min_items}+ ${c.pct}% off`).join(", ")}. Job board listings keep their own rate card — they never count toward the threshold and are never discounted, so a basket of two where one is a listing gets no discount at all. The percentage comes off the qualifying items' subtotal, not the basket list total. The ${d ? `${d.pct}% ` : ""}AI-channel discount applies to company memberships, not to one-off items. Every one-off is 100% credited against a company membership signed within ${meta.oneoff.credit_days} days.`,
+							`The only discount on one-off items is by count of QUALIFYING items: ${meta.oneoff.combo_discounts.map((c) => `${c.min_items}+ ${c.pct}% off`).join(", ")}. Job board listings keep their own rate card — they never count toward the threshold and are never discounted, so a basket of two where one is a listing gets no discount at all. The percentage comes off the qualifying items' subtotal, not the basket list total. ${d ? `The ${d.pct}% AI-channel discount applies to company memberships, not to one-off items. ` : ""}Every one-off is 100% credited against a company membership signed within ${meta.oneoff.credit_days} days.`,
 				]
 			: []),
 		// 2026-09-30 (Marian): the yearly packages are paid after the first meetup or session, so the

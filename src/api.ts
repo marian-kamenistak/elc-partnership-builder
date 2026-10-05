@@ -35,7 +35,7 @@ export function handleApi(path: string, url: URL): Response | null {
 	if (route === "/" || route === "") {
 		return json({
 			endpoints: ["/options", "/match", "/customize", "/journey", "/reach", "/reach/quote", "/openapi.json"],
-			note: "Read-only. Sending an offer runs through the MCP tool request_offer or the chat at /partner/chat/ — those doors carry the AI-channel discount.",
+			note: "Read-only. Sending an offer runs through the MCP tool request_offer or the chat at /partner/chat/.",
 		});
 	}
 
@@ -129,7 +129,7 @@ function openapi() {
 			},
 			"/customize": {
 				get: {
-					summary: "Recompute a basket: authoritative total, discount, what could be added",
+					summary: "Recompute a basket: authoritative total, what could be added",
 					parameters: [q("preset_id", PRESET_IDS.join(" | ")), q("item_ids", "comma-separated item ids toggled ON")],
 					responses: ok,
 				},

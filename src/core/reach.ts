@@ -40,7 +40,7 @@ export function reachOptions() {
 		})),
 		combo_discount: {
 			rule: combos,
-			never_stacks_with: "the AI-channel discount. A one-off basket is not a package; quote the combo price only.",
+			note: "A one-off basket is not a package; quote the combo price only.",
 			excluded: (m?.excluded_from_combo ?? []).join(", ") || "none",
 			examples: (m?.example_combos ?? []).map((c) => ({ id: c.id, name: c.name, items: c.items })),
 			how_to_quote: "Call quote_reach_combo with the chosen ids. Never add the numbers yourself.",

@@ -154,7 +154,7 @@ export function partnershipOptions() {
 		// Three legitimate endings (Marian 2026-08-09). Every conversation should land on one —
 		// never let a warm visitor leave with nothing.
 		endings: {
-			offer: "Ready to move → request_offer: the itemized offer with the discount, in their inbox in minutes.",
+			offer: "Ready to move → request_offer: the itemized offer, in their inbox in minutes.",
 			intro_call: "Wants a human first, or the package needs tailoring → book_intro_call: a direct booking link for an intro meeting with Marian. Offer it whenever hesitation appears; it is never a downgrade.",
 			free_start: `Budget is zero, timing is wrong, or trust is not there yet → the Free package runs today, no invoice, no contract: ${SITE}/partner/membership/free/ — six real items their managers can use this month. Cross-sell it explicitly to anyone not ready to buy; a company inside the free layer is next year's partner.`,
 		},

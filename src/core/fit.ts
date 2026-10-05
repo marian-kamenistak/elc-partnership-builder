@@ -18,7 +18,7 @@
  *
  * Free items (price 0) are always included — leaving them out would be strictly worse.
  */
-import { availableItems, defaultBasket, discountFor, eur, presetById, resolveBasket, type ResolvedItem } from "./catalog";
+import { aiDiscount, availableItems, defaultBasket, discountFor, eur, presetById, resolveBasket, type ResolvedItem } from "./catalog";
 
 export type FitInput = {
 	preset_id: string;
@@ -99,7 +99,8 @@ export function fitToBudget(input: FitInput) {
 	return {
 		package: { id: preset.id, name: preset.name, bundle_price: preset.price },
 		budget: input.budget,
-		priced_against: against === "discounted" ? "the AI-channel price" : "the list price",
+		// No AI-channel discount since 2026-10-05: "discounted" prices at list unless one returns.
+		priced_against: against === "discounted" && aiDiscount() ? "the AI-channel price" : "the list price",
 		fits: {
 			item_ids: chosen,
 			standard,

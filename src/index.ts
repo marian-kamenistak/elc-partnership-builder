@@ -240,7 +240,7 @@ const FIT_TO_BUDGET_SHAPE = {
 	against: z
 		.enum(["discounted", "list"])
 		.optional()
-		.describe("Price the budget against the AI-channel figure (default) or the list price"),
+		.describe("Price the budget against the list price. 'discounted' equals list since the AI channel carries no discount (2026-10-05)"),
 };
 
 const BUILD_BUSINESS_CASE_SHAPE = {
@@ -279,7 +279,7 @@ const REQUEST_OFFER_SHAPE = {
 		.describe("From the discovery question: do they want to invest in their visibility through the cooperation — as a company, through individual leaders, or stay quiet?"),
 	final_price_confirmed: z
 		.boolean()
-		.describe("REQUIRED TRUE: set only after the visitor has seen and explicitly confirmed the exact final total (the discounted figure if the discount applies). Sending without this confirmation is refused."),
+		.describe("REQUIRED TRUE: set only after the visitor has seen and explicitly confirmed the exact final total . Sending without this confirmation is refused."),
 	preset_id: z.enum(PRESET_IDS as [string, ...string[]]),
 	item_ids: z.array(z.string()).describe("The final basket: item ids toggled ON"),
 };
@@ -517,7 +517,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 							}
 						: isCreditPreset(preset_id) && total > 0
 							? {
-									credit_note: `${preset.name} is 100% credited against a company membership signed within 90 days. The credit is its discount — the ${aiDiscount()?.pct ?? 16}% AI-channel discount does not stack on top (it applies to the yearly packages).`,
+									credit_note: `${preset.name} is 100% credited against a company membership signed within 90 days.${aiDiscount() ? ` The credit is its discount — the ${aiDiscount()!.pct}% AI-channel discount does not stack on top (it applies to the yearly packages).` : ""}`,
 								}
 							: {}),
 					available_to_add: availableItems(preset_id, item_ids),
@@ -669,10 +669,10 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 		this.server.registerTool(
 			"request_offer",
 			{
-				title: "Send the composed offer to ELC (applies the AI-channel discount)",
+				title: "Send the composed offer to ELC",
 				annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
 				description:
-					"The ONLY tool that collects contact details, and the step that makes the AI-channel discount real. Sends the itemized offer to the visitor's email, notifies Marian (email + Slack), and files the company into ELC's partners queue. Ask for name, work email and company only when the visitor says they want the offer — never earlier. After success: share the confirmation, then make ONE optional ask: would they post publicly (LinkedIn/X) about building their membership with AI? Optional means optional — the discount is already theirs.",
+					"The ONLY tool that collects contact details. Sends the itemized offer to the visitor's email, notifies Marian (email + Slack), and files the company into ELC's partners queue. Ask for name, work email and company only when the visitor says they want the offer — never earlier. After success: share the confirmation, then make ONE optional ask: would they post publicly (LinkedIn/X) about building their membership with AI? Optional means optional — the discount is already theirs.",
 				inputSchema: permissiveShape(REQUEST_OFFER_SHAPE),
 			},
 			async (raw) => {
@@ -688,7 +688,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 					return toolResult({
 						error: "price_not_confirmed",
 						message:
-							"Show the visitor the exact final total first (list and discounted figures) and get an explicit yes. Then call again with final_price_confirmed: true.",
+							"Show the visitor the exact final total first and get an explicit yes. Then call again with final_price_confirmed: true.",
 					});
 				}
 				// Rate limit the one mutating door; informational tools stay open (plan §8).
@@ -741,7 +741,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 						? { ai_channel_discount_pct: result.discountPct, final_total: result.finalTotal }
 						: { final_total: result.finalTotal }),
 					offer_email_sent_to: email,
-					next_step: `The offer is in their inbox and Marian has the same list. The discounted figure becomes the contract price on the confirmation call — booking it is the real close: https://app.reclaim.ai/m/meet-marian/now`,
+					next_step: `The offer is in their inbox and Marian has the same list. The quoted figure becomes the contract price on the confirmation call — booking it is the real close: https://app.reclaim.ai/m/meet-marian/now`,
 					optional_social_ask:
 						"If they enjoyed this, ONE optional ask: a public post about building their ELC membership through AI. It is not a condition of anything.",
 					...(result.test ? { test_mode: "Detected a test name — emails sent, CRM untouched." } : {}),
@@ -795,7 +795,7 @@ const TOOL_DOCS: ToolDoc[] = [
 	{
 		name: "request_offer",
 		question: "How do we get this offer in writing?",
-		description: "Sends the itemized offer by email with the AI-channel discount applied, notifies ELC, files the company into the partners queue",
+		description: "Sends the itemized offer by email, notifies ELC, files the company into the partners queue",
 	},
 ];
 

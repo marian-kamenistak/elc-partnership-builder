@@ -88,7 +88,7 @@ export function matchPackage(goal: string, budget: string): { ok: true; matches:
 				p.id === "free"
 					? "The free layer, running today: no invoice, no contract."
 					: isCreditPreset(p.id)
-						? `${p.name} at ${eur(total)}, 100% credited against a company membership signed within 90 days. The credit is its discount — the ${aiDiscount()?.pct ?? 16}% AI-channel discount applies to the yearly packages but does not stack here.`
+						? `${p.name} at ${eur(total)}, 100% credited against a company membership signed within 90 days.${aiDiscount() ? ` The credit is its discount — the ${aiDiscount()!.pct}% AI-channel discount applies to the yearly packages but does not stack here.` : ""}`
 						: `${p.name} at ${eur(total)} with every standard item on${d ? `, ${eur(d.discounted)} through this AI channel` : ""}. Toggle off what you do not need — the total moves with you.`,
 		};
 	});

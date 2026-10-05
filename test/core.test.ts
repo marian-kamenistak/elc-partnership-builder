@@ -12,6 +12,7 @@ import {
 	defaultBasket,
 	discountFor,
 	liveItems,
+	meta,
 	PRESET_IDS,
 	presets,
 	resolveBasket,
@@ -36,46 +37,23 @@ describe("price parity", () => {
 });
 
 describe("discount", () => {
-	it("is configured at 16% for chat and mcp, credit rungs excluded, dated not capped", () => {
-		// cap_deals removed 2026-08-20: the one-winner race was unverifiable by construction and
-		// contradicted the offer email, which asserts the discounted figure as the contract price.
-		expect(aiDiscount()).toEqual({
-			pct: 16,
-			// webmcp joined 2026-08-27 (the visitor's own agent driving the configurator counts as the AI door).
-			channels: ["chat", "mcp", "webmcp"],
-			applies_to: "basket_total",
-			// 2026-09-17: Signature Meetup and the Community Launch ladder follow the credit-not-pct rule.
-			excluded_presets: ["pilot-meetup", "signature-meetup", "launch-audit", "community-launch", "launch-run"],
-			// The end date is catalog data, not an invariant: Marian moves it (2026-09-30 -> 2026-12-31
-			// on 2026-10-01). Assert its shape here; the boundary is tested against it below.
-			expires: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
-		});
-		expect(aiDiscount()?.cap_deals, "a deal cap reintroduces an unfalsifiable scarcity claim").toBeUndefined();
+	// 2026-10-05 (Marian): the AI channel carries no discount, it is only an option. The mechanic
+	// stays in the catalog at pct 0, and aiDiscount() fails closed so no caller can render "0% off".
+	it("is configured at 0%: the mechanic stays, aiDiscount() is null", () => {
+		expect(meta.discounts?.ai_channel?.pct).toBe(0);
+		expect(meta.discounts?.ai_channel?.channels).toEqual(["chat", "mcp", "webmcp"]);
+		expect(aiDiscount()).toBeNull();
 	});
-	it("expiry is enforced server-side: live through the catalog's end date, dead the day after", () => {
-		const expires = aiDiscount()!.expires!;
-		const dayAfter = new Date(`${expires}T00:00:00Z`);
-		dayAfter.setUTCDate(dayAfter.getUTCDate() + 1);
-		expect(discountFor(12000, "mcp", "nebula", new Date(`${expires}T12:00:00Z`))).toEqual({ pct: 16, discounted: 10080 });
-		expect(discountFor(12000, "mcp", "nebula", dayAfter)).toBeNull();
-	});
-	it("guardrails state the end date and the 16-minute claim, and imply no race", () => {
-		const text = guardrailLines().join(" ");
-		expect(text).toContain(aiDiscount()!.expires!);
-		expect(text).toContain("16 minutes");
-		// The scarcity wording personas read as manufactured must not come back.
-		for (const banned of ["FIRST partnership closed", "One winner", "one winner only", "Real scarcity"]) {
-			expect(text, `guardrails must not imply a race: "${banned}"`).not.toContain(banned);
-		}
-	});
-	it("computes round(total*0.84) on AI channels", () => {
-		expect(discountFor(12000, "mcp")).toEqual({ pct: 16, discounted: 10080 });
-		expect(discountFor(15000, "chat")).toEqual({ pct: 16, discounted: 12600 });
-		expect(discountFor(20000, "mcp")).toEqual({ pct: 16, discounted: 16800 });
-	});
-	it("never applies to web or to a free basket", () => {
-		expect(discountFor(12000, "web")).toBeNull();
+	it("prices every channel at list", () => {
+		for (const ch of ["mcp", "chat", "webmcp", "web"]) expect(discountFor(12000, ch)).toBeNull();
 		expect(discountFor(0, "mcp")).toBeNull();
+	});
+	it("guardrails say there is no discount and imply no race", () => {
+		const text = guardrailLines().join(" ");
+		expect(text).toContain("There is no discount");
+		for (const banned of ["16%", "16 percent", "FIRST partnership closed", "One winner", "one winner only", "Real scarcity"]) {
+			expect(text, `guardrails must not carry "${banned}"`).not.toContain(banned);
+		}
 	});
 });
 
@@ -158,7 +136,7 @@ describe("guardrails + options", () => {
 		const text = guardrailLines().join(" ");
 		expect(text).toContain("VAT excluded");
 		expect(text).toContain("max 10 partners");
-		expect(text).toContain("16% AI-channel discount");
+		expect(text).toContain("There is no discount");
 		expect(text).toContain("Marian Kamenistak confirms");
 	});
 	// 2026-09-05 persona finding: a visitor quoting one 1,500 EUR newsletter section received the
@@ -179,7 +157,8 @@ describe("guardrails + options", () => {
 		// rewrote the line and left this assertion behind. What the line must still do is tell a
 		// one-off buyer the AI-channel discount is not theirs — asserted on that clause rather
 		// than on a wording this copy is free to keep changing.
-		expect(oneoff).toContain("AI-channel discount applies to company memberships, not to one-off items");
+		// 2026-10-05: no AI-channel discount exists, so the one-off terms no longer mention it at all.
+		expect(oneoff).not.toContain("AI-channel discount");
 		// 2026-09-05: the rule used to read "2+ items 10% off" with no mention that job board
 		// listings never count — so a CFO bought two items, one a listing, got nothing, and had
 		// been handed that rule marked "carry verbatim". The exclusion and the base must travel
@@ -245,32 +224,21 @@ describe("boundaries", () => {
 	});
 });
 
-describe("match surfaces the AI-channel price", () => {
-	it("every priced match carries ai_channel_price with both figures", () => {
+describe("match prices at list (no AI-channel discount since 2026-10-05)", () => {
+	it("no priced match carries ai_channel_price", () => {
 		const result = matchPackage("hiring", "solid");
 		expect(result.ok).toBe(true);
 		if (result.ok) {
-			const m = result.matches[0];
-			expect(m.ai_channel_price).toEqual({
-				pct: 16,
-				price: Math.round(m.price * 0.84),
-				display: expect.stringContaining("16% AI-channel discount"),
-			});
-			expect(m.summary).toContain("through this AI channel");
+			expect(result.matches[0].ai_channel_price).toBeUndefined();
+			expect(result.matches[0].summary).not.toContain("AI channel");
 		}
-	});
-	it("the free match carries no discount field", () => {
-		const result = matchPackage("talent", "free");
-		expect(result.ok).toBe(true);
-		if (result.ok) expect(result.matches[0].ai_channel_price).toBeUndefined();
 	});
 });
 
 describe("no stacking: pilot-meetup keeps credit, not the pct", () => {
-	it("discountFor skips excluded presets", () => {
+	it("discountFor stays null for credit presets", () => {
 		expect(discountFor(3500, "mcp", "pilot-meetup")).toBeNull();
 		expect(discountFor(3500, "chat", "pilot-meetup")).toBeNull();
-		expect(discountFor(3500, "mcp", "orbit")).toEqual({ pct: 16, discounted: 2940 });
 	});
 	it("pilot-meetup matches carry the credit framing, no ai_channel_price", () => {
 		const result = matchPackage("hiring", "start");
@@ -282,19 +250,15 @@ describe("no stacking: pilot-meetup keeps credit, not the pct", () => {
 			expect(pilot!.summary).toContain("credit");
 		}
 	});
-	it("guardrails state the exception", () => {
-		expect(guardrailLines().join(" ")).toContain("never stack");
+	it("guardrails keep the Pilot Meetup credit", () => {
+		expect(guardrailLines().join(" ")).toContain("Pilot Meetup keeps its 100% credit");
 	});
 });
 
-describe("magnet at the entry point (eval e9 regression)", () => {
-	it("options carry the discount as data with the exception named", () => {
-		const o = partnershipOptions() as ReturnType<typeof partnershipOptions> & {
-			ai_channel_discount?: { pct: number; what: string; exception: string };
-		};
-		expect(o.ai_channel_discount?.pct).toBe(16);
-		expect(o.ai_channel_discount?.what).toContain("only discount");
-		expect(o.ai_channel_discount?.exception).toContain("never stack");
+describe("entry point carries no discount (2026-10-05)", () => {
+	it("options carry no ai_channel_discount", () => {
+		const o = partnershipOptions() as ReturnType<typeof partnershipOptions> & { ai_channel_discount?: unknown };
+		expect(o.ai_channel_discount).toBeUndefined();
 	});
 });
 

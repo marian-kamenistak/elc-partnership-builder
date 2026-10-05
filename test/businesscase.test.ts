@@ -141,8 +141,8 @@ describe("approval memo: the forwardable artifact", () => {
 	it("carries the ask, the price, the monthly split and the terms", () => {
 		const m = approvalMemo(c, "Jana Novakova");
 		expect(m).toContain("Subject: Approval request");
-		expect(m).toContain("€10,080");
-		expect(m).toContain("€840 a month");
+		expect(m).toContain("€12,000");
+		expect(m).toContain("€1,000 a month");
 		expect(m).toContain("Marian Kamenistak");
 		expect(m).toContain("Jana Novakova");
 		expect(m).toContain("Acme Fintech");
@@ -206,14 +206,14 @@ describe("fit_to_budget: deterministic, explainable composition", () => {
 		expect(f.full_package_for_comparison.note).toContain("already fits");
 	});
 
-	it("prices against the AI-channel figure by default, list price on request", () => {
+	it("prices at list either way: no AI-channel discount since 2026-10-05", () => {
 		const disc = fitToBudget({ preset_id: "hiring", budget: 10080 });
 		const list = fitToBudget({ preset_id: "hiring", budget: 10080, against: "list" });
 		if ("error" in disc || "error" in list) throw new Error("unexpected error");
-		expect(disc.fits.discount_pct).toBe(16);
+		expect(disc.fits.discount_pct).toBe(0);
 		expect(list.fits.discount_pct).toBe(0);
-		// The discounted view buys strictly more for the same ceiling.
-		expect(disc.fits.list_total).toBeGreaterThan(list.fits.list_total);
+		expect(disc.fits.list_total).toBe(list.fits.list_total);
+		expect(disc.priced_against).toBe("the list price");
 	});
 
 	it("rejects a nonsense budget instead of composing something", () => {
