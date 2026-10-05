@@ -470,7 +470,7 @@
         "cadence": "monthly"
       },
       "name": "4 priority seats at every monthly meetup",
-      "value": "Your team meets CTOs and VPs in person, 12 times a year.",
+      "value": "Your talent gets secured seats to learn about the most relevant topics.",
       "category": "community-access",
       "interests": [
         "hiring",
@@ -766,10 +766,6 @@
           "role": "standard",
           "price": 0
         },
-        "visibility": {
-          "role": "standard",
-          "price": 0
-        },
         "product": {
           "role": "standard",
           "price": 0
@@ -819,7 +815,7 @@
         "heavy": true
       },
       "name": "1 ELC meetup with your speaker",
-      "value": "80 to 150 registrations. Your engineer tells a real story on stage, with pro video and photos. At your office, or at a venue ELC secures.",
+      "value": "100+ attendees. Your engineer tells a real story on stage, with pro video and photos. At your office, or at a venue ELC secures.",
       "category": "events-access",
       "interests": [
         "hiring",
@@ -828,8 +824,8 @@
       ],
       "notes": "[redacted for the public repo — internal pricing rationale, not published]",
       "name_by_tier": {
-        "pilot-meetup": "Turn your office into a magnet for senior engineering leaders: 80 to 150 registrations, your speaker on stage",
-        "signature-meetup": "Turn your office into a magnet for senior engineering leaders: 80 to 150 registrations, your speaker on stage"
+        "pilot-meetup": "Turn your office into a magnet for senior engineering leaders: {elc_community.meetup_attendees} attendees, your speaker on stage",
+        "signature-meetup": "Turn your office into a magnet for senior engineering leaders: {elc_community.meetup_attendees} attendees, your speaker on stage"
       },
       "tiers": {
         "pilot-meetup": {
@@ -1071,7 +1067,7 @@
       "name_by_tier": {
         "visibility": "2 more speaker slots at ELC events"
       },
-      "value": "Your team on stage twice a year. Your talks pass the same bar as every ELC speaker.",
+      "value": "Your team on stage. We make them shine.",
       "category": "events-access",
       "interests": [
         "product",
@@ -1133,7 +1129,7 @@
         "heavy": true
       },
       "name": "One more meetup at your venue",
-      "value": "80 to 150 registrations, with your speaker. Producing one at this scale yourself costs EUR 5 to 8K.",
+      "value": "100+ attendees, with your speaker. Producing one at this scale yourself costs EUR 5 to 8K.",
       "category": "addon-hiring",
       "interests": [
         "hiring",
@@ -3082,7 +3078,7 @@
         "Open a new CEE office and meet the local leaders in one evening"
       ],
       "outcomes": [
-        "120+ registrations at a typical meetup, 80 to 150 depending on the venue. Registrations, not a head count.",
+        "100+ attendees at a typical meetup",
         "40+ meetups since 2019, the format is proven"
       ],
       "price": 4000,
