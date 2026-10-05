@@ -31,7 +31,7 @@ export function reachOptions() {
 			examples: o.examples,
 			outcomes: o.outcomes,
 			price: o.price,
-			price_display: o.premium_price ? `${eur(o.price)}, Premium ${eur(o.premium_price)}` : eur(o.price),
+			price_display: o.premium_price ? `${eur(o.price)}, Premium ${eur(o.premium_price)}` : o.price_max ? `${eur(o.price)} at your office, ${eur(o.price_max)} at a venue ELC secures` : eur(o.price),
 			lead_time: o.lead_time,
 			...(o.cap ? { cap: `${o.cap.total_per_year} a year across all companies` } : {}),
 			...(o.included_in.length ? { included_in_packages: o.included_in.map(packageName) } : {}),

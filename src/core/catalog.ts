@@ -54,6 +54,7 @@ export type OneOff = {
 	outcomes: string[];
 	price: number;
 	premium_price?: number;
+	price_max?: number;
 	lead_time: string;
 	cap?: { total_per_year: number };
 	cta_url?: string;

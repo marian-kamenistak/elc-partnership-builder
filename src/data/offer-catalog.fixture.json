@@ -122,7 +122,6 @@
       ],
       "excluded_from_combo": [
         "job-listing",
-        "meetup-signature",
         "webinar"
       ],
       "example_combos": [
@@ -3059,6 +3058,29 @@
   ],
   "oneoffs": [
     {
+      "id": "meetup-hosted",
+      "item": "hosted-meetup",
+      "name": "One ELC meetup, run by ELC end to end, at your office or ours",
+      "value": "One large ELC meetup with your speaker on stage, and ELC runs the rest: visibility, registrations, ELC speakers, the newsletter, social media, pro video and photos. At your office, or at a venue ELC secures. We make you shine.",
+      "examples": [
+        "Show the engineering culture you want to hire into",
+        "Put your platform in front of the people who approve budgets",
+        "Open a new CEE office and meet the local leaders in one evening"
+      ],
+      "outcomes": [
+        "120+ registrations at a typical meetup, 80 to 150 depending on the venue. Registrations, not a head count.",
+        "40+ meetups since 2019, the format is proven"
+      ],
+      "price": 4000,
+      "price_max": 6000,
+      "lead_time": "2 months",
+      "included_in": [
+        "hiring",
+        "visibility",
+        "product"
+      ]
+    },
+    {
       "id": "meetup-presence",
       "name": "Your name on three meetup evenings",
       "value": "Your logo on the event page and on the partner slide, your name from the stage, one LinkedIn post per evening. Three meetups. What you pay goes into the catering, the venue and the evening itself.",
@@ -3113,45 +3135,6 @@
       "included_in": []
     },
     {
-      "id": "meetup-hosted",
-      "item": "hosted-meetup",
-      "name": "A meetup in your office, your speaker on stage",
-      "value": "One large ELC meetup at your venue. Your engineer tells a real story, filtered like every ELC talk. Pro video and photo. The community walks through your office.",
-      "examples": [
-        "Show the engineering culture you want to hire into",
-        "Put your platform in front of the people who approve budgets",
-        "Open a new CEE office and meet the local leaders in one evening"
-      ],
-      "outcomes": [
-        "120+ registrations at a typical meetup, 80 to 150 depending on your venue. Registrations, not a head count.",
-        "40+ meetups since 2019, the format is proven"
-      ],
-      "price": 4000,
-      "lead_time": "2 months",
-      "included_in": [
-        "hiring",
-        "visibility",
-        "product"
-      ]
-    },
-    {
-      "id": "meetup-signature",
-      "name": "A meetup in your office, run by ELC end to end",
-      "value": "One night at your venue, and ELC runs all of it: the topic picked with the community, up to two curated ELC speakers next to your engineer, the full audience launch, a three-act room with ELC Mate and an ELC host, recap page, YouTube talk, speaker banners, a D+3 report and the hand-over checklist.",
-      "examples": [
-        "Put your engineering team in front of senior engineering leaders without building an event from zero",
-        "Open a new CEE office with a full room on the first night",
-        "Turn one engineer's real story into a talk on the ELC YouTube channel"
-      ],
-      "outcomes": [
-        "120+ registrations at a typical meetup, 80 to 150 depending on your venue. Registrations, not a head count.",
-        "40+ meetups since 2019, the same runner every time. Fewer than 100 registrations and the next one runs at delivery cost."
-      ],
-      "price": 8900,
-      "lead_time": "2 months",
-      "included_in": []
-    },
-    {
       "id": "podcast-episode",
       "item": "podcast-guest",
       "name": "An episode of the ELC podcast with your leader",
@@ -3177,7 +3160,7 @@
     {
       "id": "dinner",
       "item": "decision-maker-dinner",
-      "name": "A dinner with 10 to 15 decision-makers",
+      "name": "A dinner with 10 decision-makers in a category you define",
       "value": "One private dinner. ELC curates the table around your topic: the CTOs and VPs who deal with it this year. Your engineering lead sits down, your sales lead does not.",
       "examples": [
         "Ten CTOs choosing an observability stack this year",
@@ -3185,7 +3168,7 @@
         "Founders scaling past 50 engineers"
       ],
       "outcomes": [
-        "10 to 15 seats, every one picked by ELC"
+        "10 seats, every one picked by ELC"
       ],
       "price": 4000,
       "lead_time": "2 months",
