@@ -573,7 +573,7 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 1500
+          "price": 400
         },
         "product": {
           "role": "standard",
@@ -606,7 +606,7 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 1500
+          "price": 400
         },
         "product": {
           "role": "standard",
@@ -636,7 +636,7 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 500
+          "price": 100
         },
         "product": {
           "role": "standard",
@@ -669,7 +669,7 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 700
+          "price": 300
         },
         "product": {
           "role": "standard",
@@ -701,7 +701,7 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 1000
+          "price": 200
         },
         "product": {
           "role": "standard",
@@ -814,6 +814,14 @@
         "lead_time_months": 2,
         "heavy": true
       },
+      "journey_by_tier": {
+        "visibility": {
+          "cadence": "half-yearly",
+          "lead_time_months": 2,
+          "spacing_months": 4,
+          "heavy": true
+        }
+      },
       "name": "1 ELC meetup with your speaker",
       "value": "100+ attendees. Your engineer tells a real story on stage, with pro video and photos. At your office, or at a venue ELC secures.",
       "category": "events-access",
@@ -824,6 +832,7 @@
       ],
       "notes": "[redacted for the public repo — internal pricing rationale, not published]",
       "name_by_tier": {
+        "visibility": "2 ELC meetups with your speaker",
         "pilot-meetup": "Turn your office into a magnet for senior engineering leaders: {elc_community.meetup_attendees} attendees, your speaker on stage",
         "signature-meetup": "Turn your office into a magnet for senior engineering leaders: {elc_community.meetup_attendees} attendees, your speaker on stage"
       },
@@ -845,7 +854,7 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 4000,
+          "price": 8000,
           "foundation": true
         },
         "product": {
@@ -973,7 +982,7 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 300
+          "price": 100
         }
       }
     },
@@ -1129,6 +1138,9 @@
         "heavy": true
       },
       "name": "One more meetup at your venue",
+      "name_by_tier": {
+        "visibility": "A third meetup at your venue"
+      },
       "value": "100+ attendees, with your speaker. Producing one at this scale yourself costs EUR 5 to 8K.",
       "category": "addon-hiring",
       "interests": [
@@ -1295,7 +1307,7 @@
     {
       "id": "community-survey",
       "name": "Custom community survey",
-      "value": "Your questions in front of 2,900+ engineering leaders in CEE. Results plus a short readout.",
+      "value": "Your questions in front of 3,300+ engineering leaders in CEE. Results plus a short readout.",
       "category": "addon-research",
       "interests": [
         "product",
@@ -1324,7 +1336,7 @@
     {
       "id": "research-report",
       "name": "Co-branded research report",
-      "value": "For example State of CEE Product and Engineering Leadership: a survey across 2,900+ leaders plus named interviews, shared across all ELC channels.",
+      "value": "For example State of CEE Product and Engineering Leadership: a survey across 3,300+ leaders plus named interviews, shared across all ELC channels.",
       "category": "addon-research",
       "interests": [
         "product",

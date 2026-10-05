@@ -286,6 +286,9 @@ export function journeyItemsFor(presetId: string, itemIds: string[]) {
 			id: i.id,
 			name: nameFor(i, tier),
 			value: i.value,
-			journey: (i as Item & { journey?: import("./journey").JourneyMeta }).journey,
+			// Per-package override first (Visibility runs two meetups, 2026-10-05).
+			journey:
+				(i as Item & { journey_by_tier?: Record<string, import("./journey").JourneyMeta> }).journey_by_tier?.[tier] ??
+				(i as Item & { journey?: import("./journey").JourneyMeta }).journey,
 		}));
 }
