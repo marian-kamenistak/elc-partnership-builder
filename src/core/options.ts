@@ -108,7 +108,7 @@ export function partnershipOptions() {
 			vs_conference_booths:
 				"No booths, no badge scanners, no paid talks. A hosted meetup puts your engineer on stage in your own office with 80 to 150 senior leaders registered — a peer on a stage, not a vendor at a stand. Registrations are what ELC measures and promises, never a head count.",
 			proof:
-				"Everpure: 3 Director+ leaders hired over 2 years. Ataccama: 4 senior hires including a VP Platform. Apify: partner for 3 years running.",
+				"Ataccama: 3 ELC meetups at its Prague HQ, 106 leaders checked in at the largest. Apify: 2 ELC meetups at its Prague office, the latest with 295 applications. Everpure: an ELC meetup at its Prague office and the first ELC meetup in Kraków. Hire counts are not quoted until each partner confirms them.",
 			scarcity_is_real:
 				"Max 10 company members per year, 8 Talent reach slots, one exclusivity per category. These are enforced caps, not marketing.",
 			usage:
