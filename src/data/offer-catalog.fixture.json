@@ -573,7 +573,7 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 400
+          "price": 700
         },
         "product": {
           "role": "standard",
@@ -606,7 +606,7 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 400
+          "price": 500
         },
         "product": {
           "role": "standard",
@@ -636,7 +636,7 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 100
+          "price": 200
         },
         "product": {
           "role": "standard",
@@ -669,7 +669,7 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 300
+          "price": 500
         },
         "product": {
           "role": "standard",
@@ -701,7 +701,7 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 200
+          "price": 400
         },
         "product": {
           "role": "standard",
@@ -832,7 +832,7 @@
       ],
       "notes": "[redacted for the public repo — internal pricing rationale, not published]",
       "name_by_tier": {
-        "visibility": "2 ELC meetups with your speaker",
+        "visibility": "2 ELC meetups with your speakers",
         "pilot-meetup": "Turn your office into a magnet for senior engineering leaders: {elc_community.meetup_attendees} attendees, your speaker on stage",
         "signature-meetup": "Turn your office into a magnet for senior engineering leaders: {elc_community.meetup_attendees} attendees, your speaker on stage"
       },
@@ -982,7 +982,7 @@
         },
         "visibility": {
           "role": "standard",
-          "price": 100
+          "price": 200
         }
       }
     },
@@ -1073,27 +1073,40 @@
         "spacing_months": 4
       },
       "name": "2 speaker slots at ELC events",
-      "name_by_tier": {
-        "visibility": "2 more speaker slots at ELC events"
-      },
       "value": "Your speakers on stage. We make them shine.",
       "category": "events-access",
       "interests": [
         "product",
-        "hiring",
-        "talent"
+        "hiring"
       ],
       "tiers": {
         "product": {
           "role": "standard",
           "price": 2000
-        },
-        "visibility": {
-          "role": "standard",
-          "price": 2000,
-          "foundation": true
         }
       }
+    },
+    {
+      "id": "speaker-slot-extra",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 2
+      },
+      "name": "1 more speaker at ELC events",
+      "value": "Your speaker on stage. We make them shine.",
+      "category": "events-access",
+      "interests": [
+        "hiring",
+        "talent"
+      ],
+      "tiers": {
+        "visibility": {
+          "role": "standard",
+          "price": 1000,
+          "foundation": true
+        }
+      },
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
       "id": "priority-event-access",
