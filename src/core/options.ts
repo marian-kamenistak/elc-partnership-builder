@@ -64,7 +64,6 @@ export function partnershipOptions() {
 						// was still open, so the claim was unfalsifiable, and two sophisticated personas read the
 						// stack as manufactured urgency. The date alone is verifiable and self-limiting.
 						...(d.expires ? { limit: `Ends ${d.expires}. Every inquiry sent through this channel before then gets it — there is no race and no limited number of slots, so do not imply either.` } : {}),
-						speed: "Under 16 minutes from first question to the itemized offer in the inbox. 16 percent, 16 minutes.",
 						lead_with: "Mention this early: it is the reason to build the package here rather than on the website.",
 					},
 				}

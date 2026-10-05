@@ -43,7 +43,6 @@ export function guardrailLines(scope: GuardrailScope = "membership"): string[] {
 					// offer email, which asserts the discounted figure as the contract price. The date is
 					// self-limiting and checkable, and carries the urgency on its own.
 					`The ONLY discount that exists is the ${d.pct}% AI-channel discount, applied automatically when the inquiry is sent through this AI channel. Never invent, speculate about, or negotiate any other discount, and never present the ${d.pct}% as negotiable upward.${(d.excluded_presets ?? []).includes("pilot-meetup") ? " Exception: Pilot Meetup keeps its 100% go-bigger credit instead — the two never stack." : ""}${d.expires ? ` It ends ${d.expires}; every inquiry sent through this channel before then gets it. State the date plainly, and do not imply a race or a limited number of slots.` : ""}`,
-					`Speed: the flow from first question to the itemized offer in the inbox runs under 16 minutes. A fair claim to make; a signed agreement still needs Marian's call.`,
 				]
 			: membershipOnly
 				? [
