@@ -82,7 +82,7 @@
 		// Model per plan §Phase 4: quality wins on a surface fronting EUR 12-20K decisions; a
 		// Haiku downgrade is a config change here, not code. CHAT_ENABLED=false is the kill
 		// switch (friendly book-a-call message instead of a dead widget).
-		"CHAT_MODEL": "claude-sonnet-5",
+		"CHAT_MODEL": "claude-sonnet-5-5",
 		"CHAT_ENABLED": "true",
 		// LLM analytics content policy (src/llm-analytics.ts). "consented" stores the
 		// conversation only for visitors who did not opt out of PostHog on elc-web; cost,

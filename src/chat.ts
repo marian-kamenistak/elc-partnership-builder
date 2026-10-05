@@ -367,7 +367,7 @@ export async function handleChat(request: Request, env: ChatEnv, ctx?: Execution
 		content: typeof m.content === "string" ? m.content.slice(0, MAX_CHARS) : m.content,
 	}));
 
-	const model = env.CHAT_MODEL ?? "claude-sonnet-5";
+	const model = env.CHAT_MODEL ?? "claude-sonnet-5-5";
 
 	// ── LLM analytics (PostHog AI observability) ──────────────────────────────────────────────
 	// Every id here comes from the widget and is validated, never trusted: this endpoint is
