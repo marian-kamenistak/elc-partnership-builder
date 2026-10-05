@@ -121,8 +121,7 @@
         "ai_channel"
       ],
       "excluded_from_combo": [
-        "job-listing",
-        "webinar"
+        "job-listing"
       ],
       "example_combos": [
         {
@@ -131,7 +130,7 @@
           "items": [
             "newsletter-section",
             "newsletter-dedicated",
-            "linkedin-post"
+            "meetup-presence"
           ]
         },
         {
@@ -139,8 +138,7 @@
           "name": "Hiring push",
           "items": [
             "meetup-hosted",
-            "newsletter-dedicated",
-            "linkedin-post"
+            "newsletter-dedicated"
           ]
         }
       ]
@@ -3076,7 +3074,7 @@
     {
       "id": "meetup-hosted",
       "item": "hosted-meetup",
-      "name": "One ELC meetup, run by ELC end to end, at your office or ours",
+      "name": "One ELC meetup, run by ELC end to end",
       "value": "One large ELC meetup with your speaker on stage, and ELC runs the rest: visibility, registrations, ELC speakers, the newsletter, social media, pro video and photos. At your office, or at a venue ELC secures. We make you shine.",
       "examples": [
         "Show the engineering culture you want to hire into",
@@ -3097,38 +3095,45 @@
       ]
     },
     {
-      "id": "meetup-presence",
-      "name": "Your name on three meetup evenings",
-      "value": "Your logo on the event page and on the partner slide, your name from the stage, one LinkedIn post per evening. Three meetups. What you pay goes into the catering, the venue and the evening itself.",
+      "id": "speaker-development",
+      "name": "Turn your engineer into a placed public speaker",
+      "value": "A working session to shape two or three topics from your engineer's real work, narrative coaching to build the story, 1:1 delivery prep with an ELC speaking coach, one practice placement on an ELC meetup stage, and ELC packages and submits the pitch to two outside conferences on your engineer's behalf. The ELC placement and the coaching are guaranteed. An outside conference is not, since ELC does not control another organiser's selection committee.",
       "examples": [
-        "Stay in the room for a quarter without hosting anything",
-        "Warm up a city before you open an office there",
-        "Keep your name in front of leaders between two hiring rounds"
+        "A senior engineer building a public profile ahead of a promotion case",
+        "A team's first employer branding speaker, before committing to a full year",
+        "An engineer with one strong story who has never pitched a conference"
       ],
       "outcomes": [
-        "120+ registrations per meetup, three evenings running",
-        "40+ meetups since 2019, and you organise none of it"
+        "One ELC meetup placement, 120+ registrations at a typical meetup",
+        "Two outside conference submissions, packaged and sent, placement not guaranteed"
       ],
-      "price": 1500,
-      "lead_time": "1 month",
+      "price": 4900,
+      "lead_time": "2 months",
       "included_in": []
     },
     {
-      "id": "newsletter-section",
-      "name": "A section in the Leaders' Brief",
-      "value": "One section in the monthly ELC newsletter: your headline, up to 120 words, one picture, one link. Written with you, sent under ELC's name.",
+      "id": "conference-main-stage",
+      "item": "prime-conference-stage",
+      "name": "Your talk on the ELC Conference main stage",
+      "value": "We help you pick the right topic, assign you a public speaking coach and make you shine in front of 500+ people, with photos and a public video on YouTube. Your talk is reviewed first for the April main stage and still passes the same bar as every ELC speaker.",
       "examples": [
-        "Announce your conference, hackathon or open day",
-        "Open a senior hiring round",
-        "Launch a product built for engineering teams"
+        "Your CTO tells the story of one hard technical decision",
+        "Put your engineering brand in front of the whole CEE community in one talk",
+        "Turn a platform migration into the talk other leaders quote"
       ],
       "outcomes": [
-        "3,000+ subscribers, engineering leaders in Central Europe",
-        "1,500+ of them open every issue"
+        "500+ engineering leaders expected in April 2027",
+        "Photos and a public YouTube video of your talk"
       ],
-      "price": 2500,
-      "lead_time": "Next monthly issue",
-      "included_in": []
+      "price": 6500,
+      "lead_time": "Talks are selected for April 2027",
+      "included_in": [
+        "hiring",
+        "education",
+        "visibility",
+        "story",
+        "product"
+      ]
     },
     {
       "id": "newsletter-dedicated",
@@ -3149,6 +3154,42 @@
         "total_per_year": 6
       },
       "included_in": []
+    },
+    {
+      "id": "newsletter-section",
+      "name": "A section in the Leaders' Brief",
+      "value": "One section in the monthly ELC newsletter: your headline, up to 120 words, one picture, one link. Written with you, sent under ELC's name.",
+      "examples": [
+        "Announce your conference, hackathon or open day",
+        "Open a senior hiring round",
+        "Launch a product built for engineering teams"
+      ],
+      "outcomes": [
+        "3,000+ subscribers, engineering leaders in Central Europe",
+        "1,500+ of them open every issue"
+      ],
+      "price": 2500,
+      "lead_time": "Next monthly issue",
+      "included_in": []
+    },
+    {
+      "id": "dinner",
+      "item": "decision-maker-dinner",
+      "name": "A dinner with 10 decision-makers in a category you define",
+      "value": "One private dinner. ELC curates the table around your topic: the CTOs and VPs who deal with it this year. Your engineering lead sits down, your sales lead does not.",
+      "examples": [
+        "Ten CTOs choosing an observability stack this year",
+        "VPs of Engineering in the middle of a platform migration",
+        "Founders scaling past 50 engineers"
+      ],
+      "outcomes": [
+        "10 seats, every one picked by ELC"
+      ],
+      "price": 4000,
+      "lead_time": "2 months",
+      "included_in": [
+        "product"
+      ]
     },
     {
       "id": "podcast-episode",
@@ -3174,28 +3215,26 @@
       ]
     },
     {
-      "id": "dinner",
-      "item": "decision-maker-dinner",
-      "name": "A dinner with 10 decision-makers in a category you define",
-      "value": "One private dinner. ELC curates the table around your topic: the CTOs and VPs who deal with it this year. Your engineering lead sits down, your sales lead does not.",
+      "id": "meetup-presence",
+      "name": "Your name on three meetup evenings",
+      "value": "Your logo on the event page and on the partner slide, your name from the stage, one LinkedIn post per evening. Three meetups. What you pay goes into the catering, the venue and the evening itself.",
       "examples": [
-        "Ten CTOs choosing an observability stack this year",
-        "VPs of Engineering in the middle of a platform migration",
-        "Founders scaling past 50 engineers"
+        "Stay in the room for a quarter without hosting anything",
+        "Warm up a city before you open an office there",
+        "Keep your name in front of leaders between two hiring rounds"
       ],
       "outcomes": [
-        "10 seats, every one picked by ELC"
+        "120+ registrations per meetup, three evenings running",
+        "40+ meetups since 2019, and you organise none of it"
       ],
-      "price": 4000,
-      "lead_time": "2 months",
-      "included_in": [
-        "product"
-      ]
+      "price": 1500,
+      "lead_time": "1 month",
+      "included_in": []
     },
     {
       "id": "survey",
       "item": "community-survey",
-      "name": "Your questions, asked across the community",
+      "name": "Survey: Your questions, asked across ELC",
       "value": "A survey with your questions, fielded across ELC members. You get the raw results and a short readout.",
       "examples": [
         "How CEE engineering teams budget for AI tools",
@@ -3215,65 +3254,6 @@
       ]
     },
     {
-      "id": "demo-session",
-      "item": "product-demo-session",
-      "name": "A hands-on session for leaders who opt in",
-      "value": "A working session with your engineer for engineering leaders who sign up for it on purpose. You keep the registrant list. We agree the content first. It is not a pitch.",
-      "examples": [
-        "A 60 minute workshop on your developer platform",
-        "A live migration walkthrough",
-        "An AI tooling session with real code"
-      ],
-      "outcomes": [
-        "The registrant list is yours"
-      ],
-      "price": 1500,
-      "lead_time": "2 months",
-      "included_in": [
-        "product"
-      ]
-    },
-    {
-      "id": "webinar",
-      "name": "A webinar for leaders who sign up for it",
-      "value": "One online session with your engineer, 45 to 60 minutes, teaching something real. ELC builds the Luma page, sends one dedicated newsletter about it, hosts the call, runs a feedback form after it and hands you the recording. We agree the content first. It is not a pitch.",
-      "examples": [
-        "Teach the AI workflow your team runs in production",
-        "Walk leaders through a migration you finished",
-        "Show your platform through the engineer who built it"
-      ],
-      "outcomes": [
-        "2,900+ subscribers get one email about your session and nothing else",
-        "The name and company of every registrant, plus the email of each one who ticks the box to share it with you",
-        "The recording and the feedback form results"
-      ],
-      "price": 6400,
-      "lead_time": "1 month",
-      "included_in": []
-    },
-    {
-      "id": "linkedin-post",
-      "item": "linkedin-posts",
-      "name": "A post from the ELC company profile",
-      "value": "One LinkedIn post from the ELC company page, written with you, shared from Marian's profile and amplified by the community. Real likes and comments from CTOs and VPs, no paid reach.",
-      "examples": [
-        "Your conference announcement",
-        "A new office or a new CEE team",
-        "A talk recording worth resharing"
-      ],
-      "outcomes": [
-        "28,000+ followers across Marian's profile and the ELC page",
-        "A typical post gets 2,100 impressions"
-      ],
-      "price": 500,
-      "lead_time": "1 week",
-      "included_in": [
-        "hiring",
-        "visibility",
-        "product"
-      ]
-    },
-    {
       "id": "job-listing",
       "item": "job-standard",
       "name": "A job board listing",
@@ -3289,23 +3269,6 @@
       "premium_price": 900,
       "lead_time": "Live in 2 days",
       "cta_url": "https://job.engineeringleaders.io",
-      "included_in": []
-    },
-    {
-      "id": "speaker-development",
-      "name": "Turn your engineer into a placed public speaker",
-      "value": "A working session to shape two or three topics from your engineer's real work, narrative coaching to build the story, 1:1 delivery prep with an ELC speaking coach, one practice placement on an ELC meetup stage, and ELC packages and submits the pitch to two outside conferences on your engineer's behalf. The ELC placement and the coaching are guaranteed. An outside conference is not, since ELC does not control another organiser's selection committee.",
-      "examples": [
-        "A senior engineer building a public profile ahead of a promotion case",
-        "A team's first employer branding speaker, before committing to a full year",
-        "An engineer with one strong story who has never pitched a conference"
-      ],
-      "outcomes": [
-        "One ELC meetup placement, 120+ registrations at a typical meetup",
-        "Two outside conference submissions, packaged and sent, placement not guaranteed"
-      ],
-      "price": 4900,
-      "lead_time": "2 months",
       "included_in": []
     }
   ]

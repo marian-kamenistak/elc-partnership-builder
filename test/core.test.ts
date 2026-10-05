@@ -357,10 +357,10 @@ describe("one-offs", () => {
 		expect(two.combo).toEqual({ qualifying_items: 2, pct: 10, saved: 750 });
 		expect(two.total).toBe(6750);
 
-		const three = quoteOneoffs(["newsletter-section", "newsletter-dedicated", "linkedin-post"]);
-		expect(three.list_total).toBe(8000);
+		const three = quoteOneoffs(["newsletter-section", "newsletter-dedicated", "meetup-presence"]);
+		expect(three.list_total).toBe(9000);
 		expect(three.combo?.pct).toBe(15);
-		expect(three.total).toBe(6800);
+		expect(three.total).toBe(7650);
 
 		// A job listing rides at list price and does not lift the basket into a discount tier.
 		const withJob = quoteOneoffs(["newsletter-section", "job-listing"]);
