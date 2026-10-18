@@ -415,7 +415,7 @@
       "row": "solid",
       "name": "Talent reach",
       "question_band": "Hire senior leaders without paying recruiters",
-      "price": 12000,
+      "price": 14000,
       "interest": "hiring",
       "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
@@ -881,6 +881,25 @@
           "role": "standard",
           "price": 1500,
           "foundation": true
+        }
+      }
+    },
+    {
+      "id": "hiring-dedicated-newsletter",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 1
+      },
+      "name": "1 dedicated newsletter for your open roles",
+      "value": "One standalone email to every ELC subscriber, only about your senior roles. ELC edits it and sends it. Max 6 a year across all companies.",
+      "category": "hiring-funnel",
+      "interests": [
+        "hiring"
+      ],
+      "tiers": {
+        "hiring": {
+          "role": "standard",
+          "price": 2000
         }
       }
     },
@@ -3158,6 +3177,7 @@
     },
     {
       "id": "newsletter-dedicated",
+      "item": "hiring-dedicated-newsletter",
       "name": "A dedicated newsletter, only your message",
       "value": "One standalone email to every subscriber. Your subject line, your story, your link, nothing else in it. ELC edits it, ELC sends it.",
       "examples": [
@@ -3174,7 +3194,9 @@
       "cap": {
         "total_per_year": 6
       },
-      "included_in": []
+      "included_in": [
+        "hiring"
+      ]
     },
     {
       "id": "newsletter-section",
