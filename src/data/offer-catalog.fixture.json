@@ -63,9 +63,15 @@
       "month_one": {
         "food_drinks": 1500,
         "organisation": 2500,
-        "elc_venue": 2000
+        "elc_venue": 2000,
+        "charged": {
+          "organisation": 0,
+          "food_drinks": "at_cost",
+          "elc_venue": "if_rented"
+        }
       },
-      "credited": true,
+      "credited": false,
+      "invoice_after_yes": true,
       "walk_away": true
     },
     "conference": {

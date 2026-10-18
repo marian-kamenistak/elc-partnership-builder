@@ -80,8 +80,15 @@ type Catalog = {
 		payment_terms?: {
 			packages: string[];
 			meetup_start: string[];
-			month_one: { food_drinks: number; organisation: number; elc_venue: number };
+			month_one: {
+				food_drinks: number;
+				organisation: number;
+				elc_venue: number;
+				/** What the company pays for the first meetup (Marian 2026-10-18): fee 0, catering at cost, venue only if rented. */
+				charged: { organisation: number; food_drinks: "at_cost" | "included" | number; elc_venue: "if_rented" | "included" | number };
+			};
 			credited: boolean;
+			invoice_after_yes: boolean;
 			walk_away: boolean;
 		};
 	};

@@ -72,8 +72,12 @@ export function guardrailLines(scope: GuardrailScope = "membership"): string[] {
 			? (() => {
 					const t = meta.payment_terms;
 					const m = t.month_one;
+					// 2026-10-18 (Marian): the first meetup is free of charge. ELC covers the organisation
+					// fee, the company pays food and drinks at cost and a venue only if ELC rents one.
+					// Nothing is prepaid, nothing is credited; the full year is one invoice after the meetup.
+					const fee = m.charged.organisation === 0 ? `ELC covers the EUR ${m.organisation} organisation fee` : `the organisation fee is EUR ${m.charged.organisation}`;
 					return [
-						`Payment for the yearly packages (${t.packages.join(", ")}): nothing is invoiced for the year until the first meetup or session has happened. ${t.meetup_start.join(", ")} start with a meetup and pay only its costs in month one: EUR ${m.food_drinks} food and drinks plus EUR ${m.organisation} full organisation with visibility, 120+ registrations, speakers, newsletter, social media, pro videos and photos, plus EUR ${m.elc_venue} if ELC secures the venue, as ELC gets strong discounts at several coworking spaces. The others start with their first session (story: first ELC stage or video) and pay nothing in month one. ${t.credited ? `Month-one costs count toward the package price; only the ELC venue is on top. ` : ""}After the first event, if the company is convinced, ELC invoices the rest of the year in one invoice.${t.walk_away ? " If not convinced, the company walks away and owes nothing more." : ""}`,
+						`Payment for the yearly packages (${t.packages.join(", ")}): nothing is invoiced for the year until the first meetup or session has happened. ${t.meetup_start.join(", ")} start with a meetup that ELC runs end to end, free of charge: ${fee}; the company pays only food and drinks at cost, about EUR ${m.food_drinks}, and EUR ${m.elc_venue} for a venue only if ELC has to rent one. The night brings 100+ registrations, speakers, newsletter, social media, pro videos and photos. The others start with their first session (story: first ELC stage or video) and pay nothing in month one. ${t.credited ? "Month-one costs count toward the package price; only the ELC venue is on top. " : "Nothing is prepaid, so nothing is credited. "}After the first event, if the company is convinced, ELC invoices the full year in one invoice.${t.walk_away ? " If not convinced, the company pays only the catering of its meetup and walks away, nothing else." : ""} The standalone Pilot Meetup is a different product: prepaid and credited in full against a membership within 90 days.`,
 					];
 				})()
 			: []),

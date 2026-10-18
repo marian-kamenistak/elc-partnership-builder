@@ -250,6 +250,15 @@ describe("no stacking: pilot-meetup keeps credit, not the pct", () => {
 			expect(pilot!.summary).toContain("credit");
 		}
 	});
+	it("guardrails carry the free first meetup (Marian 2026-10-18) and no month-one credit", () => {
+		const text = guardrailLines().join(" ");
+		expect(text).toContain("start with a meetup that ELC runs end to end, free of charge");
+		expect(text).toContain("ELC covers the EUR 2500 organisation fee");
+		expect(text).toContain("Nothing is prepaid, so nothing is credited.");
+		expect(text).toContain("pays only the catering of its meetup and walks away");
+		expect(text).not.toContain("count toward the package price");
+	});
+
 	it("guardrails keep the Pilot Meetup credit", () => {
 		expect(guardrailLines().join(" ")).toContain("Pilot Meetup keeps its 100% credit");
 	});
