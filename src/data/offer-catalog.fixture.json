@@ -993,7 +993,7 @@
         "lead_time_months": 1
       },
       "name": "Senior mentors for 3 of your leaders",
-      "value": "3 months each, 6 sessions of 60 minutes, matched by Marian. Any session rated below 7 of 10 is free. Retail value EUR 5,925.",
+      "value": "3 months each, 6 sessions of 60 minutes, matched by Marian. Any session rated below 8 of 10 is free. Retail value EUR 5,925.",
       "category": "leadership-development",
       "interests": [
         "talent"
@@ -2211,7 +2211,7 @@
         "anchor": "2027-04"
       },
       "name": "3 priority conference seats",
-      "value": "Three seats at the annual ELC Conference, reserved before public release. 350+ leaders, speakers from Netflix and Stripe.",
+      "value": "Three seats at the annual ELC Conference, reserved before public release. 400+ leaders, speakers from Netflix and Stripe.",
       "category": "conference-access",
       "interests": [
         "talent",
@@ -2554,7 +2554,7 @@
     {
       "id": "starter-mentoring-marian",
       "name": "Two mentoring sessions a year with Marian",
-      "value": "Two 60-minute 1:1 sessions with Marian for a leader you nominate. Any session rated below 7 of 10 is free.",
+      "value": "Two 60-minute 1:1 sessions with Marian for a leader you nominate. Any session rated below 8 of 10 is free.",
       "category": "addon-development",
       "interests": [
         "talent"
