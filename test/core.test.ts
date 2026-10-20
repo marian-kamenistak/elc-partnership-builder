@@ -333,6 +333,9 @@ describe("one-offs", () => {
 			expect(q.total).toBe(3300 + 3000);
 			expect(q.items.find((i) => i.id === "speaker-development")?.counts_toward_combo).toBe(false);
 		});
+		it("an empty selection is the full programme, never Stage alone (an agent's empty default)", () => {
+			expect(quoteOneoffs(["speaker-development"], { speaker_rungs: [] }).total).toBe(3300);
+		});
 		it("unknown rung ids are reported, not priced", () => {
 			const q = quoteOneoffs(["speaker-development"], { speaker_rungs: ["stage", "banana"] });
 			expect(q.total).toBe(1000);

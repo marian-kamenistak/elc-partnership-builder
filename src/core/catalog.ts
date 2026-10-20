@@ -268,7 +268,9 @@ export type OneOffQuoteOptions = {
 /** Price one laddered one-off from a rung selection. Exported for the chat and HTTP paths. */
 export function priceRungs(o: OneOff, selection: string[] | undefined): { price: number; rungs: string[]; unknown: string[] } {
 	const ladder = o.rungs ?? [];
-	if (!ladder.length || selection === undefined) return { price: o.bundle_price ?? o.price, rungs: ladder.map((r) => r.id), unknown: [] };
+	// An absent OR empty selection is the full programme: an agent that passes an empty default must
+	// never get Stage alone quoted back (review 2026-10-20).
+	if (!ladder.length || !selection?.length) return { price: o.bundle_price ?? o.price, rungs: ladder.map((r) => r.id), unknown: [] };
 	const known = new Set(ladder.map((r) => r.id));
 	const unknown = [...new Set(selection.filter((id) => !known.has(id)))];
 	const picked = new Set(selection.filter((id) => known.has(id)));
