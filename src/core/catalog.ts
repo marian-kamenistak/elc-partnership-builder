@@ -55,6 +55,12 @@ export type OneOff = {
 	price: number;
 	premium_price?: number;
 	price_max?: number;
+	/** Itemised ladder (speaker programme, 2026-10-20): rungs[0] is the entry price, price 0 = included. */
+	rungs?: { id: string; name: string; value: string; price: number }[];
+	/** The whole ladder at once, below the rung sum. */
+	bundle_price?: number;
+	/** Dedicated subpage on the site (/reach/<slug>/). */
+	page?: string;
 	lead_time: string;
 	cap?: { total_per_year: number };
 	cta_url?: string;
@@ -66,6 +72,8 @@ export type OneOffMeta = {
 	no_stack_with?: string[];
 	excluded_from_combo?: string[];
 	example_combos?: { id: string; name: string; items: string[] }[];
+	/** Standalone meetup basis (2026-10-20): organisation when the company hosts and caters, ELC venue surcharge, catering at cost. */
+	meetup?: { organisation: number; elc_venue: number; food_drinks: "at_cost" | "included" | number };
 };
 
 type Catalog = {
@@ -101,13 +109,13 @@ type Catalog = {
 const catalog = raw as unknown as Catalog;
 
 /** Same allowlist as elc-web membership.astro PRESET_IDS. Vendor Seat absent on purpose. */
-export const PRESET_IDS = ["free", "starter", "leadership-pilot", "pilot-meetup", "signature-meetup", "launch-audit", "community-launch", "launch-run", "hiring", "education", "vital", "visibility", "story", "product"];
+export const PRESET_IDS = ["free", "starter", "leadership-pilot", "pilot-meetup", "launch-audit", "community-launch", "launch-run", "hiring", "education", "vital", "visibility", "story", "product"];
 
 /**
  * Presets that keep the 100% credit instead of the AI-channel percentage (catalog
  * meta.discounts.ai_channel.excluded_presets), read from the catalog so a new credit-mechanic rung
- * cannot ship with the discount framing. Pilot Meetup, Signature Meetup and the Community Launch
- * ladder as of 2026-09-17.
+ * cannot ship with the discount framing. Pilot Meetup and the Community Launch ladder as of
+ * 2026-10-20 (Signature Meetup retired that day).
  */
 export const creditPresetIds = (): string[] => catalog.meta.discounts?.ai_channel?.excluded_presets ?? [];
 export const isCreditPreset = (id: string): boolean => creditPresetIds().includes(id);
@@ -230,8 +238,10 @@ export const ONEOFF_IDS = oneoffs.map((o) => o.id);
 export const oneoffById = (id: string): OneOff | undefined => oneoffs.find((o) => o.id === id);
 
 export type OneOffQuote = {
-	items: { id: string; name: string; price: number; lead_time: string; counts_toward_combo: boolean }[];
+	items: { id: string; name: string; price: number; lead_time: string; counts_toward_combo: boolean; rungs?: string[] }[];
 	unknown_ids: string[];
+	/** Rung ids that are not on the ladder (speaker programme); reported, never priced. */
+	unknown_rungs: string[];
 	/** Ids sent more than once. Each one-off is one placement sold once, so repeats are collapsed
 	 *  — reported rather than dropped in silence, so a buyer never signs a quote for fewer
 	 *  placements than they ordered. */
@@ -248,7 +258,29 @@ export type OneOffQuote = {
  * side is authoritative: the model never does this arithmetic. Never stacks with the AI-channel
  * percentage — a one-off basket is not a package, so discountFor is simply never called on it.
  */
-export function quoteOneoffs(ids: string[]): OneOffQuote {
+export type OneOffQuoteOptions = {
+	/** Speaker programme rungs to price (2026-10-20). Absent = the full programme at bundle_price.
+	 *  Stage (rungs[0]) is the entry rung and is always included; picking every paid rung is the
+	 *  bundle again, never the sum. */
+	speaker_rungs?: string[];
+};
+
+/** Price one laddered one-off from a rung selection. Exported for the chat and HTTP paths. */
+export function priceRungs(o: OneOff, selection: string[] | undefined): { price: number; rungs: string[]; unknown: string[] } {
+	const ladder = o.rungs ?? [];
+	if (!ladder.length || selection === undefined) return { price: o.bundle_price ?? o.price, rungs: ladder.map((r) => r.id), unknown: [] };
+	const known = new Set(ladder.map((r) => r.id));
+	const unknown = [...new Set(selection.filter((id) => !known.has(id)))];
+	const picked = new Set(selection.filter((id) => known.has(id)));
+	picked.add(ladder[0].id); // the entry rung is never optional
+	for (const r of ladder) if (r.price === 0) picked.add(r.id); // included lines always come along
+	const paid = ladder.filter((r) => r.price > 0);
+	const allPaid = paid.every((r) => picked.has(r.id));
+	const price = allPaid && o.bundle_price !== undefined ? o.bundle_price : ladder.filter((r) => picked.has(r.id)).reduce((s, r) => s + r.price, 0);
+	return { price, rungs: ladder.filter((r) => picked.has(r.id)).map((r) => r.id), unknown };
+}
+
+export function quoteOneoffs(ids: string[], opts: OneOffQuoteOptions = {}): OneOffQuote {
 	const m = oneoffMeta;
 	const excluded = new Set(m?.excluded_from_combo ?? []);
 	const wanted = [...new Set(ids)];
@@ -258,10 +290,17 @@ export function quoteOneoffs(ids: string[]): OneOffQuote {
 	const duplicated = [...new Set(ids.filter((id, i) => ids.indexOf(id) !== i))];
 	const items: OneOffQuote["items"] = [];
 	const unknown: string[] = [];
+	let unknownRungs: string[] = [];
 	for (const id of wanted) {
 		const o = oneoffById(id);
 		if (!o) {
 			unknown.push(id);
+			continue;
+		}
+		if (o.rungs) {
+			const r = priceRungs(o, opts.speaker_rungs);
+			unknownRungs = [...unknownRungs, ...r.unknown];
+			items.push({ id: o.id, name: o.name, price: r.price, lead_time: o.lead_time, counts_toward_combo: !excluded.has(o.id), rungs: r.rungs });
 			continue;
 		}
 		items.push({ id: o.id, name: o.name, price: o.price, lead_time: o.lead_time, counts_toward_combo: !excluded.has(o.id) });
@@ -276,6 +315,7 @@ export function quoteOneoffs(ids: string[]): OneOffQuote {
 	return {
 		items,
 		unknown_ids: unknown,
+		unknown_rungs: unknownRungs,
 		duplicate_ids: duplicated,
 		list_total: listTotal,
 		combo: tier ? { qualifying_items: qualifying.length, pct: tier.pct, saved } : null,

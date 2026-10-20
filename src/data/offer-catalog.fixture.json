@@ -103,7 +103,6 @@
         "applies_to": "basket_total",
         "excluded_presets": [
           "pilot-meetup",
-          "signature-meetup",
           "launch-audit",
           "community-launch",
           "launch-run"
@@ -126,8 +125,14 @@
       "no_stack_with": [
         "ai_channel"
       ],
+      "meetup": {
+        "organisation": 3000,
+        "elc_venue": 2000,
+        "food_drinks": "at_cost"
+      },
       "excluded_from_combo": [
-        "job-listing"
+        "job-listing",
+        "speaker-development"
       ],
       "example_combos": [
         {
@@ -198,17 +203,11 @@
         "hiring": [
           {
             "preset": "pilot-meetup"
-          },
-          {
-            "preset": "signature-meetup"
           }
         ],
         "product": [
           {
             "preset": "pilot-meetup"
-          },
-          {
-            "preset": "signature-meetup"
           }
         ],
         "newsite": [
@@ -359,24 +358,10 @@
       "row": "start",
       "name": "Pilot Meetup",
       "question_band": "Low: try one real activation",
-      "price": 4000,
+      "price": 3000,
       "items": [
         "hosted-meetup"
       ],
-      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
-    },
-    {
-      "id": "signature-meetup",
-      "journey": {
-        "cadence": "one-off",
-        "lead_time_months": 2,
-        "heavy": true
-      },
-      "row": "start",
-      "name": "Signature Meetup",
-      "question_band": "Low: one night, run by ELC end to end",
-      "price": 8900,
-      "interest": "hiring",
       "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
@@ -839,18 +824,12 @@
       "notes": "[redacted for the public repo — internal pricing rationale, not published]",
       "name_by_tier": {
         "visibility": "2 ELC meetups with your speakers",
-        "pilot-meetup": "Turn your office into a magnet for senior engineering leaders: {elc_community.meetup_attendees} attendees, your speaker on stage",
-        "signature-meetup": "Turn your office into a magnet for senior engineering leaders: {elc_community.meetup_attendees} attendees, your speaker on stage"
+        "pilot-meetup": "Turn your office into a magnet for senior engineering leaders: {elc_community.meetup_attendees} attendees, your speaker on stage. You host and cater, ELC runs the night"
       },
       "tiers": {
         "pilot-meetup": {
           "role": "standard",
-          "price": 4000,
-          "foundation": true
-        },
-        "signature-meetup": {
-          "role": "standard",
-          "price": 4000,
+          "price": 3000,
           "foundation": true
         },
         "hiring": {
@@ -2768,157 +2747,6 @@
       }
     },
     {
-      "id": "signature-topic-vote",
-      "journey": {
-        "cadence": "one-off",
-        "lead_time_months": 1
-      },
-      "name": "The topic picked with the community, not guessed",
-      "value": "The theme comes out of the community vote and the ELC topic guide, so the room signs up for the subject, not only for your address.",
-      "category": "events-access",
-      "interests": [
-        "hiring",
-        "product",
-        "newsite"
-      ],
-      "tiers": {
-        "signature-meetup": {
-          "role": "standard",
-          "price": 500,
-          "foundation": true
-        }
-      }
-    },
-    {
-      "id": "signature-speakers",
-      "journey": {
-        "cadence": "one-off",
-        "lead_time_months": 1
-      },
-      "name": "Up to 2 curated ELC speakers next to yours, all of them coached",
-      "value": "ELC brings up to two speakers from its own pipeline to stand next to your engineer. Every speaker, yours included, passes the ELC talk filter and gets the pre-talk coaching every ELC speaker gets.",
-      "category": "events-access",
-      "interests": [
-        "hiring",
-        "product",
-        "newsite"
-      ],
-      "tiers": {
-        "signature-meetup": {
-          "role": "standard",
-          "price": 1500,
-          "foundation": true
-        }
-      }
-    },
-    {
-      "id": "signature-audience-launch",
-      "journey": {
-        "cadence": "one-off",
-        "lead_time_months": 1
-      },
-      "name": "The full ELC audience launch, members first",
-      "value": "The launch ELC runs for its own meetups: members first, public four days later, the invites, the reminders, the People to Meet email. You promote to your own network; the ELC audience is ours to bring.",
-      "category": "events-access",
-      "interests": [
-        "hiring",
-        "product",
-        "newsite"
-      ],
-      "tiers": {
-        "signature-meetup": {
-          "role": "standard",
-          "price": 1000,
-          "foundation": true
-        }
-      }
-    },
-    {
-      "id": "signature-room-design",
-      "journey": {
-        "cadence": "one-off",
-        "lead_time_months": 2
-      },
-      "name": "The three-act night, run by an ELC host",
-      "value": "The week before, the three-hour night and the artifact after, designed as three acts. ELC Mate matching and human bingo get strangers from different companies talking in the first ten minutes. An ELC host runs the stage, so your people talk to guests instead of running a clock.",
-      "category": "events-access",
-      "interests": [
-        "hiring",
-        "product",
-        "newsite"
-      ],
-      "tiers": {
-        "signature-meetup": {
-          "role": "standard",
-          "price": 900,
-          "foundation": true
-        }
-      }
-    },
-    {
-      "id": "signature-recap",
-      "journey": {
-        "cadence": "one-off",
-        "lead_time_months": 2
-      },
-      "name": "A recap page, the talk on YouTube, banners for your speakers",
-      "value": "A recap page on engineeringleaders.io with real photos, your speaker's talk cut and published on the ELC YouTube channel, and LinkedIn banners for every speaker to post.",
-      "category": "visibility",
-      "interests": [
-        "hiring",
-        "product",
-        "newsite"
-      ],
-      "tiers": {
-        "signature-meetup": {
-          "role": "standard",
-          "price": 600,
-          "foundation": true
-        }
-      }
-    },
-    {
-      "id": "signature-report",
-      "journey": {
-        "cadence": "one-off",
-        "lead_time_months": 2
-      },
-      "name": "The D+3 report and the hand-over checklist",
-      "value": "Three days after the night: registrations, check-ins, titles and companies of who came. Titles and companies only, no contact export. Plus the checklist ELC ran the night from, so your team sees how it was done.",
-      "category": "community-access",
-      "interests": [
-        "hiring",
-        "product",
-        "newsite"
-      ],
-      "tiers": {
-        "signature-meetup": {
-          "role": "standard",
-          "price": 400
-        }
-      }
-    },
-    {
-      "id": "signature-city-exclusivity",
-      "name": "Lock your category in your city for 6 months",
-      "value": "No company from your category gets a Signature Meetup in your city for six months after yours. One per category, per city.",
-      "category": "addon-exclusivity",
-      "interests": [
-        "hiring",
-        "product"
-      ],
-      "cap": {
-        "per_category_per_city_per_half_year": 1
-      },
-      "tiers": {
-        "signature-meetup": {
-          "role": "exclusive",
-          "price": 3000
-        }
-      },
-      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
-    },
-    {
       "id": "launch-audit",
       "journey": {
         "cadence": "one-off",
@@ -2956,8 +2784,8 @@
         "lead_time_months": 2,
         "heavy": true
       },
-      "name": "Three Signature-grade meetups under your name in about four months",
-      "value": "Three meetups run the Signature Meetup way, under your company's name, one every four to six weeks. Topic, speakers, launch, host, recap and report, every time.",
+      "name": "Three ELC-grade meetups under your name in about four months",
+      "value": "Three meetups run the way ELC runs its own, under your company's name, one every four to six weeks. Topic, speakers, launch, host, recap and report, every time.",
       "category": "events-access",
       "interests": [
         "newsite",
@@ -3121,7 +2949,7 @@
       "id": "meetup-hosted",
       "item": "hosted-meetup",
       "name": "One ELC meetup, run by ELC end to end",
-      "value": "One large ELC meetup with your speaker on stage, and ELC runs the rest: visibility, registrations, ELC speakers, the newsletter, social media, pro video and photos. At your office, or at a venue ELC secures. We make you shine.",
+      "value": "Your speaker on stage and a full room of senior engineering leaders. ELC runs the rest: the launch, registrations, ELC speakers, the newsletter, social media, pro video and photos. You host and cater at your office, or ELC secures a coworking venue.",
       "examples": [
         "Show the engineering culture you want to hire into",
         "Put your platform in front of the people who approve budgets",
@@ -3131,8 +2959,9 @@
         "100+ attendees at a typical meetup",
         "40+ meetups since 2019, the format is proven"
       ],
-      "price": 4000,
-      "price_max": 6000,
+      "price": 3000,
+      "price_max": 5000,
+      "page": "/reach/meetup/",
       "lead_time": "2 months",
       "included_in": [
         "hiring",
@@ -3142,18 +2971,64 @@
     },
     {
       "id": "speaker-development",
-      "name": "Turn your engineer into a placed public speaker",
-      "value": "A working session to shape two or three topics from your engineer's real work, narrative coaching to build the story, 1:1 delivery prep with an ELC speaking coach, one practice placement on an ELC meetup stage, and ELC packages and submits the pitch to two outside conferences on your engineer's behalf. The ELC placement and the coaching are guaranteed. An outside conference is not, since ELC does not control another organiser's selection committee.",
+      "name": "Your engineer on the ELC stage, coached to shine",
+      "value": "One speaker, one real story from your work. Start with a slot at an ELC meetup, 120+ registrations at a typical one, and add the steps your speaker needs: topic and storyline sessions, a dry run with the ELC public speaking coach, a podcast or blog feature, and three conference abstracts pitched beyond ELC. The LinkedIn posts, photos, video and the ELC Speakers Club come with the slot.",
       "examples": [
-        "A senior engineer building a public profile ahead of a promotion case",
-        "A team's first employer branding speaker, before committing to a full year",
-        "An engineer with one strong story who has never pitched a conference"
+        "A new engineering manager with one strong story and stage fright",
+        "Your first employer branding speaker, before a full year of visibility",
+        "A senior engineer building a public profile ahead of a promotion case"
       ],
       "outcomes": [
-        "One ELC meetup placement, 120+ registrations at a typical meetup",
-        "Two outside conference submissions, packaged and sent, placement not guaranteed"
+        "One ELC meetup slot, 120+ registrations at a typical meetup",
+        "Photos, the recorded talk and the LinkedIn announcement delivered to your company"
       ],
-      "price": 4900,
+      "price": 1000,
+      "bundle_price": 3300,
+      "page": "/reach/speaker-program/",
+      "rungs": [
+        {
+          "id": "stage",
+          "name": "Stage",
+          "value": "A slot at one ELC meetup on an agreed date, 120+ registrations at a typical one. One session with ELC to tune the topic and the arc of the talk.",
+          "price": 1000
+        },
+        {
+          "id": "social",
+          "name": "LinkedIn, photos and video",
+          "value": "The announcement with your speaker's face and your logo, pro photos and the recorded talk, delivered to you for your own channels.",
+          "price": 0
+        },
+        {
+          "id": "club",
+          "name": "ELC Speakers Club",
+          "value": "Membership after the talk: first call for the conference main stage, the speakers' Slack and the yearly boat on the Vltava.",
+          "price": 0
+        },
+        {
+          "id": "story",
+          "name": "Story",
+          "value": "Two working sessions: pick the topic the room wants, build the storyline, review the slides.",
+          "price": 300
+        },
+        {
+          "id": "coach",
+          "name": "Public speaking coach",
+          "value": "A one-to-one and a dry run with the ELC public speaking coach. The bar every ELC speaker passes before the night.",
+          "price": 650
+        },
+        {
+          "id": "amplify",
+          "name": "Amplify",
+          "value": "A blog post on engineeringleaders.io written from the talk, or a guest segment in an ELC podcast episode.",
+          "price": 1200
+        },
+        {
+          "id": "beyond",
+          "name": "Beyond ELC",
+          "value": "Three CFP abstracts written with your speaker, one of them for the ELC Conference, pitched to two or three outside conferences. Placement outside ELC is not guaranteed.",
+          "price": 500
+        }
+      ],
       "lead_time": "2 months",
       "included_in": []
     },

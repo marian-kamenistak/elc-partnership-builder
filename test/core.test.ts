@@ -313,7 +313,31 @@ describe("one-offs", () => {
 		const meetup = oneoffs.find((o) => o.item === "hosted-meetup");
 		const pilot = presets.find((p) => p.id === "pilot-meetup");
 		expect(meetup?.price).toBe(pilot?.price);
-		expect(pilot?.price).toBe(4000);
+		expect(pilot?.price).toBe(3000);
+	});
+
+	// Speaker programme ladder (Marian 2026-10-20): one item whatever rungs are picked, Stage is the
+	// entry rung and always included, the whole ladder at once is the bundle price.
+	describe("speaker programme rungs", () => {
+		it("no selection = the full programme at the bundle price", () => {
+			expect(quoteOneoffs(["speaker-development"]).total).toBe(3300);
+		});
+		it("story only still includes stage", () => {
+			expect(quoteOneoffs(["speaker-development"], { speaker_rungs: ["story"] }).total).toBe(1300);
+		});
+		it("all paid rungs selected = bundle, never the sum", () => {
+			expect(quoteOneoffs(["speaker-development"], { speaker_rungs: ["stage", "story", "coach", "amplify", "beyond"] }).total).toBe(3300);
+		});
+		it("programme + meetup: no combo discount on the programme, meetup alone does not qualify", () => {
+			const q = quoteOneoffs(["speaker-development", "meetup-hosted"]);
+			expect(q.total).toBe(3300 + 3000);
+			expect(q.items.find((i) => i.id === "speaker-development")?.counts_toward_combo).toBe(false);
+		});
+		it("unknown rung ids are reported, not priced", () => {
+			const q = quoteOneoffs(["speaker-development"], { speaker_rungs: ["stage", "banana"] });
+			expect(q.total).toBe(1000);
+			expect(q.unknown_rungs).toEqual(["banana"]);
+		});
 	});
 
 	it("combo discount: 1 item none, 2 items 10%, 3+ items 15%, job listing never counts", () => {

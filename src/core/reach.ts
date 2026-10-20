@@ -31,7 +31,15 @@ export function reachOptions() {
 			examples: o.examples,
 			outcomes: o.outcomes,
 			price: o.price,
-			price_display: o.premium_price ? `${eur(o.price)}, Premium ${eur(o.premium_price)}` : o.price_max ? `${eur(o.price)} at your office, ${eur(o.price_max)} at a venue ELC secures` : eur(o.price),
+			price_display: o.bundle_price
+				? `from ${eur(o.price)}, full programme ${eur(o.bundle_price)}`
+				: o.premium_price
+					? `${eur(o.price)}, Premium ${eur(o.premium_price)}`
+					: o.price_max
+						? `${eur(o.price)} when you host and cater at your office, ${eur(o.price_max)} with a coworking venue ELC secures; catering by ELC at cost`
+						: eur(o.price),
+			...(o.rungs ? { rungs: o.rungs.map((r) => ({ id: r.id, name: r.name, what: r.value, price: r.price, price_display: r.price === 0 ? "included" : eur(r.price) })), how_to_price: "quote_reach_combo with speaker_rungs for a subset (stage always included), or without it for the full programme at the bundle price" } : {}),
+			...(o.page ? { page: `${SITE}${o.page}` } : {}),
 			lead_time: o.lead_time,
 			...(o.cap ? { cap: `${o.cap.total_per_year} a year across all companies` } : {}),
 			...(o.included_in.length ? { included_in_packages: o.included_in.map(packageName) } : {}),

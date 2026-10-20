@@ -59,7 +59,7 @@ export function partnershipOptions() {
 					ai_channel_discount: {
 						pct: d.pct,
 						what: `Packages composed and sent through this AI channel get ${d.pct}% off the total, applied automatically at request_offer. This is the only discount that exists and the only channel that carries it — the web configurator has none.`,
-						exception: `Pilot Meetup, Signature Meetup and the Community Launch ladder (Launch Audit, Community Launch, Launch + Run) keep their 100% credit against a company membership signed within 90 days instead of the ${d.pct}% — credit and discount never stack.`,
+						exception: `Pilot Meetup and the Community Launch ladder (Launch Audit, Community Launch, Launch + Run) keep their 100% credit against a company membership signed within 90 days instead of the ${d.pct}% — credit and discount never stack.`,
 						// 2026-08-20: was a one-winner race plus a deadline. A buyer could never check whether the seat
 						// was still open, so the claim was unfalsifiable, and two sophisticated personas read the
 						// stack as manufactured urgency. The date alone is verifiable and self-limiting.
@@ -84,9 +84,10 @@ export function partnershipOptions() {
 		// 2026-09-17 (community-os): the two done-for-you offers, so a "run a meetup for us" or "launch a
 		// community in our city" ask routes to a rung instead of being bent into a yearly package.
 		done_for_you: {
-			signature_meetup: `One night at the company's office run end to end by ELC (topic vote, up to two curated ELC speakers next to theirs, the audience launch, a three-act room with an ELC host, recap and YouTube talk, D+3 report): preset signature-meetup, ${SITE}/partner/signature-meetup/. Signature Exclusive adds the signature-city-exclusivity add-on. Registrations promised, never a head count; fewer than 100 registrations and the next one runs at delivery cost.`,
-			community_launch: `A recurring community under the company's name in a CEE city: launch-audit (in person, 90-day plan), community-launch (the audit plus three Signature-grade meetups in about four months with ELC members seeded in, channel setup, hand-over playbook), launch-run (six meetups in a year, quarterly report, city exclusivity included, off-ramp at month four). ${SITE}/for-companies/community-launch/.`,
-			terms: "All of these keep the 100% credit within 90 days instead of the AI-channel percentage. Lead time two months per meetup, max one Signature Meetup per city per month.",
+			hosted_meetup: `One ELC meetup at the company's office run end to end by ELC (launch, registrations, ELC speakers, newsletter, social, pro video and photos): the meetup-hosted one-off, ${SITE}/reach/meetup/. The company hosts and caters; an ELC coworking venue adds the venue surcharge; catering by ELC at cost. Same production and price as the pilot-meetup preset. Registrations promised, never a head count. (Signature Meetup, the done-for-you rung above it, was retired 2026-10-20.)`,
+			speaker_programme: `One engineer on the ELC stage, coached: the speaker-development one-off, ${SITE}/reach/speaker-program/. An itemised ladder, one speaker: Stage (meetup slot; LinkedIn posts, photos, video and the Speakers Club included), Story, Public speaking coach, Amplify, Beyond ELC; or the whole programme at its bundle price. For companies sending a speaker; individuals apply free at ${SITE}/cfp/.`,
+			community_launch: `A recurring community under the company's name in a CEE city: launch-audit (in person, 90-day plan), community-launch (the audit plus three ELC-grade meetups in about four months with ELC members seeded in, channel setup, hand-over playbook), launch-run (six meetups in a year, quarterly report, city exclusivity included, off-ramp at month four). ${SITE}/for-companies/community-launch/.`,
+			terms: "All of these keep the 100% credit within 90 days instead of the AI-channel percentage. Lead time two months per meetup.",
 		},
 		how_membership_works:
 			"ELC is funded by company members, not member fees — membership stays free for engineering leaders, which is why the room stays senior and shows up. A company membership is assembled from priced line items: pick a package as the starting bundle, toggle items on and off, the total recalculates. The Free package is a real option and runs today.",

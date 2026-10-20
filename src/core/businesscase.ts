@@ -52,7 +52,6 @@ export const RECRUITER_FEE_PCT_HIGH = 25;
 const PACKAGE_TERM: Record<string, { label: string; memo: string; annual: boolean }> = {
 	"leadership-pilot": { label: "one quarter", memo: "for one quarter (90 days)", annual: false },
 	"pilot-meetup": { label: "a single meetup", memo: "as a one-off pilot meetup, not an annual commitment", annual: false },
-	"signature-meetup": { label: "a single meetup", memo: "as a one-off Signature Meetup, not an annual commitment", annual: false },
 	"launch-audit": { label: "one audit", memo: "as a one-off Launch Audit, credited against a Community Launch within 90 days", annual: false },
 	"community-launch": { label: "about four months", memo: "for the launch phase (about four months, three meetups), not an annual commitment", annual: false },
 	"launch-run": { label: "12 months", memo: "for 12 months (six meetups), with an off-ramp after the launch phase", annual: true },

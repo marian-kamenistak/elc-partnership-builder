@@ -3,7 +3,7 @@
  * the real, gitignored src/data/offer-catalog.json.
  *
  * Why it exists: the fixture used to be hand-made once (2026-09-05) and then drifted. Every
- * later catalog sync (Signature Meetup, the Community Launch ladder, the discount end date)
+ * later catalog sync (the Community Launch ladder, the discount end date, the speaker ladder)
  * reached the real file but not the fixture, so CI tested a catalog that no longer existed
  * and stayed red from 2026-09-17. test/fixture.test.ts now fails locally whenever the two
  * disagree, pointing here.

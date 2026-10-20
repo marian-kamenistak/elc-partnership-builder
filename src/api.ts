@@ -45,7 +45,9 @@ export function handleApi(path: string, url: URL): Response | null {
 	if (route === "/reach") return json(reachOptions());
 	if (route === "/reach/quote") {
 		const ids = (url.searchParams.get("oneoff_ids") ?? "").split(",").filter(Boolean);
-		const q = quoteOneoffs(ids);
+		// speaker_rungs (2026-10-20): comma-separated rung ids for the speaker programme; absent = full programme.
+		const rungsParam = url.searchParams.get("speaker_rungs");
+		const q = quoteOneoffs(ids, { speaker_rungs: rungsParam === null ? undefined : rungsParam.split(",").filter(Boolean) });
 		if (!q.items.length) return json({ error: `no known one-offs in oneoff_ids — valid: ${ONEOFF_IDS.join(", ")}` }, 400);
 		return json({ ...q, total_display: `${eur(q.total)} one-off, excl. VAT` });
 	}

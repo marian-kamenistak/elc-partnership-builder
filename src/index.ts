@@ -206,6 +206,9 @@ const USAGE_CONFIG: McpUsageConfig = {
 
 const QUOTE_REACH_SHAPE = {
 	oneoff_ids: z.array(z.enum(ONEOFF_IDS as [string, ...string[]])).min(1).describe("One-off ids from get_reach_options"),
+	// 2026-10-20: the speaker programme is a ladder. Omit = the full programme at its bundle price;
+	// pass rung ids to price a subset (Stage is always included).
+	speaker_rungs: z.array(z.string()).optional().describe("Speaker programme rung ids (stage, story, coach, amplify, beyond) to price instead of the full programme; stage is always included"),
 };
 
 const MATCH_PACKAGE_SHAPE = {
@@ -364,14 +367,14 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				title: "Price a one-off basket (authoritative total with the combo discount)",
 				annotations: { ...READ_ONLY },
 				description:
-					"Pass the one-off ids the visitor picked; returns each item's price, the list total, the combo discount by item count (job board listings never count), and the final total. This is the only arithmetic that counts — never add prices yourself. The AI-channel percentage does not apply to one-offs. Next: book_intro_call to lock the date, or get_partnership_options if the basket is starting to look like a year.",
+					"Pass the one-off ids the visitor picked; returns each item's price, the list total, the combo discount by item count (job board listings never count), and the final total. For the speaker programme pass speaker_rungs to price a subset of the ladder (Stage always included); omit it for the full programme at the bundle price. This is the only arithmetic that counts — never add prices yourself. The AI-channel percentage does not apply to one-offs. Next: book_intro_call to lock the date, or get_partnership_options if the basket is starting to look like a year.",
 				inputSchema: permissiveShape(QUOTE_REACH_SHAPE),
 			},
 			async (raw) => {
 				const parsed = parseArgs("quote_reach_combo", QUOTE_REACH_SHAPE, raw);
 				if (!parsed.ok) return guidance(parsed);
-				const { oneoff_ids } = parsed.data;
-				const q = quoteOneoffs(oneoff_ids);
+				const { oneoff_ids, speaker_rungs } = parsed.data;
+				const q = quoteOneoffs(oneoff_ids, { speaker_rungs });
 				if (!q.items.length) return toolResult({ error: `no known one-offs in ${JSON.stringify(oneoff_ids)} — valid: ${ONEOFF_IDS.join(", ")}` });
 				const membershipHint =
 					q.items.length >= 3
@@ -393,6 +396,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 								duplicate_note: `Sent more than once and counted once: ${q.duplicate_ids.join(", ")}. Each one-off is a single placement sold once — to run the same placement repeatedly, say so and it is quoted as separate dated placements, not by repeating the id.`,
 							}
 						: {}),
+					...(q.unknown_rungs.length ? { unknown_rungs_note: `Not on the speaker programme ladder, ignored: ${q.unknown_rungs.join(", ")}.` } : {}),
 					credit_note: `100% credited against a company membership signed within ${q.credit_days} days.`,
 					...(membershipHint ? { membership_hint: membershipHint } : {}),
 						next: "book_intro_call to fix the date with Marian.",

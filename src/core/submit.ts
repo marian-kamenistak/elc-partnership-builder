@@ -27,7 +27,6 @@ const TIER_FIT: Record<string, string> = {
 	visibility: "Visibility",
 	story: "LinkedIn",
 	product: "Product",
-	"signature-meetup": "Signature Meetup",
 	"launch-audit": "Launch Audit",
 	"community-launch": "Community Launch",
 	"launch-run": "Launch + Run",

@@ -104,7 +104,10 @@ const TOOLS = [
 		description: "Authoritative total for a one-off basket with the combo discount by item count. Never add one-off prices yourself.",
 		input_schema: {
 			type: "object" as const,
-			properties: { oneoff_ids: { type: "array", items: { type: "string", enum: ONEOFF_IDS } } },
+			properties: {
+				oneoff_ids: { type: "array", items: { type: "string", enum: ONEOFF_IDS } },
+				speaker_rungs: { type: "array", items: { type: "string" }, description: "Speaker programme rung ids to price instead of the full programme (stage is always included)" },
+			},
 			required: ["oneoff_ids"],
 		},
 	},
@@ -230,7 +233,7 @@ async function runTool(env: ChatEnv, name: string, input: any, side: SideEvent[]
 		}
 		case "quote_reach_combo": {
 			const ids = Array.isArray(input.oneoff_ids) ? input.oneoff_ids.map(String) : [];
-			const q = quoteOneoffs(ids);
+			const q = quoteOneoffs(ids, { speaker_rungs: Array.isArray(input.speaker_rungs) ? input.speaker_rungs.map(String) : undefined });
 			if (!q.items.length) return { error: `no known one-offs — valid: ${ONEOFF_IDS.join(", ")}` };
 			side.push({
 				type: "basket",
