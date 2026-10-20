@@ -85,6 +85,8 @@ type Catalog = {
 		interest_groups: Record<string, string>;
 		discounts?: Record<string, Discount>;
 		oneoff?: OneOffMeta;
+		/** One fee per hire on top of every package (Marian 2026-10-20). */
+		hire_fee?: { amount: number; currency: string; applies_to: string; due: string };
 		payment_terms?: {
 			packages: string[];
 			meetup_start: string[];
@@ -109,7 +111,7 @@ type Catalog = {
 const catalog = raw as unknown as Catalog;
 
 /** Same allowlist as elc-web membership.astro PRESET_IDS. Vendor Seat absent on purpose. */
-export const PRESET_IDS = ["free", "starter", "leadership-pilot", "pilot-meetup", "launch-audit", "community-launch", "launch-run", "hiring", "education", "vital", "visibility", "story", "product"];
+export const PRESET_IDS = ["free", "starter", "leadership-pilot", "pilot-meetup", "hiring-meetup", "intro-sprint", "launch-audit", "community-launch", "launch-run", "hiring", "education", "vital", "visibility", "story", "product"];
 
 /**
  * Presets that keep the 100% credit instead of the AI-channel percentage (catalog
@@ -140,6 +142,8 @@ export const liveItems: Item[] = catalog.items
 export const presets: Preset[] = catalog.presets.filter((p) => PRESET_IDS.includes(p.id));
 export const routing = catalog.routing;
 export const meta = catalog.meta;
+/** EUR fee per hire made through ELC, 0 when the catalog carries none. */
+export const hireFee = (): number => catalog.meta.hire_fee?.amount ?? 0;
 export const generatedAt = catalog.generatedAt;
 
 export const presetById = (id: string): Preset | undefined => presets.find((p) => p.id === id);

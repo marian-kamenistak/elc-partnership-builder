@@ -64,7 +64,7 @@ describe("business case: arithmetic is the server's job", () => {
 	});
 
 	it("never calls a non-annual package a year", () => {
-		for (const p of ["leadership-pilot", "pilot-meetup", "launch-audit", "community-launch"]) {
+		for (const p of ["leadership-pilot", "pilot-meetup", "hiring-meetup", "intro-sprint", "launch-audit", "community-launch"]) {
 			const c = buildBusinessCase({ preset_id: p, item_ids: basket(p) });
 			if ("error" in c || "no_case_needed" in c) throw new Error(p);
 			expect(c.term.annual, p).toBe(false);
@@ -74,12 +74,12 @@ describe("business case: arithmetic is the server's job", () => {
 		}
 	});
 
-	it("break-even is ceil(net / fee) and never rounds down to zero", () => {
+	it("break-even is ceil(net / (agency fee - ELC hire fee)) and never rounds down to zero", () => {
 		const c = buildBusinessCase({ preset_id: "hiring", item_ids: basket("hiring") });
 		if ("error" in c) throw new Error(c.error);
 		expect(c.hiring).not.toBeNull();
-		// €10,080 net against the €15k-25k published band → 1 hire either way.
-		expect(c.hiring?.break_even_hires).toBe("1 senior hire");
+		// €14,000 net; each hire saves €25k-€12k = €13k to €15k-€12k = €3k → 2 to 5 hires.
+		expect(c.hiring?.break_even_hires).toBe("2 to 5 senior hires");
 	});
 
 	it("a supplied salary replaces the generic band with their own numbers", () => {

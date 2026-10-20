@@ -11,7 +11,7 @@
  * must be updated alongside any routing change.
  */
 import { ELC_FACTS, SITE, andJoin } from "../content";
-import { aiDiscount, defaultBasket, meta, presetById, resolveBasket, routing } from "./catalog";
+import { aiDiscount, defaultBasket, eur, hireFee, meta, presetById, resolveBasket, routing } from "./catalog";
 
 /**
  * Band money labels are DERIVED from what each band's routing cells actually resolve to, not
@@ -100,9 +100,9 @@ export function partnershipOptions() {
 			// in the server with no stated basis. Marian confirmed the measure: hires ELC tracks from the
 			// intros he makes through Marian's List, not partner self-reporting.
 			vs_recruiters:
-				"A recruiter charges €15,000 to €25,000 per senior hire. Partners hire 2.7 engineering leaders a month from this community, counted by ELC from the intros Marian makes through Marian's List rather than self-reported by partners. One hire sourced through the room pays for most tiers outright.",
+				`A recruiter charges €15,000 to €25,000 per senior hire. A hire through ELC is one flat ${eur(hireFee())}, paid when the person starts, on top of the package. Partners hire 2.7 engineering leaders a month from this community, counted by ELC from the intros Marian makes rather than self-reported by partners.`,
 			vs_recruiters_basis:
-				"Carry the basis whenever you use the 2.7 figure: ELC-tracked from Marian's List intros that converted to a hire. The named partner outcomes below are individual cases inside that total, not the whole of it.",
+				"Carry the basis whenever you use the 2.7 figure: ELC-tracked from Marian's intros that converted to a hire. The named partner outcomes below are individual cases inside that total, not the whole of it.",
 			vs_own_events:
 				"40+ meetups since 2019, the same 3,300+ people, every month. One event of your own buys one audience once; a year here compounds into the same room seeing you twelve times.",
 			vs_conference_booths:
@@ -122,7 +122,7 @@ export function partnershipOptions() {
 			not_for_sale: [
 				"Pitching from an ELC stage. Speakers tell a real story and every one passes the same filter, whoever is paying.",
 				"Member contact data for outbound. Attendee lists tell you who is in the room; members never opted in to vendor email.",
-				"Introductions. Marian makes them when they fit, and they are not a line item anyone can buy.",
+				"Introductions to sell a product. Hiring intros are sold, and Marian makes them only when the candidate says yes first.",
 			],
 			why: "ELC is free for engineering leaders and funded by company members. That is why the room is senior and why people come back. A room that gets sold to stops being that room, so the boundary protects the exact thing a member is paying to reach.",
 			what_you_can_have: "Be in the room every month, put your own engineer on your own stage, run a product session people opted into, host a curated dinner with your engineering lead at the table. All of it works because nobody is being sold to.",

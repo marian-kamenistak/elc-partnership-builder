@@ -22,6 +22,8 @@ const BOOK_CALL = "https://app.reclaim.ai/m/meet-marian/now";
 const TIER_FIT: Record<string, string> = {
 	starter: "Starter",
 	hiring: "Talent reach",
+	"hiring-meetup": "Hiring Meetup",
+	"intro-sprint": "Intro sprint",
 	education: "Education",
 	vital: "Vital",
 	visibility: "Visibility",

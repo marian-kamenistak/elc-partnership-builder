@@ -34,7 +34,7 @@
  * true for it to pay off. That is a business case; a forecast would be a fabrication.
  */
 import { ELC_FACTS, andJoin } from "../content";
-import { discountFor, eur, presetById, resolveBasket } from "./catalog";
+import { discountFor, eur, hireFee, presetById, resolveBasket } from "./catalog";
 
 /** Market rate for one senior engineering placement, the band already published in why_elc. */
 export const RECRUITER_FEE_LOW = 15000;
@@ -52,6 +52,8 @@ export const RECRUITER_FEE_PCT_HIGH = 25;
 const PACKAGE_TERM: Record<string, { label: string; memo: string; annual: boolean }> = {
 	"leadership-pilot": { label: "one quarter", memo: "for one quarter (90 days)", annual: false },
 	"pilot-meetup": { label: "a single meetup", memo: "as a one-off pilot meetup, not an annual commitment", annual: false },
+	"hiring-meetup": { label: "one meetup and 3 months of intros", memo: "as a one-off Hiring Meetup with 3 months of intros, credited against Talent reach within 90 days", annual: false },
+	"intro-sprint": { label: "one role", memo: "as a two-week Intro sprint for one role, not an annual commitment", annual: false },
 	"launch-audit": { label: "one audit", memo: "as a one-off Launch Audit, credited against a Community Launch within 90 days", annual: false },
 	"community-launch": { label: "about four months", memo: "for the launch phase (about four months, three meetups), not an annual commitment", annual: false },
 	"launch-run": { label: "12 months", memo: "for 12 months (six meetups), with an off-ramp after the launch phase", annual: true },
@@ -206,23 +208,42 @@ export function buildBusinessCase(input: BusinessCaseInput) {
 	// Hiring items justify the recruiter comparison directly. For a talent/retention basket the
 	// same published band still applies, but as the cost of REPLACING a leader who leaves, not
 	// the cost of adding one — a distinction a CPO will check and a CFO will respect.
-	const hiringItems = ["marians-list", "job-roles-featured", "recruiting-sprint", "hosted-meetup", "attendee-lists"];
+	const hiringItems = ["marians-list", "job-roles-featured", "intro-sprint", "in-person-intro", "roles-at-meetups", "hiring-dedicated-newsletter", "hosted-meetup", "attendee-lists"];
 	const hasHiring = [...standard, ...addons].some((i) => hiringItems.includes(i.id));
-	const breakEvenLow = Math.max(1, Math.ceil(net / fee.high));
-	const breakEvenHigh = Math.max(1, Math.ceil(net / fee.low));
+	// 2026-10-20 (Marian): every hire through ELC carries meta.hire_fee, so a hire saves the agency
+	// fee MINUS that fee, not the whole agency fee. Break-even is the spend over that saving. When
+	// the agency fee at their salary is at or below ELC's fee, there is no saving to claim.
+	const perHire = hireFee();
+	const savingHigh = fee.high - perHire;
+	const savingLow = fee.low - perHire;
+	const breakEvenLow = savingHigh > 0 ? Math.max(1, Math.ceil(net / savingHigh)) : null;
+	const breakEvenHigh = savingLow > 0 ? Math.max(1, Math.ceil(net / savingLow)) : null;
 	const breakEvenPhrase =
-		breakEvenLow === breakEvenHigh ? `${breakEvenLow} senior hire${breakEvenLow > 1 ? "s" : ""}` : `${breakEvenLow} to ${breakEvenHigh} senior hires`;
+		breakEvenLow === null
+			? null
+			: breakEvenHigh === null
+				? `${breakEvenLow} or more senior hires`
+				: breakEvenLow === breakEvenHigh
+					? `${breakEvenLow} senior hire${breakEvenLow > 1 ? "s" : ""}`
+					: `${breakEvenLow} to ${breakEvenHigh} senior hires`;
+	// Retention compares against the full replacement cost: no ELC hire fee is involved.
+	const retLow = Math.max(1, Math.ceil(net / fee.high));
+	const retHigh = Math.max(1, Math.ceil(net / fee.low));
 	const retentionPhrase =
-		breakEvenLow === breakEvenHigh ? `${breakEvenLow} leader${breakEvenLow > 1 ? "s" : ""}` : `${breakEvenLow} to ${breakEvenHigh} leaders`;
+		retLow === retHigh ? `${retLow} leader${retLow > 1 ? "s" : ""}` : `${retLow} to ${retHigh} leaders`;
 
 	const hiring =
 		goal === "hiring" && hasHiring
 			? {
 					fee_band: `${eur(fee.low)} to ${eur(fee.high)} per senior hire`,
 					fee_basis: fee.basis,
+					elc_fee_per_hire: `${eur(perHire)} per hire through ELC, due when the person starts, on top of this ${term.annual ? "package" : term.label}`,
 					break_even_hires: breakEvenPhrase,
-					break_even_sentence: `The whole ${term.annual ? "year" : term.label} pays for itself at ${breakEvenPhrase} sourced from the community instead of through an agency.`,
-					share_of_one_placement: `${pct(net, fee.high)}% to ${pct(net, fee.low)}% of a single agency placement`,
+					break_even_sentence:
+						breakEvenPhrase === null
+							? `At this salary an agency fee (${eur(fee.low)} to ${eur(fee.high)}) is at or below ELC's ${eur(perHire)} per hire, so there is no fee saving to claim. The case rests on reaching people who do not answer recruiters.`
+							: `Each hire through ELC costs ${eur(perHire)} instead of ${eur(fee.low)} to ${eur(fee.high)} through an agency. The ${term.annual ? "year" : term.label} pays for itself at ${breakEvenPhrase} sourced from the community.`,
+					share_of_one_placement: `${pct(net, fee.high)}% to ${pct(net, fee.low)}% of a single agency placement, before the ${eur(perHire)} ELC fee per hire`,
 					...(input.open_senior_roles && input.open_senior_roles > 0
 						? {
 								your_roles: (() => {
@@ -230,14 +251,14 @@ export function buildBusinessCase(input: BusinessCaseInput) {
 									return {
 										stated_open_roles: n,
 										agency_cost_if_all_placed: `${eur(n * fee.low)} to ${eur(n * fee.high)}`,
-										versus_membership: `${eur(net)} for the ${term.annual ? "year" : term.label}, against ${eur(n * fee.low)} to ${eur(n * fee.high)} if all ${n} go through an agency`,
+										versus_membership: `${eur(net + n * perHire)} for the ${term.annual ? "year" : term.label} plus ${n} ELC hire fee${n > 1 ? "s" : ""}, against ${eur(n * fee.low)} to ${eur(n * fee.high)} if all ${n} go through an agency`,
 										basis: "your stated open-role count multiplied by the fee band — not a prediction that ELC fills them",
 									};
 								})(),
 							}
 						: {}),
 					caveat:
-						"This is a cost comparison, not a forecast. ELC does not guarantee a number of hires; the case is that the membership costs a fraction of one placement and the room is where these people already are.",
+						"This is a cost comparison, not a forecast. ELC does not guarantee a number of hires; the case is that a hire through ELC costs less than an agency placement and the room is where these people already are.",
 				}
 			: null;
 

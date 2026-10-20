@@ -74,6 +74,12 @@
       "invoice_after_yes": true,
       "walk_away": true
     },
+    "hire_fee": {
+      "amount": 12000,
+      "currency": "EUR",
+      "applies_to": "all",
+      "due": "start_date"
+    },
     "conference": {
       "source": "business/elcc/data/conference-offer-2027.json",
       "addons_require_package": true,
@@ -103,6 +109,7 @@
         "applies_to": "basket_total",
         "excluded_presets": [
           "pilot-meetup",
+          "hiring-meetup",
           "launch-audit",
           "community-launch",
           "launch-run"
@@ -203,6 +210,12 @@
         "hiring": [
           {
             "preset": "pilot-meetup"
+          },
+          {
+            "preset": "hiring-meetup"
+          },
+          {
+            "preset": "intro-sprint"
           }
         ],
         "product": [
@@ -365,6 +378,43 @@
       "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
+      "id": "hiring-meetup",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 2,
+        "heavy": true
+      },
+      "row": "start",
+      "name": "Hiring Meetup",
+      "question_band": "Meet senior leaders for your open roles",
+      "price": 8000,
+      "interest": "hiring",
+      "items": [
+        "hosted-meetup",
+        "hiring-dedicated-newsletter",
+        "roles-at-meetups",
+        "marians-list",
+        "attendee-lists"
+      ],
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
+    },
+    {
+      "id": "intro-sprint",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 0
+      },
+      "row": "start",
+      "name": "Intro sprint",
+      "question_band": "Meet the right people for one senior role",
+      "price": 2500,
+      "interest": "hiring",
+      "items": [
+        "intro-sprint"
+      ],
+      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
+    },
+    {
       "id": "launch-audit",
       "row": "launch",
       "name": "Launch Audit",
@@ -405,7 +455,7 @@
       "id": "hiring",
       "row": "solid",
       "name": "Talent reach",
-      "question_band": "Hire senior leaders without paying recruiters",
+      "question_band": "Meet senior leaders for your roles every month",
       "price": 14000,
       "interest": "hiring",
       "notes": "[redacted for the public repo — internal pricing rationale, not published]"
@@ -504,6 +554,11 @@
         "product"
       ],
       "tiers": {
+        "hiring-meetup": {
+          "role": "standard",
+          "price": 500,
+          "foundation": true
+        },
         "hiring": {
           "role": "standard",
           "price": 500,
@@ -832,6 +887,11 @@
           "price": 3000,
           "foundation": true
         },
+        "hiring-meetup": {
+          "role": "standard",
+          "price": 4000,
+          "foundation": true
+        },
         "hiring": {
           "role": "standard",
           "price": 4000,
@@ -854,14 +914,21 @@
       "journey": {
         "cadence": "monthly"
       },
-      "name": "12 months of Marian's List",
-      "value": "Direct candidate intros from Marian on request: staff engineers, architects, directors, VPs, CTOs. No recruiter fee.",
+      "name": "12 months of priority intros, curated by Marian",
+      "name_by_tier": {
+        "hiring-meetup": "3 months of intros for your open roles, curated by Marian"
+      },
+      "value": "Marian introduces you to staff engineers, architects, directors, VPs and CTOs who fit your roles. Both sides say yes before you meet.",
       "category": "hiring-funnel",
       "interests": [
         "hiring",
         "newsite"
       ],
       "tiers": {
+        "hiring-meetup": {
+          "role": "standard",
+          "price": 1000
+        },
         "hiring": {
           "role": "standard",
           "price": 1500,
@@ -882,9 +949,50 @@
         "hiring"
       ],
       "tiers": {
+        "hiring-meetup": {
+          "role": "standard",
+          "price": 2000
+        },
         "hiring": {
           "role": "standard",
           "price": 2000
+        }
+      }
+    },
+    {
+      "id": "roles-at-meetups",
+      "journey": {
+        "cadence": "monthly"
+      },
+      "name": "Your open roles announced at every ELC meetup for 3 months",
+      "value": "Marian names your senior roles on stage at each monthly meetup, in front of 100+ engineering leaders.",
+      "category": "hiring-funnel",
+      "interests": [
+        "hiring"
+      ],
+      "tiers": {
+        "hiring-meetup": {
+          "role": "standard",
+          "price": 500
+        }
+      }
+    },
+    {
+      "id": "intro-sprint",
+      "journey": {
+        "cadence": "one-off",
+        "lead_time_months": 0
+      },
+      "name": "About 10 vetted intros for one role, within 2 weeks",
+      "value": "You send one senior role. Marian picks about 10 people from the ELC community who fit it and introduces you. Both sides say yes before you meet.",
+      "category": "hiring-funnel",
+      "interests": [
+        "hiring"
+      ],
+      "tiers": {
+        "intro-sprint": {
+          "role": "standard",
+          "price": 2500
         }
       }
     },
@@ -1132,18 +1240,25 @@
       }
     },
     {
-      "id": "recruiting-sprint",
-      "name": "2-week recruiting sprint",
-      "value": "Marian's List intensive: around 20 vetted candidate intros, aimed at closing 1 senior hire. A recruiter charges EUR 15 to 25K per senior hire.",
+      "id": "in-person-intro",
+      "name": "In-person intro with Marian",
+      "value": "Marian brings one candidate to a coffee with your CTO or hiring manager.",
       "category": "addon-hiring",
       "interests": [
-        "hiring",
-        "newsite"
+        "hiring"
       ],
       "tiers": {
         "hiring": {
           "role": "addon",
-          "price": 5000
+          "price": 750
+        },
+        "hiring-meetup": {
+          "role": "addon",
+          "price": 750
+        },
+        "intro-sprint": {
+          "role": "addon",
+          "price": 750
         }
       }
     },
@@ -1745,7 +1860,7 @@
     {
       "id": "job-premium",
       "name": "Job board Premium listing, 30 days",
-      "value": "Standard plus top placement, 2 LinkedIn posts and a Marian's List intensive with 10 vetted intros.",
+      "value": "Standard plus top placement and 2 LinkedIn posts.",
       "category": "job-board",
       "interests": [
         "hiring"
@@ -3181,7 +3296,7 @@
       "id": "job-listing",
       "item": "job-standard",
       "name": "A job board listing",
-      "value": "30 days on job.engineeringleaders.io, plus one newsletter mention and one LinkedIn post. Premium adds top placement, two posts and 10 vetted intros from Marian's List.",
+      "value": "30 days on job.engineeringleaders.io, plus one newsletter mention and one LinkedIn post. Premium adds top placement and two posts.",
       "examples": [
         "One senior role you need filled this quarter",
         "A Head of Engineering search you would rather not give a recruiter"

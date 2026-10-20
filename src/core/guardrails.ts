@@ -85,7 +85,7 @@ export function guardrailLines(scope: GuardrailScope = "membership"): string[] {
 		// block, so it reaches the model without adding more payload noise. It existed only inside
 		// why_elc as an objection-handling script, so a VP Sales who never objected never met it and
 		// had four community-destroying demands accepted without a word.
-		`NOT FOR SALE, at any price: pitching from an ELC stage, member contact data for outbound, and introductions. ELC is free for engineering leaders and funded by company members, which is why the room is senior and why people come back. A room that gets sold to stops being that room. If a visitor asks for any of these, say no plainly and say why, and never let an offer imply otherwise.`,
+		`NOT FOR SALE, at any price: pitching from an ELC stage, member contact data for outbound, and introductions for selling a product. Hiring introductions ARE sold (Intro sprint, Hiring Meetup, Talent reach, since 2026-10-20), and only ever double opt-in: Marian asks the candidate first. ELC is free for engineering leaders and funded by company members, which is why the room is senior and why people come back. A room that gets sold to stops being that room. If a visitor asks for any of these, say no plainly and say why, and never let an offer imply otherwise.`,
 		`Nothing here is a contract. Marian Kamenistak confirms all final terms on a call.`,
 	];
 }
@@ -121,7 +121,7 @@ export function detectBoundaryConflicts(text: string | undefined): { phrase: str
 		},
 		{
 			test: /\b(warm intros?|introductions? to|intro me to|connect me (with|to) \d|\d+ intros)\b/,
-			rule: "Introductions are not a line item. Marian makes them when they fit, and they cannot be bought.",
+			rule: "Introductions to sell a product are not for sale. Hiring introductions are sold (Intro sprint, Hiring Meetup, Talent reach), and Marian makes them only when the candidate says yes first.",
 		},
 	];
 	return RULES.filter((r) => r.test.test(t)).map((r) => ({ phrase: text.slice(0, 240), rule: r.rule }));
