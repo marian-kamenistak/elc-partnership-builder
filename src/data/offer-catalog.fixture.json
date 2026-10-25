@@ -1415,7 +1415,7 @@
     {
       "id": "community-survey",
       "name": "Custom community survey",
-      "value": "Your questions in front of 3,300+ engineering leaders in CEE. Results plus a short readout.",
+      "value": "Your questions in front of 3,500+ engineering leaders in CEE. Results plus a short readout.",
       "category": "addon-research",
       "interests": [
         "product",
@@ -1444,7 +1444,7 @@
     {
       "id": "research-report",
       "name": "Co-branded research report",
-      "value": "For example State of CEE Product and Engineering Leadership: a survey across 3,300+ leaders plus named interviews, shared across all ELC channels.",
+      "value": "For example State of CEE Product and Engineering Leadership: a survey across 3,500+ leaders plus named interviews, shared across all ELC channels.",
       "category": "addon-research",
       "interests": [
         "product",
@@ -2211,7 +2211,7 @@
         "cadence": "monthly"
       },
       "name": "ELC community Slack",
-      "value": "Ask the room before you decide. 3,300+ leaders on the other end, answers usually land in hours.",
+      "value": "Ask the room before you decide. 3,500+ leaders on the other end, answers usually land in hours.",
       "category": "leadership-development",
       "interests": [
         "talent"
@@ -3225,7 +3225,7 @@
         "Which platforms teams plan to leave"
       ],
       "outcomes": [
-        "3,300+ members in the pool, 69% Manager+ · 21% Senior/Staff IC"
+        "3,500+ members in the pool, 69% Manager+ · 21% Senior/Staff IC"
       ],
       "price": 4000,
       "lead_time": "1 month",
@@ -3273,7 +3273,8 @@
       "price": 990,
       "unit": "per_year",
       "status": "live",
-      "cta_url": "https://www.engineeringleaders.io/partner/circles/"
+      "cta_url": "https://www.engineeringleaders.io/members/",
+      "checkout_url": "https://buy.stripe.com/9B64gy4ItblKe5e36W87K09"
     }
   ]
 }
