@@ -7,8 +7,7 @@
     "entity": "Engineering Leaders Community s.r.o. (IČO 21848343, VAT CZ21848343)",
     "global_caps": {
       "partners_per_year": 10,
-      "nebula_slots_per_year": 8,
-      "vendor_seats_per_year": 10
+      "nebula_slots_per_year": 8
     },
     "per_seat": {
       "starter": {
@@ -17,23 +16,19 @@
         "bands": [
           {
             "from": 3,
-            "to": 5,
-            "price": 900
-          },
-          {
-            "from": 6,
-            "to": 10,
-            "price": 820
-          },
-          {
-            "from": 11,
-            "to": 25,
-            "price": 740
-          },
-          {
-            "from": 26,
             "to": null,
-            "price": 650
+            "price": 990
+          }
+        ]
+      },
+      "team-seats": {
+        "unit": "seat_per_year",
+        "minimum_seats": 5,
+        "bands": [
+          {
+            "from": 5,
+            "to": null,
+            "price": 249
           }
         ]
       }
@@ -139,18 +134,10 @@
       },
       "excluded_from_combo": [
         "job-listing",
-        "speaker-development"
+        "speaker-development",
+        "newsletter-classified"
       ],
       "example_combos": [
-        {
-          "id": "conference-launch",
-          "name": "Conference launch",
-          "items": [
-            "newsletter-section",
-            "newsletter-dedicated",
-            "meetup-presence"
-          ]
-        },
         {
           "id": "hiring-push",
           "name": "Hiring push",
@@ -201,7 +188,7 @@
       "start": {
         "talent": [
           {
-            "preset": "leadership-pilot"
+            "preset": "team-seats"
           },
           {
             "preset": "starter"
@@ -327,9 +314,9 @@
     {
       "id": "starter",
       "row": "start",
-      "name": "Starter",
-      "question_band": "Give a group of leaders a circle and a seat",
-      "price": 2700,
+      "name": "Team Circle",
+      "question_band": "Put your managers in ELC circles for a year",
+      "price": 2970,
       "interest": "talent",
       "items": [
         "starter-circle-seats",
@@ -339,25 +326,14 @@
       "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
     {
-      "id": "vendor",
+      "id": "team-seats",
       "row": "start",
-      "name": "Vendor Seat",
-      "question_band": "Low: get one person in the room",
-      "price": 0,
-      "items": [
-        "vendor-seat"
-      ],
-      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
-    },
-    {
-      "id": "leadership-pilot",
-      "row": "start",
-      "name": "Leadership Pilot",
-      "question_band": "Low: grow three managers first",
-      "price": 2500,
+      "name": "Team Seats",
+      "question_band": "Hold a meetup seat for each of your managers",
+      "price": 1245,
       "interest": "talent",
       "items": [
-        "leadership-pilot"
+        "team-seats-meetup"
       ],
       "notes": "[redacted for the public repo — internal pricing rationale, not published]"
     },
@@ -2345,36 +2321,22 @@
       }
     },
     {
-      "id": "leadership-pilot",
-      "name": "Leadership Pilot: three managers, one quarter",
-      "value": "Three of your managers each get a seat in an existing peer circle for a quarter plus two 1:1 mentoring sessions. One invoice, 90 days, and you see who grows before committing to more.",
-      "category": "leadership-development",
+      "id": "team-seats-meetup",
+      "journey": {
+        "cadence": "monthly"
+      },
+      "name": "A guaranteed meetup seat for every person you name",
+      "value": "A held seat at every ELC meetup in their city for a year, for each named employee, instead of competing for public RSVPs. Still approved like every guest.",
+      "category": "community-access",
       "interests": [
-        "talent"
+        "talent",
+        "hiring"
       ],
       "tiers": {
-        "leadership-pilot": {
+        "team-seats": {
           "role": "standard",
-          "price": 2500
-        }
-      },
-      "notes": "[redacted for the public repo — internal pricing rationale, not published]"
-    },
-    {
-      "id": "vendor-seat",
-      "name": "Vendor Seat: one named person inside the community for a year",
-      "value": "Priority seats at every monthly meetup and access to the member deals channel for one named person from a vendor company. Proximity, not promotion.",
-      "category": "tier-vendor",
-      "interests": [
-        "product"
-      ],
-      "cap": {
-        "seats_per_year": 10
-      },
-      "tiers": {
-        "vendor": {
-          "role": "standard",
-          "price": 0
+          "price": 1245,
+          "foundation": true
         }
       },
       "notes": "[redacted for the public repo — internal pricing rationale, not published]"
@@ -2624,7 +2586,7 @@
       "tiers": {
         "starter": {
           "role": "standard",
-          "price": 2100,
+          "price": 2370,
           "foundation": true
         }
       },
@@ -3195,19 +3157,18 @@
       ]
     },
     {
-      "id": "newsletter-section",
-      "name": "A section in the Leaders' Brief",
-      "value": "One section in the monthly ELC newsletter: your headline, up to 120 words, one picture, one link. Written with you, sent under ELC's name.",
+      "id": "newsletter-classified",
+      "name": "A classified in the Leaders' Brief",
+      "value": "30 words and one link in the monthly ELC newsletter. For tools and events, never jobs: roles go on the job board. Three classifieds per issue.",
       "examples": [
-        "Announce your conference, hackathon or open day",
-        "Open a senior hiring round",
-        "Launch a product built for engineering teams"
+        "A developer tool engineering leaders should try",
+        "A conference, hackathon or open day"
       ],
       "outcomes": [
         "3,000+ subscribers, engineering leaders in Central Europe",
         "1,500+ of them open every issue"
       ],
-      "price": 2500,
+      "price": 290,
       "lead_time": "Next monthly issue",
       "included_in": []
     },
@@ -3254,23 +3215,6 @@
       ]
     },
     {
-      "id": "meetup-presence",
-      "name": "Your name on three meetup evenings",
-      "value": "Your logo on the event page and on the partner slide, your name from the stage, one LinkedIn post per evening. Three meetups. What you pay goes into the catering, the venue and the evening itself.",
-      "examples": [
-        "Stay in the room for a quarter without hosting anything",
-        "Warm up a city before you open an office there",
-        "Keep your name in front of leaders between two hiring rounds"
-      ],
-      "outcomes": [
-        "120+ registrations per meetup, three evenings running",
-        "40+ meetups since 2019, and you organise none of it"
-      ],
-      "price": 1500,
-      "lead_time": "1 month",
-      "included_in": []
-    },
-    {
       "id": "survey",
       "item": "community-survey",
       "name": "Survey: Your questions, asked across ELC",
@@ -3309,6 +3253,27 @@
       "lead_time": "Live in 2 days",
       "cta_url": "https://job.engineeringleaders.io",
       "included_in": []
+    }
+  ],
+  "member_offers": [
+    {
+      "id": "meetup-seat",
+      "audience": "b2c",
+      "name": "Meetup seat",
+      "value": "A guaranteed seat at one ELC meetup that is full. Offered only in the waitlist message; the guest is still approved like everyone else.",
+      "price": 29,
+      "unit": "per_meetup",
+      "status": "pilot"
+    },
+    {
+      "id": "circle-seat",
+      "audience": "b2c",
+      "name": "ELC Circle",
+      "value": "A seat for a year in a small facilitated peer group of engineering leaders that meets every two weeks, plus a seat at every meetup in your city.",
+      "price": 990,
+      "unit": "per_year",
+      "status": "live",
+      "cta_url": "https://www.engineeringleaders.io/partner/circles/"
     }
   ]
 }

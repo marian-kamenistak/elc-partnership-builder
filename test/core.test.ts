@@ -343,30 +343,36 @@ describe("one-offs", () => {
 		});
 	});
 
-	it("combo discount: 1 item none, 2 items 10%, 3+ items 15%, job listing never counts", () => {
+	it("combo discount: 1 item none, 2 items 10%, 3+ items 15%, job listing and classified never count", () => {
 		expect(oneoffMeta?.combo_discounts).toEqual([
 			{ min_items: 2, pct: 10 },
 			{ min_items: 3, pct: 15 },
 		]);
-		const one = quoteOneoffs(["newsletter-section"]);
+		const one = quoteOneoffs(["podcast-episode"]);
 		expect(one.combo).toBeNull();
-		expect(one.total).toBe(2500);
+		expect(one.total).toBe(3000);
 
-		const two = quoteOneoffs(["newsletter-section", "newsletter-dedicated"]);
-		expect(two.list_total).toBe(7500);
-		expect(two.combo).toEqual({ qualifying_items: 2, pct: 10, saved: 750 });
-		expect(two.total).toBe(6750);
+		const two = quoteOneoffs(["podcast-episode", "newsletter-dedicated"]);
+		expect(two.list_total).toBe(8000);
+		expect(two.combo).toEqual({ qualifying_items: 2, pct: 10, saved: 800 });
+		expect(two.total).toBe(7200);
 
-		const three = quoteOneoffs(["newsletter-section", "newsletter-dedicated", "meetup-presence"]);
-		expect(three.list_total).toBe(9000);
+		const three = quoteOneoffs(["podcast-episode", "newsletter-dedicated", "dinner"]);
+		expect(three.list_total).toBe(12000);
 		expect(three.combo?.pct).toBe(15);
-		expect(three.total).toBe(7650);
+		expect(three.total).toBe(10200);
 
 		// A job listing rides at list price and does not lift the basket into a discount tier.
-		const withJob = quoteOneoffs(["newsletter-section", "job-listing"]);
+		const withJob = quoteOneoffs(["podcast-episode", "job-listing"]);
 		expect(withJob.combo).toBeNull();
-		expect(withJob.total).toBe(3000);
+		expect(withJob.total).toBe(3500);
 		expect(withJob.items.find((i) => i.id === "job-listing")?.counts_toward_combo).toBe(false);
+
+		// Same for the €290 newsletter classified (2026-10-25): excluded from combos by catalog policy.
+		const withClassified = quoteOneoffs(["podcast-episode", "newsletter-classified"]);
+		expect(withClassified.combo).toBeNull();
+		expect(withClassified.total).toBe(3290);
+		expect(withClassified.items.find((i) => i.id === "newsletter-classified")?.counts_toward_combo).toBe(false);
 	});
 
 	it("drops unknown ids by name and de-duplicates", () => {

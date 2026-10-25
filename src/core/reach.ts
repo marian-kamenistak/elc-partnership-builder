@@ -1,7 +1,7 @@
 /**
  * One-offs: what get_reach_options returns (2026-09-03, the /reach page as data).
  *
- * A company that wants ONE thing once — a newsletter section for its conference, a meetup in
+ * A company that wants ONE thing once — a newsletter classified for its conference, a meetup in
  * its office, a dinner — is not a company-membership conversation, and forcing it through the
  * goal+budget wizard loses it. This is the menu for that buyer, read from the same generated
  * catalog as everything else, so a one-off price here is the price on /reach by construction.

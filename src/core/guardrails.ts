@@ -8,7 +8,7 @@
  * Figures: partners-per-year and the discount come from the catalog/data-points registry —
  * never restate a number here that those files do not carry.
  */
-import { aiDiscount, creditPresetIds, meta } from "./catalog";
+import { aiDiscount, creditPresetIds, meta, presetById } from "./catalog";
 
 /**
  * Which cart the terms are riding on.
@@ -34,6 +34,11 @@ export function guardrailLines(scope: GuardrailScope = "membership"): string[] {
 			? [
 					`Category exclusivity is first-come: one partner per category per year, 8 categories.`,
 					`ELC takes max ${meta.global_caps.partners_per_year} partners per year.`,
+					// 2026-10-25 (Marian): Team Seats replaced the vendor seat. It is for the buyer's own
+					// staff; a vendor, recruiter or agency asking for seats is not sold them.
+					...(presetById("team-seats")
+						? [`Team Seats are for the company's own named employees only: no vendors, recruiters or agencies.`]
+						: []),
 				]
 			: []),
 		...(d && membershipOnly

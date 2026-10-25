@@ -1,20 +1,24 @@
 /**
  * Per-seat pricing for the packages that are sold by headcount rather than as a fixed bundle.
  *
- * Why this exists (2026-08-20 persona testing): Starter is a per-seat product living inside a
- * fixed-price configurator, and the mismatch was silent in both directions. The front door
- * advertised "Starter from €900 a seat" exactly once, then no tool could express a seat count. An
+ * Why this exists (2026-08-20 persona testing): the circle package (id `starter`, now Team Circle)
+ * is a per-seat product living inside a fixed-price configurator, and the mismatch was silent in
+ * both directions. The front door advertised its per-seat price exactly once, then no tool could
+ * express a seat count. An
  * Engineering Director asking for 8 seats got a €2,268 offer covering 3, and was told "€4,176 of
  * the budget is still unspent" — so the buyer would have believed their whole leadership team was
  * covered, and ELC would have under-delivered by five seats, with neither side finding out until
  * kickoff. It scored the lowest of all eleven personas.
  *
- * The band table was never the missing piece — `meta.per_seat.starter` has carried it all along
- * (minimum 3 seats; 3-5 €900, 6-10 €820, 11-25 €740, 26+ €650). Nothing read it. This module is
- * the reader.
+ * The band table was never the missing piece — `meta.per_seat.<preset>` has carried it all along.
+ * Nothing read it. This module is the reader. Since 2026-10-25 both seat-priced packages are flat,
+ * one open-ended band each: Team Circle (id `starter`) €990 a seat, minimum 3; Team Seats
+ * (`team-seats`) €249 a seat, minimum 5. The band logic stays, so a volume break can come back
+ * through the catalog alone.
  *
- * Relationship to the bundle price: the preset's €2,700 IS the 3-seat entry (3 × €900), so seat
- * pricing and bundle pricing agree at the minimum and diverge above it, which is the intent.
+ * Relationship to the bundle price: the preset's price IS the minimum-seat entry (3 × €990 =
+ * €2,970; 5 × €249 = €1,245), so seat pricing and bundle pricing agree at the minimum and diverge
+ * above it, which is the intent.
  * A test pins that identity so the two can never drift.
  */
 import { eur, meta } from "./catalog";

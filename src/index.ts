@@ -118,7 +118,7 @@ function getStartedResult() {
 		(d) => `- "${d.question}" → \`${d.name}\`: ${d.description}`,
 	).join("\n");
 	return toolResult({
-		what: "This is the Engineering Leaders Community Partnership Builder — it composes and prices a company membership package with ELC, and quotes single one-off items (a newsletter section, a hosted meetup, a dinner) for companies that want one thing once.",
+		what: "This is the Engineering Leaders Community Partnership Builder — it composes and prices a company membership package with ELC, and quotes single one-off items (a newsletter classified, a hosted meetup, a dinner) for companies that want one thing once.",
 		menu,
 		start_here: "For a company considering a year-long membership, call get_partnership_options next. For one thing once, call get_reach_options.",
 		conference: `ELC Conference 2027 partner packages and tickets are not sold here: they have their own MCP server, ${CONFERENCE_MCP}`,
@@ -222,7 +222,7 @@ const CUSTOMIZE_PACKAGE_SHAPE = {
 	seats: z
 		.number()
 		.optional()
-		.describe("Starter only: how many people they are enrolling. Starter is priced per seat with volume bands, so ALWAYS ask for a headcount before quoting it — the bundle price is only the 3-seat entry."),
+		.describe("Seat-priced packages only (Team Seats `team-seats`, Team Circle `starter`): how many people they are enrolling. Both are priced per seat, so ALWAYS ask for a headcount before quoting — the bundle price is only the minimum-seat entry (Team Seats 5, Team Circle 3)."),
 };
 
 const BOOK_INTRO_CALL_SHAPE = {
@@ -353,7 +353,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				title: "One-offs: single items a company buys once, with prices",
 				annotations: { ...READ_ONLY },
 				description:
-					"START HERE when a company wants ONE thing once, not a year-long membership: a section or a dedicated send in the Leaders' Brief newsletter, a meetup hosted in their office, a podcast episode, a decision-maker dinner, a community survey, a demo session, a LinkedIn post, a job board listing. Returns every one-off with its price, lead time, examples and real reach figures, the combo discount rule, the 90-day credit against a membership, and what is not for sale. Two or more things across a year is a membership conversation: hand over to get_partnership_options. Next: quote_reach_combo once items are picked.",
+					"START HERE when a company wants ONE thing once, not a year-long membership: a classified (30 words and a link, tools and events only) or a dedicated send in the Leaders' Brief newsletter, a meetup hosted in their office, a speaker slot or the coached speaker programme, a conference main-stage talk, a podcast episode, a decision-maker dinner, a community survey, a job board listing. Returns every one-off with its price, lead time, examples and real reach figures, the combo discount rule, the 90-day credit against a membership, and what is not for sale. Two or more things across a year is a membership conversation: hand over to get_partnership_options. Next: quote_reach_combo once items are picked.",
 				// See get_started above: a bare `{}` lets @posthog/mcp inject a REQUIRED `context`,
 				// which is exactly what made the no-argument call this menu exists for fail.
 				inputSchema: permissiveShape({}),
@@ -479,7 +479,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				// answer, and the silence let testers believe they had bought things they had not.
 				const resolvedIds = new Set([...standard, ...addons].map((i) => i.id));
 				const dropped = item_ids.filter((id) => !resolvedIds.has(id));
-				// Starter is sold per seat, so the fixed bundle total is only right at the 3-seat minimum.
+				// Team Seats and Team Circle are sold per seat, so the bundle total is only right at the minimum.
 				// Quoting it to a buyer with eight leaders under-delivers by five people, and neither side
 				// finds out until kickoff (2026-08-20 persona finding). When a headcount is given, seats are
 				// the price; when it is not, say so rather than letting the bundle figure stand as a quote.

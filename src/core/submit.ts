@@ -20,7 +20,8 @@ const PARTNERS_QUEUE_SLUG = "elc_partners_queue";
 const PARTNERS_QUEUE_URL = "https://app.attio.com/elc/list/b4c5827b-95f8-4307-9921-5d28f6d8bedc";
 const BOOK_CALL = "https://app.reclaim.ai/m/meet-marian/now";
 const TIER_FIT: Record<string, string> = {
-	starter: "Starter",
+	"team-seats": "Team Seats",
+	starter: "Team Circle",
 	hiring: "Talent reach",
 	"hiring-meetup": "Hiring Meetup",
 	"intro-sprint": "Intro sprint",

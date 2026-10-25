@@ -45,12 +45,11 @@ export const RECRUITER_FEE_PCT_HIGH = 25;
 
 /**
  * What a buyer is actually committing to. Not every package is a year, and saying "/year" or
- * "for 12 months" about a 90-day pilot or a single meetup reads as bait-and-switch — two testers
+ * "for 12 months" about a two-week sprint or a single meetup reads as bait-and-switch — two testers
  * flagged it as the reason they would not forward the memo. Belongs in the catalog eventually;
  * lives here until the YAML carries a `term` field.
  */
 const PACKAGE_TERM: Record<string, { label: string; memo: string; annual: boolean }> = {
-	"leadership-pilot": { label: "one quarter", memo: "for one quarter (90 days)", annual: false },
 	"pilot-meetup": { label: "a single meetup", memo: "as a one-off pilot meetup, not an annual commitment", annual: false },
 	"hiring-meetup": { label: "one meetup and 3 months of intros", memo: "as a one-off Hiring Meetup with 3 months of intros, credited against Talent reach within 90 days", annual: false },
 	"intro-sprint": { label: "one role", memo: "as a two-week Intro sprint for one role, not an annual commitment", annual: false },

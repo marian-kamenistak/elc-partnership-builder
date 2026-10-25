@@ -11,7 +11,7 @@
  * must be updated alongside any routing change.
  */
 import { ELC_FACTS, SITE, andJoin } from "../content";
-import { aiDiscount, defaultBasket, eur, hireFee, meta, presetById, resolveBasket, routing } from "./catalog";
+import { aiDiscount, defaultBasket, eur, hireFee, liveMemberOffers, meta, presetById, resolveBasket, routing } from "./catalog";
 
 /**
  * Band money labels are DERIVED from what each band's routing cells actually resolve to, not
@@ -20,10 +20,10 @@ import { aiDiscount, defaultBasket, eur, hireFee, meta, presetById, resolveBaske
  * (€25K) joined the band. A quoted range the configurator then contradicts is worse than no
  * range, so the numbers now come from the same matrix match_package uses.
  *
- * `extra` carries the one thing prices alone cannot say (Starter's per-seat entry point).
+ * `extra` carries the one thing prices alone cannot say (Team Seats' per-seat entry point).
  */
 const BAND_EXTRA: Record<string, string> = {
-	start: ", or Starter from €900 a seat",
+	start: ", or Team Seats from €249 a seat",
 };
 
 const compactEur = (n: number): string => {
@@ -71,7 +71,9 @@ export function partnershipOptions() {
 		who_this_is_for:
 			"Companies who want something from a room of 3,300+ engineering leaders in Central Europe: hiring senior people, developing their own leaders, or putting a product in front of decision-makers. Typical people running this conversation: HR, CTO, employer branding.",
 		not_for:
-			`Individuals looking for a mentor for themselves: that is not a company package, send them to ${SITE}/mentor/ instead of continuing this flow.`,
+			`Individuals looking for a mentor for themselves: that is not a company package, send them to ${SITE}/mentor/ instead of continuing this flow.${liveMemberOffers()
+				.map((o) => ` An individual leader who wants a seat for themselves, paid personally: ${o.name}, ${eur(o.price)} ${o.unit === "per_year" ? "a year" : o.unit.replace("_", " ")}${o.cta_url ? `, ${o.cta_url}` : ""}. That is a member offer, not a company package.`)
+				.join("")}`,
 		community: {
 			members: ELC_FACTS.membersLabel,
 			seniority: `${ELC_FACTS.segmentManagerPlusPct}% Manager+ · ${ELC_FACTS.segmentSeniorIcPct}% Senior/Staff IC`,

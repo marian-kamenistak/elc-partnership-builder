@@ -7,8 +7,9 @@
  * guarantee: this Worker cannot quote a number the website disagrees with.
  *
  * Redaction rules ported from elc-web src/pages/partner/offer-catalog.json.ts:
- *   - the `vendor` tier/preset is DELIBERATELY UNPUBLISHED (sold directly) — excluded by tier
- *     key so a future vendor-only item inherits the exclusion;
+ *   - a `vendor` tier key, if one ever comes back, stays UNPUBLISHED (sold directly) — excluded
+ *     by tier key so a vendor-only item inherits the exclusion (the vendor preset itself was
+ *     retired 2026-10-25);
  *   - item/preset `notes` carry internal pricing rationale and never leave this module.
  *
  * Basket resolution mirrors elc-web src/pages/partner/api/offer.ts `resolveBasket` — keep the
@@ -106,12 +107,17 @@ type Catalog = {
 	presets: Preset[];
 	items: Item[];
 	oneoffs?: OneOff[];
+	/** Offers for individual leaders, not companies (2026-10-25). Never part of a company basket. */
+	member_offers?: MemberOffer[];
 };
+
+/** A B2C offer an individual leader buys for themselves (catalog `member_offers`). */
+export type MemberOffer = { id: string; audience: string; name: string; value: string; price: number; unit: string; status: string; cta_url?: string };
 
 const catalog = raw as unknown as Catalog;
 
-/** Same allowlist as elc-web membership.astro PRESET_IDS. Vendor Seat absent on purpose. */
-export const PRESET_IDS = ["free", "starter", "leadership-pilot", "pilot-meetup", "hiring-meetup", "intro-sprint", "launch-audit", "community-launch", "launch-run", "hiring", "education", "vital", "visibility", "story", "product"];
+/** Same allowlist as elc-web membership.astro PRESET_IDS. Team Seats + Team Circle (id `starter`) since 2026-10-25. */
+export const PRESET_IDS = ["free", "team-seats", "starter", "pilot-meetup", "hiring-meetup", "intro-sprint", "launch-audit", "community-launch", "launch-run", "hiring", "education", "vital", "visibility", "story", "product"];
 
 /**
  * Presets that keep the 100% credit instead of the AI-channel percentage (catalog
@@ -147,6 +153,9 @@ export const hireFee = (): number => catalog.meta.hire_fee?.amount ?? 0;
 export const generatedAt = catalog.generatedAt;
 
 export const presetById = (id: string): Preset | undefined => presets.find((p) => p.id === id);
+
+/** Live individual (B2C) offers only. Pilots are offered elsewhere (the waitlist message), never here. */
+export const liveMemberOffers = (): MemberOffer[] => (catalog.member_offers ?? []).filter((o) => o.status === "live");
 
 /** Product Exclusive composes on product's tier key (membership.astro tierKeyOf precedent). */
 export const tierKeyOf = (presetId: string): string => (presetId === "product-exclusive" ? "product" : presetId);
