@@ -361,7 +361,7 @@
         "heavy": true
       },
       "row": "start",
-      "name": "Hiring Meetup",
+      "name": "Quarterly Hiring with a Meetup",
       "question_band": "Meet senior leaders for your open roles",
       "price": 8000,
       "interest": "hiring",
@@ -381,7 +381,7 @@
         "lead_time_months": 0
       },
       "row": "start",
-      "name": "Intro sprint",
+      "name": "Coffee Direct Talent reach",
       "question_band": "Meet the right people for one senior role",
       "price": 2500,
       "interest": "hiring",
@@ -430,7 +430,7 @@
     {
       "id": "hiring",
       "row": "solid",
-      "name": "Talent reach",
+      "name": "Full-year Talent reach",
       "question_band": "Meet senior leaders for your roles every month",
       "price": 14000,
       "interest": "hiring",
