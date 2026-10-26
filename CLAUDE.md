@@ -47,3 +47,4 @@ no AI-channel percentage. Registered on the MCP Registry and Smithery.
 ## Gotchas
 - Do not re-push Secrets Store secrets via `.op-secrets` — a same-name plain secret collides with the binding (2026-08-25).
 - `CHAT_ENABLED=false` is the kill switch for the widget; `CHAT_TURNSTILE_SECRET` is the "ELC Partner Chat" widget, not elc-web's "Partner Offer" one.
+- Run reports (automation-visibility R-W, 2026-10-26): the cron posts to control-room through the `CONTROL_ROOM` service binding (secret `CONTROL_ROOM_TOKEN`, `.op-secrets`): a failure when it pages (2 bad ticks in a row), plus one success a day (first tick after 00:00 UTC). Test: `wrangler deploy --var REPORT_JOB_ID:zz-<name>` reports every tick; redeploy without it.
