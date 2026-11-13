@@ -52,7 +52,7 @@ export const RECRUITER_FEE_PCT_HIGH = 25;
 const PACKAGE_TERM: Record<string, { label: string; memo: string; annual: boolean }> = {
 	"pilot-meetup": { label: "a single meetup", memo: "as a one-off pilot meetup, not an annual commitment", annual: false },
 	"hiring-meetup": { label: "one meetup and 3 months of intros", memo: "as a one-off Hiring Meetup with 3 months of intros, credited against Talent reach within 90 days", annual: false },
-	"intro-sprint": { label: "one role", memo: "as a two-week Intro sprint for one role, not an annual commitment", annual: false },
+	"intro-sprint": { label: "one role", memo: "as intros for one role with nothing to pay upfront, not an annual commitment", annual: false },
 	"launch-audit": { label: "one audit", memo: "as a one-off Launch Audit, credited against a Community Launch within 90 days", annual: false },
 	"community-launch": { label: "about four months", memo: "for the launch phase (about four months, three meetups), not an annual commitment", annual: false },
 	"launch-run": { label: "12 months", memo: "for 12 months (six meetups), with an off-ramp after the launch phase", annual: true },
@@ -167,6 +167,18 @@ export function buildBusinessCase(input: BusinessCaseInput) {
 
 	// The Free package needs no business case: nobody asks a CFO to approve zero euros, and a
 	// "€0/year approval request" memo made a tester laugh out loud in testing. Route, don't argue.
+	if (total === 0 && preset.id !== "free") {
+		// 2026-11-13 (Marian): Coffee Direct Talent reach is 0 upfront. Same routing as Free (no memo
+		// for zero euros), but the wording and the link are the hiring page's, not the free tier's.
+		return {
+			no_case_needed: true,
+			package: { id: preset.id, name: preset.name },
+			why: `${preset.name} costs nothing upfront, so there is no spend to approve. The only cost is the ELC fee per hire of ${eur(hireFee())}, due when the person starts. Do not generate an approval memo for it.`,
+			what_to_say:
+				"Tell them to send the role. Marian introduces them when someone in the community fits it, both sides say yes first, and there is no set number of intros and no deadline. The paid hiring options (talent dinner, Hiring Meetup, Talent reach) are for meeting more people, sooner.",
+			link: "https://www.engineeringleaders.io/hire-engineers-czech-republic/",
+		};
+	}
 	if (total === 0) {
 		return {
 			no_case_needed: true,

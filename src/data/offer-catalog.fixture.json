@@ -383,7 +383,7 @@
       "row": "start",
       "name": "Coffee Direct Talent reach",
       "question_band": "Meet the right people for one senior role",
-      "price": 2500,
+      "price": 0,
       "interest": "hiring",
       "items": [
         "intro-sprint"
@@ -959,8 +959,8 @@
         "cadence": "one-off",
         "lead_time_months": 0
       },
-      "name": "About 10 vetted intros for one role, within 2 weeks",
-      "value": "You send one senior role. Marian picks about 10 people from the ELC community who fit it and introduces you. Both sides say yes before you meet.",
+      "name": "Vetted intros for one role",
+      "value": "You send one senior role. Marian introduces you when someone in the ELC community fits it. Both sides say yes before you meet. No set number of intros and no deadline.",
       "category": "hiring-funnel",
       "interests": [
         "hiring"
@@ -968,7 +968,7 @@
       "tiers": {
         "intro-sprint": {
           "role": "standard",
-          "price": 2500
+          "price": 0
         }
       }
     },
@@ -1415,7 +1415,7 @@
     {
       "id": "community-survey",
       "name": "Custom community survey",
-      "value": "Your questions in front of 3,500+ engineering leaders in CEE. Results plus a short readout.",
+      "value": "Your questions in front of 3,600+ engineering leaders in CEE. Results plus a short readout.",
       "category": "addon-research",
       "interests": [
         "product",
@@ -1444,7 +1444,7 @@
     {
       "id": "research-report",
       "name": "Co-branded research report",
-      "value": "For example State of CEE Product and Engineering Leadership: a survey across 3,500+ leaders plus named interviews, shared across all ELC channels.",
+      "value": "For example State of CEE Product and Engineering Leadership: a survey across 3,600+ leaders plus named interviews, shared across all ELC channels.",
       "category": "addon-research",
       "interests": [
         "product",
@@ -2211,7 +2211,7 @@
         "cadence": "monthly"
       },
       "name": "ELC community Slack",
-      "value": "Ask the room before you decide. 3,500+ leaders on the other end, answers usually land in hours.",
+      "value": "Ask the room before you decide. 3,600+ leaders on the other end, answers usually land in hours.",
       "category": "leadership-development",
       "interests": [
         "talent"
@@ -3225,7 +3225,7 @@
         "Which platforms teams plan to leave"
       ],
       "outcomes": [
-        "3,500+ members in the pool, 69% Manager+ · 21% Senior/Staff IC"
+        "3,600+ members in the pool, 69% Manager+ · 21% Senior/Staff IC"
       ],
       "price": 4000,
       "lead_time": "1 month",

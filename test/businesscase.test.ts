@@ -63,8 +63,17 @@ describe("business case: arithmetic is the server's job", () => {
 		}
 	});
 
+	it("a package with nothing to pay upfront gets no approval memo, and is not routed to the Free tier", () => {
+		// 2026-11-13 (Marian): Coffee Direct Talent reach is 0 upfront, only the hire fee applies.
+		const c = buildBusinessCase({ preset_id: "intro-sprint", item_ids: basket("intro-sprint") });
+		if (!("no_case_needed" in c)) throw new Error("intro-sprint should need no business case at 0 upfront");
+		expect(c.why).toContain("nothing upfront");
+		expect(c.link).toContain("/hire-engineers-czech-republic/");
+		expect(approvalMemo(c)).toBe("");
+	});
+
 	it("never calls a non-annual package a year", () => {
-		for (const p of ["pilot-meetup", "hiring-meetup", "intro-sprint", "launch-audit", "community-launch"]) {
+		for (const p of ["pilot-meetup", "hiring-meetup", "launch-audit", "community-launch"]) {
 			const c = buildBusinessCase({ preset_id: p, item_ids: basket(p) });
 			if ("error" in c || "no_case_needed" in c) throw new Error(p);
 			expect(c.term.annual, p).toBe(false);
