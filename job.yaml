@@ -28,7 +28,7 @@ kpi:
   direction: gte
 test:
   command: npm test
-  dry_run: PLACEHOLDER_DRY_RUN
+  dry_run: bash scripts/dry-run.sh
 autofix:
   allowed: false
   max_attempts: 0
