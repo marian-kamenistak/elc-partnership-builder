@@ -75,10 +75,11 @@ export async function stepTick(t: Tick, step: StepSummary): Promise<void> {
  */
 export async function endTick(t: Tick, status: Status, fields: Partial<Omit<ReportInput, "job_id" | "status" | "run_id">> = {}): Promise<boolean> {
 	if (!t.opts) return false;
-	const body = { version: t.version, duration_s: (Date.now() - t.t0) / 1000, ...fields };
+	// Steps kept on the tick (a quiet tick, or a one- or two-step job that sends no live step events) ride in the end report.
+	const body = { version: t.version, duration_s: (Date.now() - t.t0) / 1000, ...(t.steps.length ? { steps: t.steps } : {}), ...fields };
 	const r = t.run
 		? await t.run.end(status, body)
-		: await report({ job_id: t.job, run_id: t.run_id, status, runtime: t.runtime, source: "worker", host: t.host, steps: t.steps, ...body }, t.opts);
+		: await report({ job_id: t.job, run_id: t.run_id, status, runtime: t.runtime, source: "worker", host: t.host, ...body }, t.opts);
 	return r.ok;
 }
 
