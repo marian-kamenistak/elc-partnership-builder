@@ -35,3 +35,14 @@ autofix:
 manual_minutes_per_run: 0.1
 manual_minutes_source: estimate
 docs: CLAUDE.md
+# operating standard (playbook section 14), 2026-11-14
+triage: approval
+depends_on: []
+runbook:
+- Open the job page: a failed run names the check that failed (partnership docs GET, MCP initialize POST, or the sibling elc-toolkit /mcp GET).
+- One bad tick never pages; two in a row post to the partners Slack channel and fail the run here.
+- Check the engineeringleaders.io/mcp/partnership route first: a broader elc-toolkit /mcp* route can steal it (see CLAUDE.md).
+- Pause the probe from its control-room page during a planned deploy or migration; it reports paused, not failed.
+- The code is src/index.ts and src/uptime.ts; redeploy with npm run deploy.
+inputs: []   # probes public URLs and its own handler; reads no other job's output and no stored data
+budget: null # n.a.: no LLM, credits or paid API

@@ -32,6 +32,7 @@ import { matchPackage } from "./core/match";
 import { partnershipOptions } from "./core/options";
 import { submitOffer, type SubmitEnv } from "./core/submit";
 import { docsHtml, type ToolDoc } from "./docs";
+import { uptimeTick, type UptimeCheck, type UptimeEnv } from "./uptime";
 import {
 	geoFromRequest,
 	instrumentMcpUsage,
@@ -885,43 +886,6 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
 	return new Response(`Not found. MCP endpoint: ${SITE}/mcp/partnership`, { status: 404 });
 }
 
-/**
- * Scheduled-run report → control-room (automation-visibility R-W, 2026-10-26), through the
- * CONTROL_ROOM service binding: a same-account workers.dev fetch 404s. A 15-min probe reports a
- * failure when it pages (2 consecutive bad ticks), plus one success a day: the first tick after
- * 00:00 UTC. REPORT_JOB_ID is set only by `wrangler deploy --var REPORT_JOB_ID:zz-...` for a test;
- * a zz- id reports every tick. Never throws.
- */
-async function reportProbe(env: Env, scheduledTime: number, started: number, total: number, failures: string[]) {
-	const cf = env as unknown as { CONTROL_ROOM?: Fetcher; CONTROL_ROOM_TOKEN?: string; REPORT_JOB_ID?: string };
-	const job = cf.REPORT_JOB_ID || "elc-partnership-builder";
-	if (!failures.length && scheduledTime % 86_400_000 >= 15 * 60_000 && !job.startsWith("zz-")) return;
-	if (!cf.CONTROL_ROOM || !cf.CONTROL_ROOM_TOKEN) return;
-	try {
-		const res = await cf.CONTROL_ROOM.fetch("https://control-room/report", {
-			method: "POST",
-			headers: { "content-type": "application/json", "x-report-token": cf.CONTROL_ROOM_TOKEN },
-			body: JSON.stringify({
-				run_id: `${job}:${scheduledTime}`,
-				job_id: job,
-				status: failures.length ? "failed" : "success",
-				runtime: "worker",
-				source: "worker",
-				host: "elc-partnership-builder",
-				finished_at: new Date().toISOString(),
-				duration_s: (Date.now() - started) / 1000,
-				exit_code: failures.length ? 1 : 0,
-				kpi: `${total - failures.length}/${total} uptime checks ok`,
-				kpi_pass: failures.length ? "no" : "yes",
-				detail: failures.length ? failures.join(" · ").slice(0, 1000) : "daily summary: uptime probe every 15 min",
-			}),
-		});
-		if (!res.ok) console.error("run report failed", res.status);
-	} catch (e) {
-		console.error("run report failed", String(e));
-	}
-}
-
 const workerHandlers = {
 	fetch: handleFetch,
 
@@ -953,7 +917,6 @@ const workerHandlers = {
 	 * fresh isolate with no other memory — before paging Slack.)
 	 */
 	async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
-		const started = Date.now();
 		const probeInternal = async (url: string, init?: RequestInit) => {
 			const r = await handleFetch(new Request(url, init), env, ctx);
 			await r.body?.cancel().catch(() => {});
@@ -972,7 +935,7 @@ const workerHandlers = {
 			}
 		};
 
-		const checks: { name: string; run: () => Promise<boolean> }[] = [
+		const checks: UptimeCheck[] = [
 			{
 				name: "partnership docs GET (wildcard Accept)",
 				run: () => probeInternal(`${SITE}/mcp/partnership`, { headers: { accept: "*/*" } }),
@@ -997,43 +960,21 @@ const workerHandlers = {
 			},
 		];
 
-		const failures: string[] = [];
-		for (const c of checks) {
-			try {
-				// One retry before calling it a failure — absorbs a single transient blip without
-				// needing the cross-tick counter below.
-				if (!(await c.run()) && !(await c.run())) failures.push(c.name);
-			} catch (e) {
-				failures.push(`${c.name} (${String(e).slice(0, 80)})`);
+		// Pause flag, retry, the 2-tick paging rule and the control-room run report live in src/uptime.ts (tested there).
+		await uptimeTick(env as unknown as UptimeEnv, event.scheduledTime, ctx, checks, async (streak, failures) => {
+			const cf = env as unknown as { SLACK_BOT_TOKEN_ELC?: string; SLACK_PARTNERS_CHANNEL?: string };
+			if (cf.SLACK_BOT_TOKEN_ELC && cf.SLACK_PARTNERS_CHANNEL) {
+				await fetch("https://slack.com/api/chat.postMessage", {
+					method: "POST",
+					headers: { Authorization: `Bearer ${cf.SLACK_BOT_TOKEN_ELC}`, "content-type": "application/json; charset=utf-8" },
+					body: JSON.stringify({
+						channel: cf.SLACK_PARTNERS_CHANNEL,
+						text: `:rotating_light: MCP uptime probe failing (${streak} consecutive ticks): ${failures.join(" · ")} — registries health-check these URLs, fix before listings derank.`,
+						unfurl_links: false,
+					}),
+				}).catch((e) => console.error("uptime slack post failed", String(e)));
 			}
-		}
-
-		const STREAK_KEY = "uptime:consecutive-fail-count";
-		if (!failures.length) {
-			await env.UPTIME_STATE.delete(STREAK_KEY);
-			ctx.waitUntil(reportProbe(env, event.scheduledTime, started, checks.length, failures));
-			return;
-		}
-
-		console.error("[UPTIME_FAIL]", failures);
-		const prevStreak = Number((await env.UPTIME_STATE.get(STREAK_KEY)) ?? "0");
-		const streak = prevStreak + 1;
-		await env.UPTIME_STATE.put(STREAK_KEY, String(streak), { expirationTtl: 3600 });
-		if (streak < 2) return; // one bad tick alone doesn't page — wait for the next tick to confirm
-		ctx.waitUntil(reportProbe(env, event.scheduledTime, started, checks.length, failures));
-
-		const cf = env as unknown as { SLACK_BOT_TOKEN_ELC?: string; SLACK_PARTNERS_CHANNEL?: string };
-		if (cf.SLACK_BOT_TOKEN_ELC && cf.SLACK_PARTNERS_CHANNEL) {
-			await fetch("https://slack.com/api/chat.postMessage", {
-				method: "POST",
-				headers: { Authorization: `Bearer ${cf.SLACK_BOT_TOKEN_ELC}`, "content-type": "application/json; charset=utf-8" },
-				body: JSON.stringify({
-					channel: cf.SLACK_PARTNERS_CHANNEL,
-					text: `:rotating_light: MCP uptime probe failing (${streak} consecutive ticks): ${failures.join(" · ")} — registries health-check these URLs, fix before listings derank.`,
-					unfurl_links: false,
-				}),
-			}).catch((e) => console.error("uptime slack post failed", String(e)));
-		}
+		});
 	},
 };
 

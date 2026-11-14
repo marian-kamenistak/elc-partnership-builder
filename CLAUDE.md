@@ -16,7 +16,7 @@ no AI-channel percentage. Registered on the MCP Registry and Smithery.
 - TypeScript 6, zod 4, vitest 3, `@posthog/mcp` + `posthog-node`; chat via Claude API (`CHAT_MODEL` = `claude-sonnet-5`)
 - wrangler ^4.105, npm (pnpm lockfile also present)
 - KV `UPTIME_STATE` (`d07fc3148192400f890345abe1f05cca`); rate limiters `OFFER_RATE_LIMITER` (2001), `CHAT_RATE_LIMITER` (2002)
-- Cron `*/15 * * * *` uptime probe, Slack on failure only
+- Cron `*/15 * * * *` uptime probe (`src/uptime.ts`), Slack on failure only; reads the control-room pause flag first and reports each daily summary and failure as a v2 run (`src/run-report.ts`, vendored `src/vendor/automation-kit`)
 
 ## Run / build / deploy / test
 ```bash
