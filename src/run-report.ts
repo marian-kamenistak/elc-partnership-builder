@@ -71,12 +71,15 @@ export async function stepTick(t: Tick, step: StepSummary): Promise<void> {
 /**
  * The end report. A live run closes through its start event; a tick that was not live (a failure found on a quiet tick) sends the
  * end report alone with its steps summary, which control-room stores as the same audit log.
+ * Returns whether control-room took it, so a caller that has a fallback alert knows when it needs one.
  */
-export async function endTick(t: Tick, status: Status, fields: Partial<Omit<ReportInput, "job_id" | "status" | "run_id">> = {}): Promise<void> {
-	if (!t.opts) return;
+export async function endTick(t: Tick, status: Status, fields: Partial<Omit<ReportInput, "job_id" | "status" | "run_id">> = {}): Promise<boolean> {
+	if (!t.opts) return false;
 	const body = { version: t.version, duration_s: (Date.now() - t.t0) / 1000, ...fields };
-	if (t.run) await t.run.end(status, body);
-	else await report({ job_id: t.job, run_id: t.run_id, status, runtime: t.runtime, source: "worker", host: t.host, steps: t.steps, ...body }, t.opts);
+	const r = t.run
+		? await t.run.end(status, body)
+		: await report({ job_id: t.job, run_id: t.run_id, status, runtime: t.runtime, source: "worker", host: t.host, steps: t.steps, ...body }, t.opts);
+	return r.ok;
 }
 
 /** True for the first tick after 00:00 UTC, for a cron that fires every `everyMin` minutes. */
