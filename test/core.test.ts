@@ -137,7 +137,7 @@ describe("guardrails + options", () => {
 		expect(text).toContain("VAT excluded");
 		expect(text).toContain("max 10 partners");
 		expect(text).toContain("There is no discount");
-		expect(text).toContain("Marian Kamenistak confirms");
+		expect(text).toContain("Marian confirms");
 	});
 	// 2026-09-05 persona finding: a visitor quoting one 1,500 EUR newsletter section received the
 	// full membership terms — exclusivity across 8 categories, the annual partner cap, the
@@ -150,7 +150,7 @@ describe("guardrails + options", () => {
 		}
 		expect(oneoff).toContain("VAT excluded");
 		expect(oneoff).toContain("NOT FOR SALE");
-		expect(oneoff).toContain("Marian Kamenistak confirms");
+		expect(oneoff).toContain("Marian confirms");
 		// The count-based combo rule leads on this path rather than qualifying an absent rule.
 		expect(oneoff).toContain("only discount on one-off items is by count of QUALIFYING items");
 		// Phrasing changed in a325085 (2026-09-05) from "never apply it here"; that commit
@@ -179,7 +179,7 @@ describe("guardrails + options", () => {
 		expect(o.question_1.options.map((x) => x.id).sort()).toEqual(["hiring", "newsite", "product", "talent"]);
 		expect(o.question_2.options.map((x) => x.id)).toEqual(["free", "start", "solid", "exclusivity"]);
 		expect(o.not_for).toContain("/mentor/");
-		expect(o.community.members).toBe("3,300+");
+		expect(o.community.members).toBe("3,700+");
 	});
 });
 

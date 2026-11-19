@@ -211,6 +211,21 @@ export function availableItems(presetId: string, currentIds: string[]) {
 }
 
 /**
+ * What to do after a customize_package answer, tied to THIS basket (same pattern as fit.ts
+ * `next_tool`). `seatsPending`: a per-seat package priced without a headcount; `empty`/`free`
+ * change the route entirely.
+ */
+export function customizeNextTool(presetId: string, o: { seatsPending?: boolean; free?: boolean } = {}): string {
+	if (o.seatsPending) {
+		return `Ask how many people they are enrolling, then call customize_package again with the same preset_id "${presetId}", the same item_ids and seats. Do not quote the total above as their price.`;
+	}
+	if (o.free) {
+		return `The free layer needs no offer: give the link https://www.engineeringleaders.io/partner/membership/free/, or customize_package with a paid preset if they want more.`;
+	}
+	return `design_journey (preset_id "${presetId}", the item_ids on, start_month YYYY-MM) to lay out the year, build_business_case if the requester is not the one who approves the spend, or request_offer once they have confirmed the exact total. Re-run customize_package after every change they ask for.`;
+}
+
+/**
  * The AI-channel discount from catalog meta. Null when unconfigured or at 0% (fail closed: no
  * discount). 0% since 2026-10-05 (Marian): the AI channel is an option, not a discount, so every
  * caller falls back to list price and no copy may mention a percentage.

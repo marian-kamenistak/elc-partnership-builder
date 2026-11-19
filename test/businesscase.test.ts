@@ -152,7 +152,7 @@ describe("approval memo: the forwardable artifact", () => {
 		expect(m).toContain("Subject: Approval request");
 		expect(m).toContain("€14,000");
 		expect(m).toContain("€1,167 a month");
-		expect(m).toContain("Marian Kamenistak");
+		expect(m).toContain("founder, Marian.");
 		expect(m).toContain("Jana Novakova");
 		expect(m).toContain("Acme Fintech");
 	});

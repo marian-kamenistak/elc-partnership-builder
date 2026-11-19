@@ -27,9 +27,25 @@ import { approvalMemo, buildBusinessCase } from "./core/businesscase";
 import { fitToBudget } from "./core/fit";
 import { isSeatPriced, priceSeats, seatSpecFor } from "./core/seats";
 import { buildJourney } from "./core/journey";
-import { detectBoundaryConflicts, guardrailBlock, type GuardrailScope } from "./core/guardrails";
+import { detectBoundaryConflicts, type GuardrailScope } from "./core/guardrails";
 import { matchPackage } from "./core/match";
 import { partnershipOptions } from "./core/options";
+import {
+	renderBook,
+	renderBusinessCase,
+	renderCustomize,
+	renderError,
+	renderFit,
+	renderGetStarted,
+	renderJourney,
+	renderMatch,
+	renderOptions,
+	renderQuote,
+	renderReach,
+	renderSubmitted,
+	serverInstructions,
+	termsBrief,
+} from "./core/render";
 import { submitOffer, type SubmitEnv } from "./core/submit";
 import { docsHtml, type ToolDoc } from "./docs";
 import { uptimeTick, type UptimeCheck, type UptimeEnv } from "./uptime";
@@ -59,22 +75,27 @@ const READ_ONLY = {
 const ATTR_PATH = "/partner/";
 
 /**
- * Every successful tool response carries the fixed-terms block and the attribution footer.
+ * Tool responses are briefings (src/core/render.ts), not JSON dumps, and carry no
+ * `structuredContent`: some clients put both into context and the duplicate doubled every response
+ * (2026-11-19 audit). Machine consumers use the REST API and the chat, which read core data.
  *
- * Error responses do NOT (2026-08-20 persona testing): eleven simulated buyers each hit several
- * validation errors, and stapling twelve lines of VAT law, exclusivity caps and a discount
- * countdown onto `{"error": "unknown preset"}` read as nagging by the third repeat and as
- * desperate by the tenth. One tester named it the single most off-putting thing in the flow —
- * being pitched a deadline while still failing to describe their own problem. Terms belong on
- * priced answers, which is the only place they mean anything.
+ * `terms` is passed only by price and offer tools (`termsBrief`); the general rules live once in
+ * the server instructions. The attribution line rides on every successful response.
+ *
+ * Error responses carry neither terms nor attribution (2026-08-20 persona testing): eleven
+ * simulated buyers each hit several validation errors, and stapling VAT law, exclusivity caps and
+ * a discount countdown onto an error read as nagging by the third repeat and as desperate by the
+ * tenth. Terms belong on priced answers, which is the only place they mean anything.
  */
-function toolResult(payload: Record<string, unknown>, note?: string, scope: GuardrailScope = "membership") {
-	const isError = "error" in payload;
-	const body = [note, JSON.stringify(payload, null, 2), isError ? null : guardrailBlock(scope)].filter(Boolean).join("\n\n");
+function reply(text: string, terms?: string) {
 	return {
-		content: [{ type: "text" as const, text: body + (isError ? "" : ATTRIBUTION(ATTR_PATH)) }],
-		structuredContent: payload,
+		content: [{ type: "text" as const, text: [text, terms].filter(Boolean).join("\n\n") + ATTRIBUTION(ATTR_PATH) }],
 	};
+}
+
+/** An error that steers: what went wrong and how to fix it, no terms, no attribution. */
+function errorResult(payload: { error: string; message?: string }) {
+	return { content: [{ type: "text" as const, text: renderError(payload) }] };
 }
 
 /**
@@ -83,24 +104,18 @@ function toolResult(payload: Record<string, unknown>, note?: string, scope: Guar
  *
  * `probe` is the difference between a caller asking what the tool wants and a caller getting it
  * wrong, and the two deserve different answers: a bare `{}` is a question and comes back as a
- * normal result carrying the field menu, while arguments that were supplied and rejected stay an
- * error. Both go out under an `error` key, which is what suppresses the fixed-terms block and the
- * attribution footer — the 2026-08-20 persona finding in `toolResult` applies exactly here, since
- * a message whose entire content is "these are the arguments" is the last place to attach a
- * discount countdown.
+ * normal result carrying the field menu (readable text, not a Zod dump), while arguments that were
+ * supplied and rejected stay an error. Neither carries terms or attribution: a message whose entire
+ * content is "these are the arguments" is the last place to attach a discount countdown.
  */
 function guidance(parsed: Extract<ParseResult<unknown>, { ok: false }>) {
-	const result = toolResult({
-		error: parsed.probe ? "arguments_needed" : "invalid_arguments",
-		message: parsed.message,
-	});
-	return parsed.probe ? result : { ...result, isError: true as const };
+	if (parsed.probe) return { content: [{ type: "text" as const, text: parsed.message }] };
+	return { ...errorResult({ error: "invalid_arguments", message: parsed.message }), isError: true as const };
 }
 
-/** Staples `ignoredNotice` onto a finished answer. `toolResult` has no trailing-text slot — its
- *  `note` is a lead-in, printed above the JSON — and the notice has to read AFTER the answer it
+/** Staples `ignoredNotice` onto a finished answer. The notice has to read AFTER the answer it
  *  qualifies ("the answer above"), so it is appended to the rendered text here. */
-function withIgnored(result: ReturnType<typeof toolResult>, notice: string) {
+function withIgnored(result: ReturnType<typeof reply>, notice: string) {
 	if (!notice) return result;
 	return {
 		...result,
@@ -115,15 +130,7 @@ const CONFERENCE_MCP = "https://mcp.elc-conference.io/mcp";
 /** Shared by both `get_started` and `get_more_tools`'s greeting branch (see below) — one
  *  source of truth for the menu text so the two entry points never drift apart. */
 function getStartedResult() {
-	const menu = TOOL_DOCS.map(
-		(d) => `- "${d.question}" → \`${d.name}\`: ${d.description}`,
-	).join("\n");
-	return toolResult({
-		what: "This is the Engineering Leaders Community Partnership Builder — it composes and prices a company membership package with ELC, and quotes single one-off items (a newsletter classified, a hosted meetup, a dinner) for companies that want one thing once.",
-		menu,
-		start_here: "For a company considering a year-long membership, call get_partnership_options next. For one thing once, call get_reach_options.",
-		conference: `ELC Conference 2027 partner packages and tickets are not sold here: they have their own MCP server, ${CONFERENCE_MCP}`,
-	});
+	return reply(renderGetStarted(TOOL_DOCS, CONFERENCE_MCP));
 }
 
 /** Matches a bare liveness/greeting ping — "hi", "test", "are you there" — as opposed to a
@@ -139,52 +146,18 @@ const GREETING_PING =
 /**
  * Slack response summary for this server specifically.
  *
- * The shared `defaultSummarize` takes the first text block, which everywhere else is prose. Here
- * `toolResult` makes the primary text a `JSON.stringify(payload, null, 2)` blob, so the channel's
- * `→ …` line rendered as `{ "what": "This is the Engineering Leaders Community Partnership…` —
- * two hundred characters of punctuation saying nothing about what the visitor was quoted. This is
- * what `McpUsageConfig.summarize` exists for (open follow-up from the 2026-09-04 Plan 1 run).
- *
- * Reads `structuredContent`, which is the same payload without the stringify.
+ * Every briefing opens with its one-line verdict (src/core/render.ts), so the summary is that
+ * first line: "Business case for Hiring: €14,000 for the year; pays for itself at 2 senior hires".
+ * It used to read `structuredContent`, which the briefings no longer carry. Errors open with
+ * "Problem:" and get the warning marker. Cut before the attribution and capped at 200 characters.
  */
 function summarizePartnership(_toolName: string, response: unknown): string | undefined {
-	const payload = (response as { structuredContent?: unknown })?.structuredContent;
-	if (!payload || typeof payload !== "object" || Array.isArray(payload)) return undefined;
-	const p = payload as Record<string, unknown>;
-
-	if (typeof p.error === "string") {
-		const detail = typeof p.message === "string" ? p.message.split("\n")[0] : "";
-		return `:warning: ${p.error}${detail ? ` — ${detail}` : ""}`;
-	}
-
-	// The keys worth seeing at a glance, most specific first — a price beats a package name,
-	// a package name beats a generic blurb.
-	const HEADLINE = [
-		"total_eur",
-		"annual_total_eur",
-		"price_eur",
-		"quoted_total_eur",
-		"preset_id",
-		"package",
-		"tier",
-		"verdict",
-		"status",
-		"what",
-	];
-	const parts: string[] = [];
-	for (const key of HEADLINE) {
-		const value = p[key];
-		if (value === undefined || value === null || value === "" || typeof value === "object") continue;
-		parts.push(`${key}: ${String(value)}`);
-		if (parts.length >= 3) break;
-	}
-	if (parts.length === 0) {
-		// Nothing recognised — say what came back rather than dumping it.
-		const keys = Object.keys(p).slice(0, 6);
-		if (keys.length === 0) return undefined;
-		return `returned ${keys.join(", ")}`;
-	}
-	const line = parts.join(" · ");
+	const content = (response as { content?: { type?: string; text?: string }[] })?.content;
+	const text = content?.find((b) => b?.type === "text")?.text;
+	if (!text) return undefined;
+	const first = text.split("\n").find((l) => l.trim())?.replace(/^#+\s*/, "").trim();
+	if (!first) return undefined;
+	const line = first.startsWith("Problem:") ? `:warning: ${first.slice("Problem:".length).trim()}` : first;
 	return line.length > 200 ? `${line.slice(0, 200)}…` : line;
 }
 
@@ -295,7 +268,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 			version: "1.0.0",
 		},
 		{
-			instructions: `Engineering Leaders Community (ELC) partnership builder: year-round company membership and one-off reach items with the community, priced from the published catalog. ELC Conference 2027 partner packages (Partner, Luminary, Navigator, Pioneer and their add-ons) and conference tickets are a separate offer with their own MCP server: ${CONFERENCE_MCP}. Point users there for anything about partnering with or attending the conference day.`,
+			instructions: serverInstructions(CONFERENCE_MCP),
 		},
 	);
 
@@ -359,7 +332,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				// which is exactly what made the no-argument call this menu exists for fail.
 				inputSchema: permissiveShape({}),
 			},
-			async () => toolResult(reachOptions(), undefined, "oneoff"),
+			async () => reply(renderReach(reachOptions())),
 		);
 
 		this.server.registerTool(
@@ -376,37 +349,8 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				if (!parsed.ok) return guidance(parsed);
 				const { oneoff_ids, speaker_rungs } = parsed.data;
 				const q = quoteOneoffs(oneoff_ids, { speaker_rungs });
-				if (!q.items.length) return toolResult({ error: `no known one-offs in ${JSON.stringify(oneoff_ids)} — valid: ${ONEOFF_IDS.join(", ")}` });
-				const membershipHint =
-					q.items.length >= 3
-						? "Three or more one-offs is usually the point where a company membership costs less for more. Say so and offer get_partnership_options; the one-offs are 100% credited if they take it."
-						: undefined;
-				return withIgnored(
-					toolResult({
-					...q,
-					list_total_display: eur(q.list_total),
-					total_display: `${eur(q.total)} one-off, excl. VAT`,
-					// State the base, always. "15% off" against the list total does not reconcile by
-					// hand whenever a non-qualifying item is in the basket, and a CFO who cannot
-					// reproduce a number stops trusting every other number in the quote.
-					discount_basis: q.combo
-						? `${q.combo.pct}% applies to the ${q.combo.qualifying_items} qualifying item(s) only — ${eur(q.combo.saved)} off. Job board listings never count toward the threshold and are never discounted, so this will not reconcile against the list total.`
-						: `No combo discount: ${q.items.filter((i) => i.counts_toward_combo).length} qualifying item(s), and the lowest threshold is ${Math.min(...(meta.oneoff?.combo_discounts ?? [{ min_items: 2 }]).map((c) => c.min_items))}. Job board listings never count toward it and are never discounted.`,
-					...(q.duplicate_ids.length
-						? {
-								duplicate_note: `Sent more than once and counted once: ${q.duplicate_ids.join(", ")}. Each one-off is a single placement sold once — to run the same placement repeatedly, say so and it is quoted as separate dated placements, not by repeating the id.`,
-							}
-						: {}),
-					...(q.unknown_rungs.length ? { unknown_rungs_note: `Not on the speaker programme ladder, ignored: ${q.unknown_rungs.join(", ")}.` } : {}),
-					credit_note: `100% credited against a company membership signed within ${q.credit_days} days.`,
-					...(membershipHint ? { membership_hint: membershipHint } : {}),
-						next: "book_intro_call to fix the date with Marian.",
-					},
-					undefined,
-					"oneoff",
-					),
-					ignoredNotice("quote_reach_combo", parsed.ignored, QUOTE_REACH_SHAPE),
-				);
+				if (!q.items.length) return errorResult({ error: `no known one-offs in ${JSON.stringify(oneoff_ids)}`, message: `Valid ids: ${ONEOFF_IDS.join(", ")}. Call get_reach_options for what each one is.` });
+				return withIgnored(reply(renderQuote(q), termsBrief("oneoff")), ignoredNotice("quote_reach_combo", parsed.ignored, QUOTE_REACH_SHAPE));
 			},
 		);
 
@@ -421,7 +365,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				// which is exactly what made the no-argument call this menu exists for fail.
 				inputSchema: permissiveShape({}),
 			},
-			async () => toolResult(partnershipOptions()),
+			async () => reply(renderOptions(partnershipOptions())),
 		);
 
 		this.server.registerTool(
@@ -438,12 +382,9 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				if (!parsed.ok) return guidance(parsed);
 				const { goal, budget } = parsed.data;
 				const result = matchPackage(goal, budget);
-				if (!result.ok) return toolResult({ error: result.error });
+				if (!result.ok) return errorResult({ error: result.error });
 				return withIgnored(
-					toolResult(
-						{ matches: result.matches },
-						result.matches.length > 1 ? "Two ways to start. Both real — present both." : undefined,
-					),
+					reply(renderMatch(result.matches, goal, budget), termsBrief("membership", result.matches.length === 1 ? result.matches[0].preset_id : undefined)),
 					ignoredNotice("match_package", parsed.ignored, MATCH_PACKAGE_SHAPE),
 				);
 			},
@@ -463,15 +404,15 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				if (!parsed.ok) return guidance(parsed);
 				const { preset_id, item_ids, seats } = parsed.data;
 				const preset = presetById(preset_id);
-				if (!preset) return toolResult({ error: `unknown preset "${preset_id}" — valid: ${PRESET_IDS.join(", ")}` });
+				if (!preset) return errorResult({ error: `unknown preset "${preset_id}"`, message: `Valid presets: ${PRESET_IDS.join(", ")}.` });
 				// An empty basket used to price a €12,000 package as "Free" (2026-08-20 persona testing:
 				// every one of eleven testers hit this, and several briefly believed it). A paid preset
 				// rendering as €0 is the worst failure mode a configurator has, so it is now a guiding
 				// error instead of a confident wrong answer.
 				if (!item_ids.length) {
-					return toolResult({
+					return errorResult({
 						error: "empty_basket",
-						message: `Nothing is selected, so there is nothing to price — this is NOT a free package. ${preset.name} lists at ${eur(preset.price)}. Pass default_item_ids from match_package to price the standard bundle, then toggle from there.`,
+						message: `Nothing is selected, so there is nothing to price — this is NOT a free package. ${preset.name} lists at ${eur(preset.price)}. Pass the item_ids from match_package to price the standard bundle, then toggle from there.`,
 					});
 				}
 				const { standard, addons, total } = resolveBasket(preset_id, item_ids);
@@ -485,48 +426,32 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				// finds out until kickoff (2026-08-20 persona finding). When a headcount is given, seats are
 				// the price; when it is not, say so rather than letting the bundle figure stand as a quote.
 				const seatPricing = isSeatPriced(preset_id) && seats !== undefined ? priceSeats(preset_id, seats) : null;
-				if (seatPricing && "error" in seatPricing) return toolResult(seatPricing as unknown as Record<string, unknown>);
+				if (seatPricing && "error" in seatPricing) return errorResult(seatPricing);
 				const effectiveTotal = seatPricing ? seatPricing.total : total;
 				const d = discountFor(effectiveTotal, "mcp", preset_id);
+				const creditNote =
+					!d && isCreditPreset(preset_id) && total > 0
+						? `${preset.name} is 100% credited against a company membership signed within 90 days.${aiDiscount() ? ` The credit is its discount: the ${aiDiscount()!.pct}% AI-channel discount does not stack on top (it applies to the yearly packages).` : ""}`
+						: null;
 				return withIgnored(
-					toolResult({
-					...(seatPricing
-						? { seat_pricing: seatPricing }
-						: isSeatPriced(preset_id)
-							? {
-								seats_not_yet_known: {
-									minimum_seats: seatSpecFor(preset_id)?.minimum_seats,
-									note: `${preset.name} is priced per seat. The total below is the ${seatSpecFor(preset_id)?.minimum_seats}-seat entry only. Ask how many people they are enrolling, then call again with seats — do not present this figure as their price.`,
-								},
-								}
-							: {}),
-					...(dropped.length
-						? {
-							not_available_in_this_package: {
-								item_ids: dropped,
-								note: `Not sold in ${preset.name}, so NOT included in the total below. Tell the visitor plainly rather than letting them assume it is in there — some items exist only in other packages.`,
-							},
-							}
-						: {}),
-					preset: { id: preset_id, name: preset.name, bundle_price: preset.price },
-					selected: { standard, addons },
-					total: effectiveTotal,
-					total_display: seatPricing ? seatPricing.total_display : effectiveTotal === 0 ? "Free" : `${eur(effectiveTotal)} / year, excl. VAT`,
-					...(d
-						? {
-								ai_channel_discount: {
-									pct: d.pct,
-									price_after_discount: d.discounted,
-									note: `Applied automatically when the inquiry is sent through this AI channel (request_offer). Present both figures.`,
-								},
-							}
-						: isCreditPreset(preset_id) && total > 0
-							? {
-									credit_note: `${preset.name} is 100% credited against a company membership signed within 90 days.${aiDiscount() ? ` The credit is its discount — the ${aiDiscount()!.pct}% AI-channel discount does not stack on top (it applies to the yearly packages).` : ""}`,
-								}
-							: {}),
-					available_to_add: availableItems(preset_id, item_ids),
-					}),
+					reply(
+						renderCustomize({
+							presetId: preset_id,
+							presetName: preset.name,
+							bundlePrice: preset.price,
+							standard,
+							addons,
+							total: effectiveTotal,
+							totalDisplay: seatPricing ? seatPricing.total_display : effectiveTotal === 0 ? "Free" : `${eur(effectiveTotal)} / year, excl. VAT`,
+							discount: d,
+							seatPricing,
+							seatsPending: !seatPricing && isSeatPriced(preset_id) ? { minimumSeats: seatSpecFor(preset_id)?.minimum_seats } : null,
+							dropped,
+							creditNote,
+							available: availableItems(preset_id, item_ids),
+						}),
+						termsBrief("membership", preset_id),
+					),
 					ignoredNotice("customize_package", parsed.ignored, CUSTOMIZE_PACKAGE_SHAPE),
 				);
 			},
@@ -538,7 +463,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 					title: "Book an intro meeting with Marian (the human ending)",
 					annotations: { ...READ_ONLY },
 					description:
-						"The second legitimate ending besides request_offer: a direct booking link for a 1:1 intro meeting with Marian Kamenistak, ELC's founder. Offer it whenever the visitor hesitates, wants a human, or the package needs tailoring beyond the catalog. No contact details collected here — the booking page handles everything. Pass preset_id and item_ids if a package was composed: the response then carries a paste-ready booking note, so the call starts from their numbers instead of from scratch.",
+						"The second legitimate ending besides request_offer: a direct booking link for a 1:1 intro meeting with Marian, ELC's founder. Offer it whenever the visitor hesitates, wants a human, or the package needs tailoring beyond the catalog. No contact details collected here — the booking page handles everything. Pass preset_id and item_ids if a package was composed: the response then carries a paste-ready booking note, so the call starts from their numbers instead of from scratch.",
 					inputSchema: permissiveShape(BOOK_INTRO_CALL_SHAPE),
 				},
 				// 2026-08-20: this used to return a bare link plus a tip telling the visitor to remember
@@ -554,39 +479,28 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 					// branch below; only supplied-and-wrong arguments are an error.
 					if (!parsed.ok && !parsed.probe) return guidance(parsed);
 					const { preset_id, item_ids } = parsed.ok ? parsed.data : { preset_id: undefined, item_ids: undefined };
-					const base = {
-						booking_url: "https://app.reclaim.ai/m/meet-marian/now",
-						what: "Direct calendar booking, 30 minutes with Marian. No form before it, no qualification call script — the conversation starts from whatever was built here.",
-						also: "Not ready for either? The free layer runs today, no invoice: https://www.engineeringleaders.io/partner/membership/free/",
-					};
-					if (!preset_id || !item_ids?.length) {
-						return toolResult({
-							...base,
-							tip: "No package composed yet — that is fine, the call can start from the two questions. If one gets built first, call this tool again with the basket so the booking note carries it.",
-						});
-					}
+					const bookingUrl = "https://app.reclaim.ai/m/meet-marian/now";
+					const freeUrl = "https://www.engineeringleaders.io/partner/membership/free/";
+					if (!preset_id || !item_ids?.length) return reply(renderBook({ bookingUrl, freeUrl }));
 					const preset = presetById(preset_id);
 					const { standard, addons, total } = resolveBasket(preset_id, item_ids);
 					const d = discountFor(total, "mcp", preset_id);
 					const count = standard.length + addons.length;
+					const name = preset?.name ?? preset_id;
 					return withIgnored(
-						toolResult({
-						...base,
-						composed_package: {
-							package: preset?.name ?? preset_id,
-							items: count,
-							list_total: total,
-							...(d ? { ai_channel_total: d.discounted, discount_pct: d.pct } : {}),
-						},
-						booking_note: `${preset?.name ?? preset_id} package, ${count} items, ${eur(d ? d.discounted : total)}/year${d ? ` (incl. ${d.pct}% AI-channel discount)` : ""}. Built with the ELC membership builder.`,
-						tip: "Give the visitor the booking_note verbatim and tell them to paste it into the booking form's note field. That is what carries their basket to Marian — do not rely on them remembering it.",
-						...(d
-							? {
-									discount_caveat:
-										"Booking a call does not itself lock the AI-channel discount; sending the offer through request_offer is what registers it. Say so plainly rather than implying the call preserves it.",
-								}
-							: {}),
-						}),
+						reply(
+							renderBook({
+								bookingUrl,
+								freeUrl,
+								composed: {
+									name,
+									count,
+									listTotal: total,
+									discount: d,
+									note: `${name} package, ${count} items, ${eur(d ? d.discounted : total)}/year${d ? ` (incl. ${d.pct}% AI-channel discount)` : ""}. Built with the ELC membership builder.`,
+								},
+							}),
+						),
 						ignoredNotice("book_intro_call", parsed.ok ? parsed.ignored : [], BOOK_INTRO_CALL_SHAPE),
 					);
 				},
@@ -605,10 +519,9 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 					const parsed = parseArgs("fit_to_budget", FIT_TO_BUDGET_SHAPE, raw);
 					if (!parsed.ok) return guidance(parsed);
 					const { preset_id, budget, must_have, against } = parsed.data;
-					return withIgnored(
-						toolResult(fitToBudget({ preset_id, budget, must_have, against }) as unknown as Record<string, unknown>),
-						ignoredNotice("fit_to_budget", parsed.ignored, FIT_TO_BUDGET_SHAPE),
-					);
+					const fit = fitToBudget({ preset_id, budget, must_have, against });
+					if ("error" in fit) return errorResult({ error: String(fit.error) });
+					return withIgnored(reply(renderFit(fit), termsBrief("membership", preset_id)), ignoredNotice("fit_to_budget", parsed.ignored, FIT_TO_BUDGET_SHAPE));
 				},
 			);
 
@@ -626,14 +539,9 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 					if (!parsed.ok) return guidance(parsed);
 					const { preset_id, item_ids, company, requester_name, open_senior_roles, avg_first_year_salary, kpis } = parsed.data;
 					const c = buildBusinessCase({ preset_id, item_ids, company, open_senior_roles, avg_first_year_salary, kpis });
-					if ("error" in c) return toolResult(c as Record<string, unknown>);
+					if ("error" in c) return errorResult({ error: String(c.error) });
 					return withIgnored(
-						toolResult({
-							...(c as unknown as Record<string, unknown>),
-							approval_memo: approvalMemo(c, requester_name),
-							approval_memo_usage:
-								"Offer this as something they can forward as-is. Do not rewrite the numbers into prose of your own; hand it over whole, then ask whether they want it sent with the offer.",
-						}),
+						reply(renderBusinessCase(c, approvalMemo(c, requester_name), avg_first_year_salary !== undefined), termsBrief("membership", preset_id)),
 						ignoredNotice("build_business_case", parsed.ignored, BUILD_BUSINESS_CASE_SHAPE),
 					);
 				},
@@ -653,20 +561,12 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				if (!parsed.ok) return guidance(parsed);
 				const { preset_id, item_ids, start_month } = parsed.data;
 				const items = journeyItemsFor(preset_id, item_ids);
-				if (!items.length) return toolResult({ error: "empty_basket — pass the item_ids from customize_package" });
+				if (!items.length) return errorResult({ error: "empty_basket", message: "Pass the item_ids from customize_package." });
 				try {
 					const journey = buildJourney(items, start_month);
-					return withIgnored(
-						toolResult({
-							...journey,
-							note: "Deterministic skeleton. Present it as the year this basket buys; items without scheduling metadata yet were placed as flexible one-offs.",
-							scheduling_caveat:
-								"Event months (hosted meetups, dinners, stage slots) are planning targets, not booked dates — ELC runs a shared events calendar across all partners, so the exact slot is confirmed with Marian at signing. Carry this caveat whenever you present the months.",
-						}),
-						ignoredNotice("design_journey", parsed.ignored, DESIGN_JOURNEY_SHAPE),
-					);
+					return withIgnored(reply(renderJourney(journey, items.length)), ignoredNotice("design_journey", parsed.ignored, DESIGN_JOURNEY_SHAPE));
 				} catch (e) {
-					return toolResult({ error: String(e instanceof Error ? e.message : e) });
+					return errorResult({ error: String(e instanceof Error ? e.message : e) });
 				}
 			},
 		);
@@ -690,7 +590,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				if (!parsed.ok) return guidance(parsed);
 				const { name, email, company, kpis, visibility_interest, final_price_confirmed, preset_id, item_ids } = parsed.data;
 				if (final_price_confirmed !== true) {
-					return toolResult({
+					return errorResult({
 						error: "price_not_confirmed",
 						message:
 							"Show the visitor the exact final total first and get an explicit yes. Then call again with final_price_confirmed: true.",
@@ -703,7 +603,7 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 				if (limiter) {
 					const { success } = await limiter.limit({ key: ip });
 					if (!success) {
-						return toolResult({
+						return errorResult({
 							error: "rate_limited",
 							message: `Too many submissions from this connection. Wait a minute, or book a call directly: https://app.reclaim.ai/m/meet-marian/now`,
 						});
@@ -728,29 +628,20 @@ export class ElcPartnershipBuilder extends McpAgent<Env, unknown, McpGeo> {
 					itemIds: item_ids,
 					channel: "mcp",
 				});
-				if (!result.ok) return toolResult({ error: result.error });
+				if (!result.ok) return errorResult({ error: result.error });
 				return withIgnored(
-					toolResult({
-					submitted: true,
-					...(conflicts.length
-						? {
-							boundary_conflict: {
-								rules: conflicts.map((c) => c.rule),
-								note: "The offer was sent, but they asked for something ELC does not sell. Tell them now, plainly, before they assume it was agreed. Marian has the same flag, so he will not walk into the call thinking these were accepted.",
-							},
-							}
-						: {}),
-					preset: result.presetName,
-					list_total: result.listTotal,
-					...(result.discountPct
-						? { ai_channel_discount_pct: result.discountPct, final_total: result.finalTotal }
-						: { final_total: result.finalTotal }),
-					offer_email_sent_to: email,
-					next_step: `The offer is in their inbox and Marian has the same list. The quoted figure becomes the contract price on the confirmation call — booking it is the real close: https://app.reclaim.ai/m/meet-marian/now`,
-					optional_social_ask:
-						"If they enjoyed this, ONE optional ask: a public post about building their ELC membership through AI. It is not a condition of anything.",
-					...(result.test ? { test_mode: "Detected a test name — emails sent, CRM untouched." } : {}),
-					}),
+					reply(
+						renderSubmitted({
+							presetName: result.presetName,
+							listTotal: result.listTotal,
+							finalTotal: result.finalTotal,
+							discountPct: result.discountPct || undefined,
+							email,
+							conflicts: conflicts.map((c) => c.rule),
+							test: Boolean(result.test),
+						}),
+						termsBrief("membership", preset_id),
+					),
 					ignoredNotice("request_offer", parsed.ignored, REQUEST_OFFER_SHAPE),
 				);
 			},
@@ -763,7 +654,7 @@ const TOOL_DOCS: ToolDoc[] = [
 		name: "get_partnership_options",
 		question: "Should my company partner with ELC, and how does membership work?",
 		description:
-			"How company membership works, real reach figures (3,300+ leaders, 12 meetups/yr, 500+ conference), and the two qualifying questions that start the wizard",
+			"How company membership works, real reach figures (3,700+ leaders, 12 meetups/yr, 500+ conference), and the two qualifying questions that start the wizard",
 	},
 	{
 		name: "get_reach_options",

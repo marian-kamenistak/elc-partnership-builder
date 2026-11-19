@@ -91,7 +91,7 @@ export function guardrailLines(scope: GuardrailScope = "membership"): string[] {
 		// why_elc as an objection-handling script, so a VP Sales who never objected never met it and
 		// had four community-destroying demands accepted without a word.
 		`NOT FOR SALE, at any price: pitching from an ELC stage, member contact data for outbound, and introductions for selling a product. Hiring introductions ARE sold (Intro sprint, Hiring Meetup, Talent reach, since 2026-10-20), and only ever double opt-in: Marian asks the candidate first. ELC is free for engineering leaders and funded by company members, which is why the room is senior and why people come back. A room that gets sold to stops being that room. If a visitor asks for any of these, say no plainly and say why, and never let an offer imply otherwise.`,
-		`Nothing here is a contract. Marian Kamenistak confirms all final terms on a call.`,
+		`Nothing here is a contract. Marian confirms all final terms on a call.`,
 	];
 }
 

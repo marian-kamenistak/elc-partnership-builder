@@ -13,8 +13,9 @@ export function andJoin(items: readonly string[]): string {
 }
 
 export const ELC_FACTS = {
-	members: 3100,
-	membersLabel: "3,300+",
+	// Data Points key `elc_community.members` (Notion registry, read 2026-11-19): display "3,700+".
+	members: 3700,
+	membersLabel: "3,700+",
 	meetupsPerYear: 12,
 	meetupsHeld: "40+",
 	meetupAttendance: 120,

@@ -455,7 +455,7 @@ export function approvalMemo(caseData: ReturnType<typeof buildBusinessCase>, req
 	for (const a of c.assumptions) L.push(`- ${a}`);
 	L.push("");
 	L.push(
-		`Terms: prices are fixed, EUR, VAT excluded. Nothing is committed until a call with ELC's founder, Marian Kamenistak. Details: https://www.engineeringleaders.io/partner/`,
+		`Terms: prices are fixed, EUR, VAT excluded. Nothing is committed until a call with ELC's founder, Marian. Details: https://www.engineeringleaders.io/partner/`,
 	);
 	if (requesterName) {
 		L.push("");

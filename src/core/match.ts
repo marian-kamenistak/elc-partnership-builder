@@ -28,6 +28,8 @@ export type Match = {
 	 */
 	default_items: { id: string; name: string; price: number; foundation: boolean }[];
 	summary: string;
+	/** What to call next, tied to this match (same pattern as fit.ts `next_tool`). */
+	next_tool: string;
 };
 
 export function matchPackage(goal: string, budget: string): { ok: true; matches: Match[] } | { ok: false; error: string } {
@@ -90,6 +92,10 @@ export function matchPackage(goal: string, budget: string): { ok: true; matches:
 					: isCreditPreset(p.id)
 						? `${p.name} at ${eur(total)}, 100% credited against a company membership signed within 90 days.${aiDiscount() ? ` The credit is its discount — the ${aiDiscount()!.pct}% AI-channel discount applies to the yearly packages but does not stack here.` : ""}`
 						: `${p.name} at ${eur(total)} with every standard item on${d ? `, ${eur(d.discounted)} through this AI channel` : ""}. Toggle off what you do not need — the total moves with you.`,
+			next_tool:
+				p.id === "free"
+					? "Give the visitor the free-layer link, https://www.engineeringleaders.io/partner/membership/free/. If they want more than the free layer, re-ask the budget question, or book_intro_call."
+					: `customize_package with preset_id "${p.id}" and the item_ids above to toggle line items; fit_to_budget if the visitor names an exact figure; request_offer to send it as it is.`,
 		};
 	});
 	return { ok: true, matches };

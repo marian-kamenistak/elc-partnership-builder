@@ -69,7 +69,7 @@ export function partnershipOptions() {
 				}
 			: {}),
 		who_this_is_for:
-			"Companies who want something from a room of 3,300+ engineering leaders in Central Europe: hiring senior people, developing their own leaders, or putting a product in front of decision-makers. Typical people running this conversation: HR, CTO, employer branding.",
+			"Companies who want something from a room of 3,700+ engineering leaders in Central Europe: hiring senior people, developing their own leaders, or putting a product in front of decision-makers. Typical people running this conversation: HR, CTO, employer branding.",
 		not_for:
 			`Individuals looking for a mentor for themselves: that is not a company package, send them to ${SITE}/mentor/ instead of continuing this flow.${liveMemberOffers()
 				.map((o) => ` An individual leader who wants a seat for themselves, paid personally: ${o.name}, ${eur(o.price)} ${o.unit === "per_year" ? "a year" : o.unit.replace("_", " ")}${o.cta_url ? `, ${o.cta_url}` : ""}. That is a member offer, not a company package.`)
@@ -106,7 +106,7 @@ export function partnershipOptions() {
 			vs_recruiters_basis:
 				"Carry the basis whenever you use the 2.7 figure: ELC-tracked from Marian's intros that converted to a hire. The named partner outcomes below are individual cases inside that total, not the whole of it.",
 			vs_own_events:
-				"40+ meetups since 2019, the same 3,300+ people, every month. One event of your own buys one audience once; a year here compounds into the same room seeing you twelve times.",
+				"40+ meetups since 2019, the same 3,700+ people, every month. One event of your own buys one audience once; a year here compounds into the same room seeing you twelve times.",
 			vs_conference_booths:
 				"No booths, no badge scanners, no paid talks. A hosted meetup puts your engineer on stage in your own office with 80 to 150 senior leaders registered — a peer on a stage, not a vendor at a stand. Registrations are what ELC measures and promises, never a head count.",
 			proof:
