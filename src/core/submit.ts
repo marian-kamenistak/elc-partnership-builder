@@ -288,7 +288,7 @@ export async function submitOffer(env: SubmitEnv, input: SubmitInput): Promise<S
 				method: "POST",
 				headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "content-type": "application/json" },
 				body: JSON.stringify({
-					from: `Marian Kamenistak <${notifyFrom}>`,
+					from: `Marian @ ELC <${notifyFrom}>`,
 					to: email,
 					subject: `Your ${presetName} offer: ${eur(finalTotal)} / year`,
 					reply_to: notifyFrom,
@@ -433,7 +433,7 @@ function offerEmailHtml(args: {
         </td></tr>
       </table>
       <p style="margin:30px 0 4px;font-size:15px;line-height:1.65;color:#d8cfc4;">See you on the call.</p>
-      <p style="margin:0;font-size:15px;line-height:1.5;color:#f5f0eb;font-weight:600;">Marian Kamenistak</p>
+      <p style="margin:0;font-size:15px;line-height:1.5;color:#f5f0eb;font-weight:600;">Marian</p>
       <p style="margin:0;font-size:13px;line-height:1.5;color:#8a857f;">Founder @ ELC</p>
     </td></tr>
     <tr><td align="center" style="padding:24px 20px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
